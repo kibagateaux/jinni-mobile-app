@@ -1,0 +1,67 @@
+{
+  "extends": [
+    "expo/tsconfig.base"
+  ],
+  "compilerOptions": {
+    "jsx": "react-native",
+    "baseUrl": "./src",
+    "paths": {
+      "assets": [
+        "assets/"
+      ],
+      "assets/*": [
+        "assets/*"
+      ],
+      "components": [
+        "components/"
+      ],
+      "components/*": [
+        "components/*"
+      ],
+      "contexts": [
+        "contexts/"
+      ],
+      "contexts/*": [
+        "contexts/*"
+      ],
+      "hooks": [
+        "hooks/"
+      ],
+      "hooks/*": [
+        "hooks/*"
+      ],
+      "screens": [
+        "app/"
+      ],
+      "screens/*": [
+        "app/*"
+      ],
+      "types": [
+        "types/"
+      ],
+      "types/*": [
+        "types/*"
+      ],
+      "utils": [
+        "utils/"
+      ],
+      "utils/*": [
+        "utils/*"
+      ],
+      "stream": ["./node_modules/readable-stream"]
+    },
+    "target": "es2021",
+    "module": "ESNext",
+    "allowJs": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}
