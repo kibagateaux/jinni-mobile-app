@@ -64,9 +64,9 @@ export interface InventoryItem {
     name: string;
     image: string;
     attributes: StatsAttribute[];
-    equipped: boolean;
     dataSourceProvider: string;
     installLink?: string;
+    isEquipped: () => Promise<boolean>;
     equip?: () => Promise<boolean>;
     unequip?: () => Promise<boolean>;
     actions?: InventoryAction[];

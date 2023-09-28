@@ -10,7 +10,7 @@ import {
 } from '../types/GameMechanics';
 import { getConfig } from 'expo/config';
 
-import { ID_ANON_SLOT, PROOF_MASTER_DJINN_SLOT, saveId, signWithId } from './zkpid';
+import { ID_ANON_SLOT, PROOF_MASTER_DJINN_SLOT, getId, saveId, signWithId } from './zkpid';
 
 type AppConfig = {
     API_URL: string;
@@ -40,16 +40,16 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
                 { ...JinniStat, value: 10 },
                 { ...CommunityStat, value: 10 },
             ],
-            equipped: false,
+            isEquipped: async () => (await getId(PROOF_MASTER_DJINN_SLOT)) !== null,
             dataSourceProvider: "master-djinn-card",
             equip: () => {
                 console.log("summoning master djinn!!!");
                 return signWithId(ID_ANON_SLOT).then((signature) => {
-                    console.log("summoned master djinn", signature);
+                    console.log("Inventory: equipped master djinn", signature);
                     // ensure signature is valid ?
                     // send to our server for storage or some
                     // save signature to local storage for later authentication
-                    saveId(PROOF_MASTER_DJINN_SLOT, signature);
+                    signature && saveId(PROOF_MASTER_DJINN_SLOT, signature);
                     return true;
                 })
                 .catch((err) => {
@@ -75,7 +75,7 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
                     { ...HealthStat, value: 5 },
                     { ...IntelligenceStat, value: 2 },
                 ],
-                equipped: false,
+                isEquipped: async () => false,
                 // equip: () => {} ,
                 // unequip: () => {} ,
                 // actions: [],
@@ -91,7 +91,7 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
                     { ...HealthStat, value: 10 },
                     { ...IntelligenceStat, value: 2 },
                 ],
-                equipped: false,
+                isEquipped: async () => false,
                 // equip: () => {} ,
                 // unequip: () => {} ,
                 // actions: [],
@@ -110,7 +110,7 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
                     { ...HealthStat, value: 5 },
                     { ...IntelligenceStat, value: 2 },
                 ],
-                equipped: false,
+                isEquipped: async () => false,
                 // equip: () => {} ,
                 // unequip: () => {} ,
                 // actions: [],

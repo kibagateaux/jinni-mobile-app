@@ -5,9 +5,9 @@ import { Text, Animated, View, TouchableOpacity, StyleSheet, Dimensions } from '
 interface ModalProps {
   size: 'full' | 'mid' | 'min';
   children: ReactNode;
-  onClose: () => void;
-  onPrimaryButton: () => void;
-  onSecondaryButton: () => void;
+  onClose?: () => void;
+  onPrimaryButton?: () => void;
+  onSecondaryButton?: () => void;
 }
 
 const Modal: FunctionComponent<ModalProps> = ({ children, size, onClose, onPrimaryButton, onSecondaryButton }) => {
@@ -16,12 +16,16 @@ const Modal: FunctionComponent<ModalProps> = ({ children, size, onClose, onPrima
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const { height, width } = Dimensions.get('window');
-  const overlayColor = theme.colorScheme === 'light' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
   const modalStyle = {
     ...styles.modal,
     height: size === 'full' ? height : size === 'mid' ? height * 0.6 : 'auto',
     width: size === 'full' ? width : size === 'mid' ? width * 0.8 : 'auto',
   };
+
+  const closeModal = () => {
+    setVisible(false);
+    onClose && onClose();
+  }
 
   React.useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -32,18 +36,20 @@ const Modal: FunctionComponent<ModalProps> = ({ children, size, onClose, onPrima
   }, [visible]);
 
   return (
-    <Animated.View style={[styles.overlay, { opacity: fadeAnim, backgroundColor: overlayColor }]}>
+    <Animated.View style={[styles.overlay, { opacity: fadeAnim, backgroundColor: theme.primaryBackgroundColor }]}>
       <View style={styles.modal}>
         {children}
         <View style={styles.buttons}>
+        {onPrimaryButton && 
           <TouchableOpacity style={styles.button} onPress={onPrimaryButton}>
             <Text>Primary</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={onSecondaryButton}>
-            <Text>Secondary</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>}
+          {onSecondaryButton && 
+            <TouchableOpacity style={styles.button} onPress={onSecondaryButton}>
+              <Text>Secondary</Text>
+            </TouchableOpacity>}
         </View>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
           <Text>Close</Text>
         </TouchableOpacity>
       </View>

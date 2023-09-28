@@ -11,7 +11,7 @@ export const PROOF_MASTER_DJINN_SLOT = "master-djinn-summoning-circle"
 export const generateIdentity = (): Identity => new Identity();
 export const generateIdentityWithSecret = (secret: string): Identity => new Identity(secret);
 
-export const saveId = async (idType: string, id: Identity): Promise<void> => {
+export const saveId = async (idType: string, id: any): Promise<void> => {
     try {
       const value = await AsyncStorage.getItem(idType);
       console.log("save id existing value!", value, value === null, id)
@@ -31,22 +31,26 @@ export const getId = async (idType: string): Promise<Identity | null> => {
 }
 
 /** TODO figure out return types from HaLo lib  */
-export const signWithId = async (idType: string, ): Promise<any> => {
+export const signWithId = async (idType: string, ): Promise<string | null> => {
     try {
         const id = await getId(idType);
         if(!id) throw new Error(`No id found for ${idType}`);
 
         await NfcManager.requestTechnology(NfcTech.IsoDep);
         const tag = await NfcManager.getTag();
-        const signatureResult = await execHaloCmdRN(NfcManager, {
+        console.log("id to sign with", id._commitment);
+        console.log("NFC tag reader", tag);
+        const result = await execHaloCmdRN(NfcManager, {
             name: "sign",
-            message: id.getCommitment(),
+            message: id._commitment,
+            format: "text",
             keyNo: 1, // TODO do we want to use primary wallet for signing?
-          })
-        console.log("HALO signature response,", signatureResult);
-        return signatureResult;
+        });
+        console.log("HALO signature response,", result);
+        return !result ? null : result.signature;
       } catch (err) {
         console.warn("HaLo error", err);
+        return null;
       } finally {
         // stop the nfc scanning
         NfcManager.cancelTechnologyRequest();
@@ -69,7 +73,7 @@ const groupMasterDjinn = new Group(groupIds["MasterDjinnGroup"], 18);
 // helper func to format BigInts from Idenity for JSON
 const toObject = (thing: object) => {
   return JSON.parse(JSON.stringify(thing, (key, value) =>
-      typeof value === 'bigint'
+      typeof value === 'bigint' // || 'bignumber' || 'number'
           ? value.toString()
           : value // return everything else unchanged
   ));
