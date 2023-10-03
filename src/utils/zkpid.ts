@@ -6,7 +6,7 @@ import NfcManager, {NfcTech} from 'react-native-nfc-manager';
 import {execHaloCmdRN} from '@arx-research/libhalo/api/react-native.js';
 
 export const ID_ANON_SLOT = "_anon_id"
-export const PROOF_MASTER_DJINN_SLOT = "master-djinn-summoning-circle"
+export const PROOF_MALIKS_MAJIK_SLOT = "maliks-majik"
 
 export const generateIdentity = (): Identity => new Identity();
 export const generateIdentityWithSecret = (secret: string): Identity => new Identity(secret);
@@ -14,10 +14,12 @@ export const generateIdentityWithSecret = (secret: string): Identity => new Iden
 export const saveId = async (idType: string, id: any): Promise<void> => {
     try {
       const value = await AsyncStorage.getItem(idType);
-      console.log("save id existing value!", value, value === null, id)
+      // console.log("save id existing value!", value, value === null, id)
+      
+      // @dev INVARIANT: MUST NOT OVERWRITE OR DELTE ZK IDs
       if (value === null) {
         await AsyncStorage.setItem(idType, JSON.stringify(toObject(id)));
-        console.log("anon id saved to storage!", idType, id)
+        // console.log("anon id saved to storage!", idType, id)
       }
     } catch (error) {
       console.error("Store Err: ", error);
@@ -26,30 +28,38 @@ export const saveId = async (idType: string, id: any): Promise<void> => {
 
 export const getId = async (idType: string): Promise<Identity | null> => {
     const id = await AsyncStorage.getItem(idType);
-    console.log("getId", idType, id);
+    // console.log("getId", idType, id);
     return id ? JSON.parse(id) : null;
+}
+
+export const _delete_id = async (idType: string): Promise<void> => {
+  console.log("node env", process.env.NODE_ENV);
+  console.log("\n\n\nZK: DELETING ID!!!! ONLY AVAILABKLE IN DEVELOPMENT!!!! ENSURE THIS IS INTENDED BEHAVIOUR!!!!!\n\n\n");
+  if(process.env.NODE_ENV !== 'developmet')
+    throw Error("CANNOT DELETE ZK IDs");
+  await AsyncStorage.setItem(idType, null);
 }
 
 /** TODO figure out return types from HaLo lib  */
 export const signWithId = async (idType: string, ): Promise<string | null> => {
-    try {
-        const id = await getId(idType);
-        if(!id) throw new Error(`No id found for ${idType}`);
+    const id = await getId(idType);
+    if(!id) throw new Error(`ZK:HaLo: No id found for ${idType}`);
 
+    try {
         await NfcManager.requestTechnology(NfcTech.IsoDep);
         const tag = await NfcManager.getTag();
-        console.log("id to sign with", id._commitment);
-        console.log("NFC tag reader", tag);
+        console.log("ZK:HaLo: NFC tag reader: ", tag);
+        console.log("ZK:HaLo: Id to sign with card: ", id._commitment);
         const result = await execHaloCmdRN(NfcManager, {
             name: "sign",
             message: id._commitment,
             format: "text",
             keyNo: 1, // TODO do we want to use primary wallet for signing?
         });
-        console.log("HALO signature response,", result);
+        console.log("ZK:HaLo: signature response: ", result);
         return !result ? null : result.signature;
       } catch (err) {
-        console.warn("HaLo error", err);
+        console.warn("ZK:HaLo: signing error", err);
         return null;
       } finally {
         // stop the nfc scanning
@@ -60,14 +70,14 @@ export const signWithId = async (idType: string, ): Promise<string | null> => {
 // Semaphore Groups have max 1048576 members (20^²).
 // TODO randomer numbers for groupIds
 const groupIds = {
-  "MasterDjinnGroup": 0,
+  "MaliksMajikGroup": 0,
   "MayaneseGroup": 1,
   "CoordiNationGroup": 2,
   "BioHackingGroup": 3,
 };
 
-// Mastrer Djinn group is all players allowed by the Master Djinn to play the game, traverse portal and bond to jinn
-const groupMasterDjinn = new Group(groupIds["MasterDjinnGroup"], 18);
+// Mastrer Djinn group is all players blesswith Malik's Majik to play the game, traverse portal and bond to jinn
+const groupMaliksMajik = new Group(groupIds["MaliksMajikGroup"], 18);
 
 
 // helper func to format BigInts from Idenity for JSON

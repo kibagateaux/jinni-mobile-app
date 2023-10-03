@@ -37,27 +37,26 @@ export const AuthProvider: React.FC = ({ children }) => {
   const [user, setUser] = useState<Avatar | null>(null);
   const [anonId, setAnonId] = useState<Identity | null>(null);
 
-
-  console.log("auth context", user, anonId);
-
-
   useEffect(() => {
       if(!user) {
           // do thing to login
       }
   }, [user]);
 
+  /**
+   * @desc Generate an anonymous Semaphore identity for the user if they dont already have one
+   *        Save to local storage on the phone for later use and for authentication
+   */
   useEffect(() => {
-    console.log("anon id generation", anonId);
+    // console.log("anon id generation", anonId);
     if(!anonId) {
       getId(ID_ANON_SLOT).then((id) => {
-        console.log("anon id lookup", id);
+        // console.log("anon id lookup", id);
         if(!id) {
           const _anon_ = generateIdentity();
-          console.log("anon id save", _anon_);
+          // console.log("anon id save", _anon_);
           setAnonId(_anon_);
           saveId(ID_ANON_SLOT, _anon_);
-          getId(ID_ANON_SLOT).then((id) => { console.log("post save anon id", id)});
         } else {
           setAnonId(id as Identity);
         }
@@ -67,14 +66,14 @@ export const AuthProvider: React.FC = ({ children }) => {
 
   const login = (data: LoginDetails) => {
     axios.post(`${process.env.API_URL}/login`, data)
-    .then((response) => {
-        setUser(response.data);
-        setLoginDetails(null);
-        // setup session stuff here
-    })
-    .catch((error) => {
-        console.error(error);
-    });
+      .then((response) => {
+          setUser(response.data);
+          setLoginDetails(null);
+          // setup session stuff here
+      })
+      .catch((error) => {
+          console.error(error);
+      });
   };
 
   const logout = () => {

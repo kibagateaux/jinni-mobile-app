@@ -1,3 +1,15 @@
+/**
+ * @notice - all text content for guiding users through the game
+ * @TODO - integrate i18n
+*/
+export type GameContent = {
+  inventory: {
+    [key: string]: { // key = ItemIds
+        [key: string]: string; // key = ItemStatus
+    },
+    
+  }
+}
 export interface Action {
   id: string; // uuid
   name: string; // name of action
@@ -54,10 +66,20 @@ export const JinniStat: StatsAttribute = {
   "value": 1,
 };
 
-export type ItemIds = 'master-0jinn-summoning-circle'
+export type ItemIds = 'maliks-majik'
   | 'iphone-health-kit'
   | 'iwatch-health-kit'
   | 'android-health-connect'
+
+export type ItemStatus = 'ethereal' // can be used by player but isnt installed or accessible at the moment
+  | 'unequipped' // player can equip but hasnt yet
+  | 'unequipping' // in the process of removig from 'equipped' -> 'unequipped'
+  | 'equipping' // in the process of removig from 'unequipped' -> 'equipped'
+  | 'equipped' // player is actively using item in the game
+  | 'post-equip' // player just equipped/used item. temporary effect until reverts to 'equipped'
+  | 'bonding' // process of imbuing item with essence
+  | 'bonded'// player has imbued item with their essence
+  | 'destroyed'; // item no longer usable in the game. May be repairable.
 
 export interface InventoryItem {
     id: string;
@@ -66,34 +88,28 @@ export interface InventoryItem {
     attributes: StatsAttribute[];
     dataSourceProvider: string;
     installLink?: string;
-    isEquipped: () => Promise<boolean>;
+    status?: ItemStatus; // if undefined, call checkStatus() to get value and store to local object
+    checkStatus: () => Promise<ItemStatus>;
+    canEquip:  () => Promise<boolean>;
     equip?: () => Promise<boolean>;
     unequip?: () => Promise<boolean>;
-    actions?: InventoryAction[];
+    actions?: InventoryAction[]; // things user can do with the item
 }
 
 export interface InventoryAction {
     id: string;
     name: string;
     symbol: string;
-    isDoable: () => Promise<boolean>;
+    isDoable?: boolean;  // if undefined, call canDo() to get value and store to local object
+    canDo: (status: string) => Promise<boolean>; // checks if action can be done right now with current item status
     do: () => Promise<boolean>;
 }
 
 export interface InventoryIntegration {
+  item: InventoryItem;
   checkEligibility: () => Promise<boolean>;
   getPermissions: () => Promise<boolean>;
   initPermissions: () => Promise<boolean>;
   equip: () => Promise<boolean>;
   unequip: () => Promise<boolean>;
-}
-  
-
-
-export type GameContent = {
-  inventory: {
-    'post-equip': {
-        [key: string]: string; // key = ItemIds
-    }
-  }
 }

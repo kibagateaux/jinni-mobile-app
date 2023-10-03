@@ -4,7 +4,7 @@ import AppleHealthKit, {
     HealthKitPermissions,
 } from 'react-native-health'
 import { InventoryIntegration } from 'types/GameMechanics';
-import { QueryDeviceHealthDataProps } from "types/HealthData";
+import { QueryIosHealthDataProps } from "types/HealthData";
 
   /* Permission options */
 const permissions = {
@@ -32,7 +32,7 @@ const permissions = {
     },
 } as HealthKitPermissions
 
-export const checkEligibility = async (): Promise<boolean> => {
+const checkEligibility = async (): Promise<boolean> => {
     if(Platform.OS !== 'ios') return false;
 
     return new Promise((resolve, reject) => {
@@ -50,12 +50,12 @@ export const checkEligibility = async (): Promise<boolean> => {
     return true
 }
 
-export const getPermissions = async () => {
+const getPermissions = async () => {
     return true;
 }
 
 
-export const initPermissions = async () => {
+const initPermissions = async () => {
     // todo abstract to utils function  -
     // 1. check permissions
     // 2. if not granted, request permissions
@@ -78,18 +78,18 @@ export const initPermissions = async () => {
     })
 };
 
-export const equip = async () => {
+const equip = async () => {
     initPermissions();
     return true;
 }
 
-export const unequip = async () => {
+const unequip = async () => {
     // TODO: Implement unequip functionality
     console.log('Unequip called');
     return true;
 }
 
-export const getStepCount = async (options: QueryDeviceHealthDataProps) => {
+const getStepCount = async (options: QueryIosHealthDataProps) => {
     // TODO abstract to utils
     AppleHealthKit.getStepCount(options, (err: Object, steps: HealthValue) => {
         console.log("Apple Health Steps", steps)
