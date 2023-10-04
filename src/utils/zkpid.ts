@@ -41,7 +41,7 @@ export const _delete_id = async (idType: string): Promise<void> => {
 }
 
 /** TODO figure out return types from HaLo lib  */
-export const signWithId = async (idType: string, ): Promise<string | null> => {
+export const signWithId = async (idType: string, ): Promise<any | null> => {
     const id = await getId(idType);
     if(!id) throw new Error(`ZK:HaLo: No id found for ${idType}`);
 
@@ -57,7 +57,7 @@ export const signWithId = async (idType: string, ): Promise<string | null> => {
             keyNo: 1, // TODO do we want to use primary wallet for signing?
         });
         console.log("ZK:HaLo: signature response: ", result);
-        return !result ? null : result.signature;
+        return !result ? null : result;
       } catch (err) {
         console.warn("ZK:HaLo: signing error", err);
         return null;

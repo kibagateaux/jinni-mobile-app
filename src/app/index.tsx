@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { View, Button, Text, StyleSheet } from 'react-native';
 import { Slot } from 'expo-router';
-// import { SafeAreaView } from 'react-native-safe-area-context';
+import { defaultWidgetConfig } from 'utils/config';
 
 import { useHomeConfig } from 'hooks';
 import {
@@ -14,35 +14,10 @@ import { getIconForWidget } from 'utils/rendering';
 
 import { AvatarViewer, WidgetIcon, Link } from 'components/index';
 import DefaultAvatar from 'assets/avatars/happy-ghost';
-import { AppleAuth } from 'components/auth';
 
 
-
-const defaultWidgetConfig: WidgetConfig[] = [
-    {
-        name: 'Strength',
-        widgetId: 'Strength',
-        path: '/stats/strength',
-    },
-    {
-        name: 'Intelligence',
-        widgetId: 'Intelligence',
-        path: '/stats/intelligence',
-    },
-    {
-        name: 'Stamina',
-        widgetId: 'Stamina',
-        path: '/stats/stamina',
-    },
-    {
-        name: 'Spirit',
-        widgetId: 'Spirit',
-        path: '/stats/spirit',
-    },
-];
 
 const HomeScreen = () => {
-    console.log('HomeScreen', useAuth, useHomeConfig, AppleAuth);
     const { user, login } = useAuth();
     const homeConfig = useHomeConfig();
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>(defaultWidgetConfig);
@@ -60,7 +35,7 @@ const HomeScreen = () => {
     console.log('home config', user, homeConfig, widgetConfig);
 
     return (
-        <ContextProvider>
+        // <ContextProvider>
                 <View style={{ flex: 1, ...useTheme() }}>
                     {/* <Slot /> */}
                 <View style={styles.container}>
@@ -100,12 +75,13 @@ const HomeScreen = () => {
                                 to={widget.path}
                                 height={50}
                                 width={50}
-                                SVG={getIconForWidget(widget.widgetId)} />
+                                icon={getIconForWidget(widget.widgetId)}
+                            />
                         ))}
                     </View>
                 </View>
                 </View>
-            </ContextProvider>
+            // </ContextProvider>
     );        
 }
 

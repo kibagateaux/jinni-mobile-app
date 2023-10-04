@@ -7,8 +7,8 @@ interface QueryIosHealthDataProps {
 
 interface QueryAndroidHealthDataProps {
     activity: 'Steps';
-    startTime?: number; // ISO string '2023-09-09T23:53:15.405Z'
-    endTime?: number; // ISO string '2023-09-09T23:53:15.405Z'
+    startTime?: string; // ISO string '2023-09-09T23:53:15.405Z'
+    endTime?: string; // ISO string '2023-09-09T23:53:15.405Z'
     operator: 'between' | 'before';
 }
 

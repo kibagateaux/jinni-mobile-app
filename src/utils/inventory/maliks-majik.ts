@@ -1,3 +1,5 @@
+import { MALIKS_MAJIK_CARD } from "utils/config";
+
 import {
     ID_ANON_SLOT,
     PROOF_MALIKS_MAJIK_SLOT,
@@ -17,13 +19,17 @@ import {
 const equip = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
-        const signature = await signWithId(ID_ANON_SLOT);
-        console.log("Inv:maliks-majik:equip:SUCC", signature);
-        // ensure signature is valid ?
-        // send to our server for storage or some
-        // save signature to local storage for later authentication
-        signature && await saveId(PROOF_MALIKS_MAJIK_SLOT, signature);
-        return true;
+        const result = await signWithId(ID_ANON_SLOT);
+        if(result && result.etherAddress === MALIKS_MAJIK_CARD) {
+            console.log("Inv:maliks-majik:equip:SUCC", result);
+            // ensure result is valid ?
+            // send to our server for storage or some
+            // save result to local storage for later authentication
+            await saveId(PROOF_MALIKS_MAJIK_SLOT, result.signature);
+            return true;
+        } else {
+            return false;
+        }
     } catch(e) {
         console.log("Inv:maliks-majik:equip:ERR", e);
         return false;

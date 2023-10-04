@@ -6,9 +6,10 @@ import "utils/polyfills";
 */
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Stack, Tabs } from 'expo-router';
+import {  Slot, Stack, Tabs } from 'expo-router';
 
 import { useHomeConfig } from 'hooks';
+import { ContextProvider } from 'contexts';
 
 import { WidgetConfig } from 'types/UserConfig';
 
@@ -58,15 +59,17 @@ export default function HomeLayout() {
 
     console.log("user tab config", tabConfig)
     return (
+        <ContextProvider>
             <Tabs>
-                {tabConfig.map((tab) => (
-                    <Tabs.Screen
-                        key={tab.name}
-                        name={tab.name}
-                        options={{ title: tab.widgetId.toUpperCase(), href: tab.path }}
-                    />
-                ))}
+                    {tabConfig.map((tab) => (
+                        <Tabs.Screen
+                            key={tab.name}
+                            name={tab.name}
+                            options={{ title: tab.widgetId.toUpperCase(), href: tab.path }}
+                        />
+                    ))}
             </Tabs>
+        </ContextProvider>
     );
 }
 

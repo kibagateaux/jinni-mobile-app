@@ -14,7 +14,7 @@ type ItemEquipWizardModalProps = {
 }
 
 const ItemEquipWizardModal = ({ item, dialogueData = {}, status }: ItemEquipWizardModalProps) => {
-    console.log('get equip item modal content', status, dialogueData, item);
+    // console.log('get equip item modal content', status, dialogueData, item);
     const content = useGameContent().inventory[item.id];
     if(!content || !content[status]) return null;
 

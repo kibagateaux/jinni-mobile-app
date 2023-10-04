@@ -28,7 +28,7 @@ export const useInventory = () => {
           setLoading(false);
         });
     }
-  }, [user, inventory]);
+  }, [user]);
 
   return { inventory, loading };
 };

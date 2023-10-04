@@ -66,6 +66,16 @@ export const JinniStat: StatsAttribute = {
   "value": 1,
 };
 
+export const StatsConfig = [
+  HealthStat,
+  StrengthStat,
+  IntelligenceStat,
+  StaminaStat,
+  FaithStat,
+  CommunityStat,
+  JinniStat,
+]
+
 export type ItemIds = 'maliks-majik'
   | 'iphone-health-kit'
   | 'iwatch-health-kit'

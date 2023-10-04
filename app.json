@@ -38,8 +38,20 @@
           "contactsPermission": "Let $(PRODUCT_NAME) access your contact to create parties for your jinni."
         }
       ],
-      "expo-router"
+      "expo-router",
+      "sentry-expo"
     ],
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "${SENTRY_ORG}",
+            "project": "${SENTRY_PROJECT}"
+          }
+        }
+      ]
+    },
     "ios": {
       "supportsTablet": true,
       "usesAppleSignIn": true,

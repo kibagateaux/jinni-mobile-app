@@ -26,7 +26,6 @@ const checkItemHasStatus = (status: ItemStatus) =>
 export const isEquipped = checkItemHasStatus('equipped');
 export const isEquipping = checkItemHasStatus('equipping');
 export const isUnequipped = checkItemHasStatus('unequipped');
-export const isDestoryed = checkItemHasStatus('destroyed');
 
 
 const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> {
@@ -88,17 +87,15 @@ const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> 
     
     if(!username) return platformInventoryItems;
 
-
     return axios.get(`${getAppConfig().API_URL}/scry/inventory/${username}`)
-      .then((response) => {
-        console.log("inventory response", response)
-        return response.data as InventoryItem[];
-      })
-      .catch((error: any) => {
-        console.error(error);
-        return [];
-      });
-
+        .then((response) => {
+            console.log("inventory response", response)
+            return response.data as InventoryItem[];
+        })
+        .catch((error: any) => {
+            console.error(error);
+            return [];
+        });
 }
 
 // TODO read directory file names and generate export object with inventory ids for easier consumption

@@ -13,16 +13,18 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ styleOverride = {}, image, title, subtitle, path, badges }) => {
+  console.log('card image', image, subtitle);
+  
   const CardContent = () => (
-    <View style={{ ...styleOverride }}>
-      <Image source={{ uri: image }} style={{ width: '100%', height: '50%' }} />
+    <View style={[styles.card, styleOverride]}>
+      <Image source={{ uri: image }} style={styles.image} />
       <Text>{title}</Text>
       <Text>{subtitle}</Text>
       {!badges.length ? null : (
         <View style={styles.badgeContainer}> 
             {badges.map((badge) => (
                 <View key={badge} style={styles.badge}>
-                    <Text>{badge}</Text>
+                    <Text style={styles.badgeText}>{badge}</Text>
                 </View>
             ))}
         </View>
@@ -34,17 +36,35 @@ const Card: React.FC<CardProps> = ({ styleOverride = {}, image, title, subtitle,
 };
 
 const styles = StyleSheet.create({
+    card: {
+      flex: 1, 
+      margin: 10,
+      height: 200,
+      width: 200,
+      alignItems: 'center',
+      alignContent: 'center',
+    },
+    image: {
+      alignSelf: 'center',
+      width: 100,
+      height: 100
+    },
     badgeContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
     badge: {
-        height: 25,
-        width: 50,
-        backgroundColor: 'lightgray',
+        height: 35,
+        width: 70,
+        padding: 7,
+        textAlign: 'center',
+        backgroundColor: 'purple',
         borderRadius: 20
     },
+    badgeText: {
+      color: 'white',
+    }
 
 });
 

@@ -46,10 +46,15 @@ const checkEligibility = async (): Promise<boolean> => {
     console.log("Inv:android-health-connect:checkEligibility: ", status);
 
     if (status !== SdkAvailabilityStatus.SDK_AVAILABLE) {
-        console.log('Android Health is not available on this device');
+        console.log("Inv:android-health-connect:checkElig: NOT ELIIGBLE", );
         // TODO link to Google play store link for download
         return false;
     }
+
+     // @dev MUST always init first thing otherwise any SDK calls including getPermissions fails.
+     // we always call checkEligibilty before anything else so all gucci.
+    const isInitialized = await initialize();
+    if(!isInitialized) throw Error("Unable Anddroid Health to initialize");
 
     return true;
 }
@@ -67,8 +72,12 @@ const getPermissions = async () => {
     }
 
     try {
-        if(await getGrantedPermissions() !== ANDROID_HEALTH_PERMISSIONS) {
-            console.log('Android Health is not available on this device');
+        const grantedPerms = await getGrantedPermissions();
+        console.log("Inv:android-health-connect:getPerm: GrantedPerms ", grantedPerms);
+
+        // if(grantedPerms !== ANDROID_HEALTH_PERMISSIONS) {
+        if(grantedPerms.length === 0) {
+            console.log("Inv:android-health-connect:getPerm: NO PERMISSIONS");
             return false;
         }
         return true;
@@ -79,10 +88,10 @@ const getPermissions = async () => {
 }
   
 const initPermissions = async () => {
+    checkEligibility();
     console.log("Inv:andoird-health-connect:Init");
-    const isInitialized = await initialize();
-    if(!isInitialized) throw Error("Unable Anddroid Health  to initialize");
     const permissions = await requestPermission(ANDROID_HEALTH_PERMISSIONS);
+    console.log("Inv:android-health-connect:Init: Permissions Granted!", permissions);
     return true;
 }
  
@@ -111,20 +120,6 @@ const unequip = async () => {
     return true;
 }
 
-const queryHealthData = async ({ activity, operator, startTime, endTime }: QueryAndroidHealthDataProps) => {
-    // TODO abstract to utils
-    const records = await readRecords(activity, {
-        timeRangeFilter: {
-            operator,
-            startTime: startTime ?? PORTAL_DAY ,
-            endTime: endTime ?? Date.now().toLocaleString(),
-        },
-    });
-    console.log("Android Health Steps", records);
-
-    return records;
-}
-
 const item = {
     id: "android-health-connect",
     name: "Android Health Connect",
@@ -138,16 +133,18 @@ const item = {
     ],
     checkStatus: async () => {
         const isInstalled = await checkEligibility();
-        console.log("Inv:android-health-connect:checkStatus:", isInstalled)
+        console.log("Inv:android-health-connect:checkStatus: installed?", isInstalled)
         if(!isInstalled) return "ethereal";
-
+        
         const isEquipped = await getPermissions() ;
+        console.log("Inv:android-health-connect:checkStatus: equipped?", isEquipped)
         if(isEquipped) return 'equipped';
-
+        
         // if getPermissions() permissions have been revoked 
         // return 'destroyed';
         // TODO
         // see if health connect is installed
+        console.log("Inv:android-health-connect:checkStatus: unequipped!", isEquipped)
         return 'unequipped';
     },
     // must have app installed but not equipped yet
@@ -165,3 +162,23 @@ export default {
     equip,
     unequip,
 } as InventoryIntegration;
+
+/**
+ * @desc - Query Android health data from phone
+ * @dev - Custom Item Function
+ * @param 
+ * @returns HealthRecords[]
+ */
+export const queryHealthData = async ({ activity, operator, startTime, endTime }: QueryAndroidHealthDataProps) => {
+    // TODO abstract to utils
+    const records = await readRecords(activity, {
+        timeRangeFilter: {
+            operator,
+            startTime: startTime ?? PORTAL_DAY ,
+            endTime: endTime ?? Date.now().toLocaleString(),
+        },
+    });
+    console.log("Android Health Steps", records);
+
+    return records;
+}

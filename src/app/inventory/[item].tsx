@@ -47,11 +47,19 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     <Text> Item Not Currently Available For Gameplay </Text>
   );
 
-  const onItemEquipPress = () => {
-    if(item.equip) item.equip();
-    // console.log('modal to render', ItemEquipWizardModal, Modals);
-    setStatus("equipping");
-    setActiveModal("equip-wizard");
+  const onItemEquipPress = async () => {
+    if(item.equip) { 
+      // console.log('modal to render', ItemEquipWizardModal, Modals);
+      setStatus("equipping");
+      setActiveModal("equip-wizard");
+      try {
+        await item.equip();
+        setStatus("post-equip");
+      } catch(e) {
+        console.log('', );
+        setStatus("unequipped");
+      }
+    }
   };
 
   const onItemUnequipPress = () => {
@@ -60,7 +68,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
   }
 
   const renderItemButton = () => {
-    console.log("Item: button? ", status, item.equip, item.unequip, item);
+    // console.log("Item: button? ", status, item.equip, item.unequip, item);
 
     if(status === "unequipped" && item.equip) return (
       <Button style={styles.equipButton} title="Equip" onPress={onItemEquipPress}/>
@@ -77,11 +85,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
   };
 
   const renderActiveModal = () => {
-    console.log('render active modal', status);
+    // console.log('Inventory Active Modal data', status, item);
+    const onClose = () => setActiveModal(null);
     switch(activeModal) {
       case "equip-wizard":
-        console.log('Inventory Active Modal data', status, item);
-        const onClose = () => setActiveModal(null);
         return <ItemEquipWizardModal size="mid" item={item} status={status} onClose={onClose} />;
       default:
         return null;
@@ -111,14 +118,14 @@ const ItemPage: React.FC<ItemPageProps> = () => {
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={styles.container}>
       <Stack.Screen
         options={{
           title: item.name,
         }}
       />
       <View>
-        <Image source={{ uri: item.image }} style={{ width: '200px', height: '200px' }} />
+        <Image source={{ uri: item.image }} style={styles.itemImage} />
         {renderItemButton()}
         {/* {renderItemActions()} */}
       </View>
@@ -139,6 +146,17 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 25,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  itemImage: {
+    width: 200,
+    height: 200,
+    margin: 20,
+  },
   equipButton: {
     height: 50,
     width: 200,

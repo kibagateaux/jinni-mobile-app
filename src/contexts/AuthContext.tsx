@@ -32,7 +32,7 @@ export const useAuth = (): AuthConsumables => {
     return React.useContext(AuthContext);
 }
 
-export const AuthProvider: React.FC = ({ children }) => {
+export const AuthProvider: React.FC = ({ children }: any) => {
   const [loginData, setLoginDetails] = useState<LoginDetails | null>(null);
   const [user, setUser] = useState<Avatar | null>(null);
   const [anonId, setAnonId] = useState<Identity | null>(null);

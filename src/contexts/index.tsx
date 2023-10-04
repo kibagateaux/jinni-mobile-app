@@ -2,17 +2,20 @@ import React from 'react';
 import { AuthProvider } from './AuthContext';
 import { ThemeProvider } from './ThemeContext';
 import { GameContentProvider } from './GameContentContext';
+import { ExternalServicesProvider } from './ExternalServicesContext';
 
 
 export const ContextProvider = ({ children }) => {
     return (
-        <GameContentProvider>
-            <AuthProvider>
-                <ThemeProvider>
-                    {children}
-                </ThemeProvider>
-            </AuthProvider>
-        </GameContentProvider>
+        <ExternalServicesProvider>
+            <GameContentProvider>
+                <AuthProvider>
+                    <ThemeProvider>
+                        {children}
+                    </ThemeProvider>
+                </AuthProvider>
+            </GameContentProvider>
+        </ExternalServicesProvider>
     )
 };
 // granular exports for specific usages

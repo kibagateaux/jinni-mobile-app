@@ -36,7 +36,7 @@ const darkTheme: Theme = {
 const ThemeContext = createContext<Theme>(lightTheme);
 
 
-export const ThemeProvider: React.FC = ({ children })=> {
+export const ThemeProvider: React.FC = ({ children }: any)=> {
   const colorScheme = useColorScheme();
   return (
     <ThemeContext.Provider
