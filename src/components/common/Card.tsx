@@ -12,9 +12,7 @@ interface CardProps {
   badges: string[];
 }
 
-const Card: React.FC<CardProps> = ({ styleOverride = {}, image, title, subtitle, path, badges }) => {
-  console.log('card image', image, subtitle);
-  
+const Card: React.FC<CardProps> = ({ styleOverride = {}, image, title, subtitle, path, badges }) => {  
   const CardContent = () => (
     <View style={[styles.card, styleOverride]}>
       <Image source={{ uri: image }} style={styles.image} />

@@ -5,6 +5,7 @@ import axios from 'axios';
 import iosHealth from './ios-health-kit';
 import androidHealth from './android-health-connect';
 import maliksMajik from './maliks-majik';
+import spotify from './spotify';
 
 import { getAppConfig } from 'utils/config';
 
@@ -32,6 +33,7 @@ const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> 
     console.group("getInventoryItems user/platform : ", username, Platform.OS);
     const coreInventory = [
         maliksMajik.item,
+        spotify.item,
     ]
     // any data that can come directly from local device
     const platformInventoryItems: InventoryItem[] = Platform.select({

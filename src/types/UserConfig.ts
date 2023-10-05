@@ -20,7 +20,3 @@ export interface UserSettings {
     defaultTheme: 'light' | 'dark';
 }
 
-export type OAuthProviders = 'spotify' 
-    | 'coinbase'
-    | 'strava'
-    // TODO 'fitbit'

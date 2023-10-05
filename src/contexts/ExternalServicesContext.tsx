@@ -1,8 +1,11 @@
 import React, { createContext, useState, useEffect, useMemo } from 'react';
 import { Platform } from 'react-native';
-import * as Sentry from 'sentry-expo';
 import { getAppConfig } from 'utils/config';
 import Constants from 'expo-constants';
+
+import * as Sentry from 'sentry-expo';
+import { createClient, AnalyticsProvider } from '@segment/analytics-react-native';
+
 
 type SentryModules = typeof Sentry.Native | typeof Sentry.Browser | null;
 
@@ -29,8 +32,8 @@ export const ExternalServicesProvider = ({ children }: any) => {
     useMemo(() => {
         if(!sentry) { 
             const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android' ;
-            Sentry.init({
-                dsn: getAppConfig().SENTRY_DSN,
+            getAppConfig().SENTRY_DSN && Sentry.init({
+                dsn: getAppConfig().SENTRY_DSN!,
                 //   release: 'my release name',
                 //   dist: 'my dist',
 
@@ -57,9 +60,15 @@ export const ExternalServicesProvider = ({ children }: any) => {
                 Platform.OS === 'web' ? Sentry.Browser :
                 null
             );
+            getAppConfig().SEGMENT_API_KEY && setSegment(createClient({
+                writeKey: getAppConfig().SEGMENT_API_KEY!,
+              })
+            );
         }
     }, [Platform.OS])
 
+    console.log('segment/sentry', segment);
+    
     return (
         <ExternalServicesContext.Provider value={{ sentry, segment }}>
             {children}

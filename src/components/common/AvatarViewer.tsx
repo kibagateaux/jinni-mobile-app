@@ -27,7 +27,7 @@ const AvatarViewer = ({ SVG, uri, is3d }: AvatarViewerProps) => {
       </Text>
     );
   }
-  console.log('AvatarViewer', { SVG, uri, is3d });
+  // console.log('AvatarViewer', { SVG, uri, is3d });
 
   const SvgComponent = () => !SVG ? null : <SVG />;
 

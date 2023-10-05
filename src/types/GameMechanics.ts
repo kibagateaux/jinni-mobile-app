@@ -59,6 +59,12 @@ export const CommunityStat: StatsAttribute = {
   "value": 1,
 };
 
+export const SpiritStat: StatsAttribute = {
+  "name": "Spirit",
+  "symbol": "㆝",
+  "value": 1,
+};
+
 
 export const JinniStat: StatsAttribute = {
   "name": "Djinn",
@@ -80,6 +86,7 @@ export type ItemIds = 'maliks-majik'
   | 'iphone-health-kit'
   | 'iwatch-health-kit'
   | 'android-health-connect'
+  & OAuthProviders;
 
 export type ItemStatus = 'ethereal' // can be used by player but isnt installed or accessible at the moment
   | 'unequipped' // player can equip but hasnt yet
@@ -101,7 +108,7 @@ export interface InventoryItem {
     status?: ItemStatus; // if undefined, call checkStatus() to get value and store to local object
     checkStatus: () => Promise<ItemStatus>;
     canEquip:  () => Promise<boolean>;
-    equip?: () => Promise<boolean>;
+    equip?: (helper?: Function) => Promise<boolean>; // helper function passes in contextdual data, user input, react hook, etc.  that we cant hardcode in equip()
     unequip?: () => Promise<boolean>;
     actions?: InventoryAction[]; // things user can do with the item
 }
@@ -122,4 +129,17 @@ export interface InventoryIntegration {
   initPermissions: () => Promise<boolean>;
   equip: () => Promise<boolean>;
   unequip: () => Promise<boolean>;
+}
+
+export type OAuthProviders = 'spotify' 
+    | 'coinbase'
+    | 'strava'
+    // TODO 'fitbit'export interface OAuthProviderConfig {
+ 
+export interface OAuthProvider {
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  revocationEndpoint?: string;
+  clientId: string;
+  scopes: string[];
 }

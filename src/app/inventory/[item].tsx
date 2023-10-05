@@ -3,11 +3,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Text, View, Image, Button, StyleSheet } from 'react-native';
 import { WidgetIcon } from 'components';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useAuthRequest } from 'expo-auth-session';
+
+import { InventoryItem, ItemStatus, OAuthProvider, StatsAttribute } from 'types/GameMechanics';
 
 import utils, { isEquipped } from 'utils/inventory';
+import { createOauthRedirectURI, oauthConfigs } from 'utils/oauth';
 import { useInventory } from 'hooks/useInventory';
 import { useAuth } from 'contexts/AuthContext';
-import { InventoryItem, ItemStatus, StatsAttribute } from 'types/GameMechanics';
 
 import Modals, { ItemEquipWizardModal } from 'components/modals';
 import { Link } from 'components';
@@ -22,6 +25,26 @@ const ItemPage: React.FC<ItemPageProps> = () => {
   const [item, setItem] = useState<InventoryItem | null>(null);
   const [status, setStatus] = useState<string>("unequipped");
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+        clientId: itemOauthConfig.clientId,
+        scopes: itemOauthConfig.scopes,
+        redirectUri: createOauthRedirectURI(),
+    },
+    itemOauthConfig,
+  );
+
+  // console.log('Item: oauth', itemOauthConfig, request, response, promptAsync);
+
+
+  useEffect(() => {
+    if(item) {
+      const oauth = oauthConfigs[item.id];
+      if(oauth) setItemOauth(oauth);
+    }
+  }, [item?.id]);
+
 
   // console.log('Item: item', id, item);
   // console.log('Item: status & modal', status, activeModal);
@@ -53,7 +76,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
       setStatus("equipping");
       setActiveModal("equip-wizard");
       try {
-        await item.equip();
+        // todo should we add tags to items for different callback types
+        // or just a single, optional callback func that handles everything for equip?
+        if(itemOauthConfig.authorizationEndpoint) await item.equip(promptAsync);
+        else await item.equip();
         setStatus("post-equip");
       } catch(e) {
         console.log('', );

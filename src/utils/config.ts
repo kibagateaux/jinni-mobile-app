@@ -15,9 +15,11 @@ type AppConfig = {
     NODE_ENV: 'development' | 'production' | 'test';
     API_URL: string;
     API_KEY: string;
-    SENTRY_DSN: string;
-    SENTRY_ORG: string;
-    SENTRY_PROJECT: string;
+
+    SENTRY_DSN: string | undefined;
+    SENTRY_ORG: string | undefined;
+    SENTRY_PROJECT: string | undefined;
+    SEGMENT_API_KEY: string | undefined;
 }
 
 export const getAppConfig = (): AppConfig => ({
@@ -27,6 +29,7 @@ export const getAppConfig = (): AppConfig => ({
     SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN || '',
     SENTRY_ORG: process.env.EXPO_PUBLIC_SENTRY_ORG || 'jinni',
     SENTRY_PROJECT: process.env.EXPO_PUBLIC_SENTRY_PROJECT || 'mobile-app',
+    SEGMENT_API_KEY: process.env.EXPO_PUBLIC_SEGMENT_API_KEY || 'aaaaaaa',
 });
 
 

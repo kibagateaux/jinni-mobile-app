@@ -35,53 +35,29 @@ const HomeScreen = () => {
     console.log('home config', user, homeConfig, widgetConfig);
 
     return (
-        // <ContextProvider>
-                <View style={{ flex: 1, ...useTheme() }}>
-                    {/* <Slot /> */}
-                <View style={styles.container}>
-                    { !user && (
-                            <View
-                                // blur overlay on avatar until authenticated
-                                style={{
-                                    flex: 1,
-                                    backgroundColor: 'white',
-                                    // position: 'absolute',
-                                    // top: '0',
-                                    // right: '0',
-                                    height: 'auto',
-                                    width: 'auto',
-                                    // zIndex: 10,
-                                    
-                                }}
-                            >
-                            <Link to="/auth/sign-in"  styleOverride={{ zIndex: 10 }}>
-                                {/* <Button title="Login" /> */}
-                                <Text>Login</Text>
-                            </Link> 
-                        </View>
-                    )}
-                    <View style={styles.avatar}>
-                        <AvatarViewer
-                            uri={homeConfig?.jinniImage}
-                            SVG={DefaultAvatar}
+        <View style={{ flex: 1, ...useTheme() }}>
+            <View style={styles.container}>
+                <View style={styles.avatar}>
+                    <AvatarViewer
+                        uri={homeConfig?.jinniImage}
+                        SVG={DefaultAvatar}
+                    />
+                </View>
+                <View style={styles.widgets}>
+                    {widgetConfig.map((widget) => (
+                        <WidgetIcon
+                            key={widget.widgetId}
+                            widgetId={widget.widgetId} 
+                            text={widget.name}
+                            to={widget.path}
+                            height={50}
+                            width={50}
+                            icon={getIconForWidget(widget.widgetId)}
                         />
-                    </View>
-                    <View style={styles.widgets}>
-                        {widgetConfig.map((widget) => (
-                            <WidgetIcon
-                                key={widget.widgetId}
-                                widgetId={widget.widgetId} 
-                                text={widget.name}
-                                to={widget.path}
-                                height={50}
-                                width={50}
-                                icon={getIconForWidget(widget.widgetId)}
-                            />
-                        ))}
-                    </View>
+                    ))}
                 </View>
-                </View>
-            // </ContextProvider>
+            </View>
+        </View>
     );        
 }
 

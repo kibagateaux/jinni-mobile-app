@@ -1,7 +1,6 @@
 import React from 'react';
 import { Stack, Slot } from 'expo-router';
 
-// import { ContextProvider } from 'contexts';
 import { useTheme } from 'contexts/ThemeContext';
 
 export interface AuthStackProps {}
@@ -9,7 +8,6 @@ export interface AuthStackProps {}
 const AuthStack: React.FC<AuthStackProps> = () => {
   const theme = useTheme(); 
   return (
-    // <ContextProvider>
       <Stack
           screenOptions={{
             headerStyle: {
@@ -35,7 +33,6 @@ const AuthStack: React.FC<AuthStackProps> = () => {
           options={{ title: '3rd Party Login' }}
           />
       </Stack>
-    // </ContextProvider>
   );
 };
 

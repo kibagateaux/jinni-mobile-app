@@ -16,9 +16,10 @@ const InventoryScreen: React.FC = () => {
 
     useMemo(async () => {
         if(inventory.length) {
-            const inventoryWithStatus = await Promise.all(inventory.map(
-                // async (item: InventoryItem) => item.status ? item : ({ ...item, status: await item.checkStatus() })))
-                async (item: InventoryItem, i) => i % 2 ? { ...item, status: 'unequipped' } : { ...item, status: 'equipped' }))
+            const inventoryWithStatus = await Promise.all(
+                inventory.map(async (item: InventoryItem) =>
+                    item.status ? item : ({ ...item, status: await item.checkStatus() })));
+                // async (item: InventoryItem, i) => i % 2 ? { ...item, status: 'unequipped' } : { ...item, status: 'equipped' }))
             
             const grouped = groupBy('status', inventoryWithStatus);
             
