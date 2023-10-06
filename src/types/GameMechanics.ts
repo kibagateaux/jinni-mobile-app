@@ -12,8 +12,8 @@ export type GameContent = {
 }
 export interface Action {
   id: string; // uuid
-  name: string; // name of action
-  dataSourceProvider: string; // Ingester if Incipient, Transformer if Consequential
+  name: string; // human readable name
+  dataSourceProvider: string; // Ingester if Incipient? Transformer if Consequential?
   timestamp: string; // time action occured IRL
 }
 
@@ -66,7 +66,7 @@ export const SpiritStat: StatsAttribute = {
 };
 
 
-export const JinniStat: StatsAttribute = {
+export const DjinnStat: StatsAttribute = {
   "name": "Djinn",
   "symbol": "🧞",
   "value": 1,
@@ -79,7 +79,7 @@ export const StatsConfig = [
   StaminaStat,
   FaithStat,
   CommunityStat,
-  JinniStat,
+  DjinnStat,
 ]
 
 export type ItemIds = 'maliks-majik'
@@ -99,15 +99,21 @@ export type ItemStatus = 'ethereal' // can be used by player but isnt installed 
   | 'destroyed'; // item no longer usable in the game. May be repairable.
 
 export interface InventoryItem {
+    // static metadata
     id: string;
     name: string;
     image: string;
+    benefits: string;
+    description: string;
     attributes: StatsAttribute[];
     dataSourceProvider: string;
     installLink?: string;
+
+    //dynamic metadata
     status?: ItemStatus; // if undefined, call checkStatus() to get value and store to local object
     checkStatus: () => Promise<ItemStatus>;
     canEquip:  () => Promise<boolean>;
+    // gameplay actions
     equip?: (helper?: Function) => Promise<boolean>; // helper function passes in contextdual data, user input, react hook, etc.  that we cant hardcode in equip()
     unequip?: () => Promise<boolean>;
     actions?: InventoryAction[]; // things user can do with the item
@@ -135,7 +141,7 @@ export type OAuthProviders = 'spotify'
     | 'coinbase'
     | 'strava'
     // TODO 'fitbit'export interface OAuthProviderConfig {
- 
+
 export interface OAuthProvider {
   authorizationEndpoint: string;
   tokenEndpoint: string;

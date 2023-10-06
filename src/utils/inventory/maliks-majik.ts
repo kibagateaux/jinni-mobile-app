@@ -11,7 +11,7 @@ import {
 
 import {
     InventoryIntegration,
-    JinniStat,
+    DjinnStat,
     CommunityStat,
     InventoryItem,
 } from 'types/GameMechanics';
@@ -53,7 +53,7 @@ const item = {
     dataSourceProvider: "maliks-majik-card",
     image: "https://cdn.drawception.com/drawings/3yyv096cK5.png",
     attributes: [
-        { ...JinniStat, value: 10 },
+        { ...DjinnStat, value: 10 },
         { ...CommunityStat, value: 10 },
     ],
     checkStatus: async () => {

@@ -13,43 +13,9 @@ import { ContextProvider } from 'contexts';
 
 import { WidgetConfig } from 'types/UserConfig';
 
-const defaultTabConfig: WidgetConfig[] = [
-    {
-        name: 'index',
-        widgetId: 'home',
-        path: '/',
-    },
-    {
-        name: 'inventory',
-        widgetId: 'inventory',
-        path: '/inventory',
-    },
-    {
-        name: '/auth/sign-in',
-        widgetId: 'sign-in',
-        path: '/auth/sign-in',
-        // path: null, // dont display login
-    },
-    // {
-    //     name: 'incantations',
-    //     widgetId: 'Incantations',
-    //     path: '/incantations',
-    // },
-    // {
-    //     name: 'quests',
-    //     widgetId: 'Quests',
-    //     path: '/quests',
-    // },
-    // {
-    //     name: 'transmissions',
-    //     widgetId: 'Transmissions',
-    //     path: '/transmissions',
-    // },
-];
-
 export default function HomeLayout() {
     const homeConfig = useHomeConfig();
-    const [tabConfig, setTabConfig] = useState<WidgetConfig[]>(defaultTabConfig);
+    const [tabConfig, setTabConfig] = useState<WidgetConfig[]>([]);
 
     useEffect(() => {
         if (homeConfig?.tabs && homeConfig.tabs !== tabConfig) {
@@ -57,17 +23,17 @@ export default function HomeLayout() {
         }
     }, [homeConfig]);
 
-    console.log("user tab config", tabConfig)
+    // console.log("Home:tabs", tabConfig)
     return (
         <ContextProvider>
             <Tabs>
-                    {tabConfig.map((tab) => (
-                        <Tabs.Screen
-                            key={tab.name}
-                            name={tab.name}
-                            options={{ title: tab.widgetId.toUpperCase(), href: tab.path }}
-                        />
-                    ))}
+                {tabConfig.map((tab) => (
+                    <Tabs.Screen
+                        key={tab.title}
+                        name={tab.title}
+                        options={{ title: tab.id.toUpperCase(), href: tab.path }}
+                    />
+                ))}
             </Tabs>
         </ContextProvider>
     );

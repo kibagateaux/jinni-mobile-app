@@ -23,16 +23,15 @@ export const useExternalServices = (): ExternalServicesConsumables => {
     return React.useContext(ExternalServicesContext);
 }
 
-// TODO add Segment.io analytics
 export const ExternalServicesProvider = ({ children }: any) => {
     const [sentry, setSentry] = useState<SentryModules>(null);
     const [segment, setSegment] = useState<any | null>(null);
   
   
     useMemo(() => {
-        if(!sentry) { 
+        if(!sentry && getAppConfig().SENTRY_DSN) { 
             const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android' ;
-            getAppConfig().SENTRY_DSN && Sentry.init({
+            Sentry.init({
                 dsn: getAppConfig().SENTRY_DSN!,
                 //   release: 'my release name',
                 //   dist: 'my dist',
@@ -55,19 +54,23 @@ export const ExternalServicesProvider = ({ children }: any) => {
 
                 ],
             });
+            
             setSentry(
                 isNativeApp ? Sentry.Native :
                 Platform.OS === 'web' ? Sentry.Browser :
                 null
             );
-            getAppConfig().SEGMENT_API_KEY && setSegment(createClient({
+        }
+
+        if(!segment &&  getAppConfig().SEGMENT_API_KEY) {
+            setSegment(createClient({
                 writeKey: getAppConfig().SEGMENT_API_KEY!,
-              })
-            );
+                debug: __DEV__ ? true : false,
+            }));
         }
     }, [Platform.OS])
 
-    console.log('segment/sentry', segment);
+    // console.log('ESP: segment/sentry', segment, sentry);
     
     return (
         <ExternalServicesContext.Provider value={{ sentry, segment }}>

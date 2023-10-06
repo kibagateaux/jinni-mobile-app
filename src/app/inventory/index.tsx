@@ -19,17 +19,18 @@ const InventoryScreen: React.FC = () => {
             const inventoryWithStatus = await Promise.all(
                 inventory.map(async (item: InventoryItem) =>
                     item.status ? item : ({ ...item, status: await item.checkStatus() })));
+                // uncomment to test out multi, status category display
                 // async (item: InventoryItem, i) => i % 2 ? { ...item, status: 'unequipped' } : { ...item, status: 'equipped' }))
             
             const grouped = groupBy('status', inventoryWithStatus);
             
             // setup categories for SectionList format
-            const formattedCategories = map(
+            const categorySections = map(
                 ([title, data]: [string, InventoryItem[]]) => ({ title, data }))
                 (entries(grouped)
             );
 
-            setCategories(formattedCategories);
+            setCategories(categorySections);
         }
     }, [inventory]);
 
@@ -45,23 +46,11 @@ const InventoryScreen: React.FC = () => {
         />
     );
 
-    // const renderCategory = ([status, items]: [string, InventoryItem[]]) => (
-    //     <View key={status}>
-    //         <Text style={styles.inventoryHeader}> {status.toUpperCase()} ITEMS </Text>
-    //         <FlatList
-    //             style={styles.itemList}
-    //             data={items}
-    //             renderItem={renderItem}
-    //             keyExtractor={(item: InventoryItem) => item.id}
-    //             numColumns={2}
-    //         />
-    //     </View>
-    // );
-
     const renderCategoryHeader = ({ section: { title } }: any) =>
         <Text style={styles.inventoryHeader}>{title.toUpperCase()}</Text>;
 
     return (
+        // TODO https://reactnative.dev/docs/optimizing-flatlist-configuration
         <SectionList
             style={styles.container}
             sections={categorizedInventory}
@@ -75,8 +64,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         width: '100%',
-        // alignItems: 'center',
-        // justifyContent: 'center',
     },
     inventoryHeader: {
         fontSize: 20,
@@ -89,8 +76,6 @@ const styles = StyleSheet.create({
         padding: 50,
         width: '100%',
         flexDirection: 'row',
-        // alignItems: 'flex-start',
-        // justifyContent: 'flex-start',
     },
     itemCard: {
         // flex: 1,

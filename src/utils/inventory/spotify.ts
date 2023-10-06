@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import {
     InventoryIntegration,
-    JinniStat,
+    DjinnStat,
     SpiritStat,
     CommunityStat,
     InventoryItem,
@@ -10,6 +10,9 @@ import {
 const equip = async (promptAsync) => {
     console.log("equipping spotiyfy!!!");
     try {
+        // expo-auth-session only exposes API via hooks which we cant embed in this since its a conditional call
+        // should we roll our own OAuth lib or just have this callback method?
+        // Slightly complicates equip() vs no params but also enables a ton of functionality for any item with callback
         promptAsync();
     } catch(e) {
         console.log("Inv:spotify:equip:ERR", e);
@@ -32,14 +35,15 @@ const item = {
     id: "spotify",
     name: "Da Bumpin Horn o' Vibranium",
     dataSourceProvider: "spotify",
-    image: "https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_Green-768x231.png",
+    image: "https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png",
     installLink: "https://www.spotify.com/us/download/",
     attributes: [
-        { ...JinniStat, value: 1 },
+        { ...DjinnStat, value: 1 },
         { ...CommunityStat, value: 10 },
         { ...SpiritStat, value: 20 },
     ],
     checkStatus: async () => {
+        // TODO figure out auth lol
         // lookup local storage or server for access/refresh token
         // const hasToken = await AsyncStorage.getItem('spotify-access-token');
         // if(proof) return 'equipped';

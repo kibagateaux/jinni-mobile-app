@@ -2,6 +2,8 @@
 import React, { createContext } from 'react';
 import {useColorScheme} from 'react-native';
 
+// TODO delete and replace with REact-Navigation theming
+// https://docs.expo.dev/routing/appearance/#react-navigation-themes
 type Theme = {
     colorScheme: 'light' | 'dark';
     primaryColor: string;

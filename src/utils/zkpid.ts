@@ -35,9 +35,8 @@ export const getId = async (idType: string): Promise<Identity | null> => {
 export const _delete_id = async (idType: string): Promise<void> => {
   console.log("node env", process.env.NODE_ENV);
   console.log("\n\n\nZK: DELETING ID!!!! ONLY AVAILABKLE IN DEVELOPMENT!!!! ENSURE THIS IS INTENDED BEHAVIOUR!!!!!\n\n\n");
-  if(process.env.NODE_ENV !== 'developmet')
-    throw Error("CANNOT DELETE ZK IDs");
-  await AsyncStorage.setItem(idType, null);
+  if(!__DEV__) throw Error("CANNOT DELETE ZK IDs");
+  await AsyncStorage.setItem(idType, '');
 }
 
 /** TODO figure out return types from HaLo lib  */

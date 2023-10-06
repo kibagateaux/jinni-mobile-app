@@ -12,13 +12,13 @@ import {
 
 import {
     InventoryIntegration,
-    JinniStat,
+    DjinnStat,
     HealthStat,
     IntelligenceStat,
     InventoryItem,
 } from 'types/GameMechanics';
 
-import { PORTAL_DAY } from "utils/config";
+import { PORTAL_DAY } from "utils/mayanese";
 
 const ANDROID_HEALTH_PERMISSIONS = [
     // summaries
@@ -122,13 +122,13 @@ const unequip = async () => {
 
 const item = {
     id: "android-health-connect",
-    name: "Android Health Connect",
+    name: "Cyborg Repair Pack",
     dataSourceProvider: "android-health-connect",
     image: "https://play-lh.googleusercontent.com/EbzDx68RZddtIMvs8H8MLcO-KOiBqEYJbi_kRjEdXved0p3KXr0nwUnLUgitZ5kQVWVZ=w480-h960-rw",
     installLink: "https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata",
     attributes: [
-        { ...JinniStat, value: 5 },
-        { ...HealthStat, value: 5 },
+        { ...DjinnStat, value: 5 },
+        { ...HealthStat, value: 10 },
         { ...IntelligenceStat, value: 2 },
     ],
     checkStatus: async () => {
@@ -178,7 +178,7 @@ export const queryHealthData = async ({ activity, operator, startTime, endTime }
             endTime: endTime ?? Date.now().toLocaleString(),
         },
     });
-    console.log("Android Health Steps", records);
+    // console.log("Android Health Steps", records);
 
     return records;
 }

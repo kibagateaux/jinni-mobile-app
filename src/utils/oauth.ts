@@ -20,12 +20,12 @@ export const oauthConfigs: { [key: string]: OAuthProvider } = {
         tokenEndpoint: 'https://www.strava.com/oauth/token',
         revocationEndpoint: 'https://www.strava.com/oauth/deauthorize',
         scopes: ['activity:read_all'],
-        clientId: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID || '',
+        clientId: process.env.STRAVA_CLIENT_ID || '',
     },
     spotify: {
         authorizationEndpoint: 'https://accounts.spotify.com/authorize',
         tokenEndpoint: 'https://accounts.spotify.com/api/token',
-        clientId: process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID || '',
+        clientId: process.env.SPOTIFY_CLIENT_ID || '',
         scopes: [
             'user-follow-modify', // create social network on spotfiy
             'user-read-recently-played', // let others know what ur listening too
@@ -37,7 +37,7 @@ export const oauthConfigs: { [key: string]: OAuthProvider } = {
         authorizationEndpoint: 'https://www.coinbase.com/oauth/authorize',
         tokenEndpoint: 'https://api.coinbase.com/oauth/token',
         revocationEndpoint: 'https://api.coinbase.com/oauth/revoke',
-        clientId: process.env.EXPO_PUBLIC_COINBASE_CLIENT_ID || '',
+        clientId: process.env.COINBASE_CLIENT_ID || '',
         scopes: ['wallet:user:read', 'wallet:accounts:read', 'wallet:transactions:read', ],
     },
     undefined: {

@@ -23,7 +23,7 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "17.0"
+            "deploymentTarget": "16.0"
           },
           "android": {
             "compileSdkVersion": 34,
@@ -35,7 +35,14 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Let $(PRODUCT_NAME) access your contact to create parties for your jinni."
+          "contactsPermission": "Allow your jinni to access your friends list to contact their jinn and communicate with them in the spiritual world."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow your jinni to follow you and protect you around the world.",
+          "isAndroidBackgroundLocationEnabled": false
         }
       ],
       "expo-router",
@@ -53,8 +60,7 @@
       ]
     },
     "ios": {
-      "supportsTablet": true,
-      "usesAppleSignIn": true,
+      "supportsTablet": false,
       "infoPlist": {
         "NSContactsUsageDescription": "Let $(PRODUCT_NAME) access your contact to create parties for your jinni."
       },

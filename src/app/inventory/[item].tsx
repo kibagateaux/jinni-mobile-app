@@ -22,9 +22,12 @@ interface ItemPageProps {
 const ItemPage: React.FC<ItemPageProps> = () => {
   const { item: id } = useLocalSearchParams();
   const { inventory, loading } = useInventory();
+
   const [item, setItem] = useState<InventoryItem | null>(null);
-  const [status, setStatus] = useState<string>("unequipped");
+  const [status, setStatus] = useState<ItemStatus>("unequipped");
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  
+  // hooks for items that require 3rd party authentication
   const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
   const [request, response, promptAsync] = useAuthRequest(
     {
@@ -37,9 +40,9 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
   // console.log('Item: oauth', itemOauthConfig, request, response, promptAsync);
 
-
   useEffect(() => {
     if(item) {
+      // configure oauth if required for item equip/unequip
       const oauth = oauthConfigs[item.id];
       if(oauth) setItemOauth(oauth);
     }
@@ -76,7 +79,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
       setStatus("equipping");
       setActiveModal("equip-wizard");
       try {
-        // todo should we add tags to items for different callback types
+        // TODO should we add tags to items for different callback types and UI filtering?
         // or just a single, optional callback func that handles everything for equip?
         if(itemOauthConfig.authorizationEndpoint) await item.equip(promptAsync);
         else await item.equip();
@@ -122,7 +125,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
   }
 
   const renderItemHelpers = () => {
-    console.log('render Item Helpers', status);
+    // console.log('render Item Helpers', status);
     switch(status) {
       case "unequipped":
         if(item.installLink)

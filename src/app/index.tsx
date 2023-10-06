@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { View, Button, Text, StyleSheet } from 'react-native';
 import { Slot } from 'expo-router';
-import { defaultWidgetConfig } from 'utils/config';
+import { saveHomeConfig } from 'utils/config';
 
 import { useHomeConfig } from 'hooks';
 import {
@@ -9,31 +9,51 @@ import {
     useTheme,
     useAuth
 } from 'contexts';
-import { HomeConfig, WidgetConfig } from 'types/UserConfig';
+import { HomeConfig, RenovatingWidgetConfig, WidgetConfig } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
 import { AvatarViewer, WidgetIcon, Link } from 'components/index';
 import DefaultAvatar from 'assets/avatars/happy-ghost';
-
+import WidgetContainer from 'components/home/WidgetContainer';
 
 
 const HomeScreen = () => {
     const { user, login } = useAuth();
     const homeConfig = useHomeConfig();
-    const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>(defaultWidgetConfig);
+    const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
 
     useEffect(() => {
-        if (homeConfig) {
-            homeConfig.widgets !== widgetConfig && setWidgetConfig(homeConfig.widgets || defaultWidgetConfig);
+        if (homeConfig && homeConfig.widgets !== widgetConfig) {
+            setWidgetConfig(homeConfig.widgets);
         }
     }, [homeConfig]);
 
-    const handleLogin = () =>{
-        // navigate to login screen
+    console.log('Home:widgi', widgetConfig);
+
+    const saveWidgets = (widgets: WidgetConfig[]) => {
+        console.log('changing config',widgets.map(({id}) => id) , widgetConfig.map(({id}) => id));
+        
+        setWidgetConfig(widgets)
+    };
+    const finalizeRenovation = () => saveHomeConfig({
+        username: user?.name || 'sampleusername',
+        widgets: widgetConfig,
+        proof: '!believeme!',
+    });
+
+    const HomeWidget = ({ id, title, path }: WidgetConfig) => {
+        return (
+                <WidgetIcon
+                    key={id}
+                    widgetId={id} 
+                    text={title}
+                    to={path}
+                    height={50}
+                    width={50}
+                    icon={getIconForWidget(id)}
+                />
+        )
     }
-
-    console.log('home config', user, homeConfig, widgetConfig);
-
     return (
         <View style={{ flex: 1, ...useTheme() }}>
             <View style={styles.container}>
@@ -43,19 +63,13 @@ const HomeScreen = () => {
                         SVG={DefaultAvatar}
                     />
                 </View>
-                <View style={styles.widgets}>
-                    {widgetConfig.map((widget) => (
-                        <WidgetIcon
-                            key={widget.widgetId}
-                            widgetId={widget.widgetId} 
-                            text={widget.name}
-                            to={widget.path}
-                            height={50}
-                            width={50}
-                            icon={getIconForWidget(widget.widgetId)}
-                        />
-                    ))}
-                </View>
+
+                <WidgetContainer
+                    widgets={widgetConfig}
+                    WidgetRenderer={HomeWidget}
+                    saveWidgets={saveWidgets}
+                    finalizeRenovation={finalizeRenovation}
+                />
             </View>
         </View>
     );        
@@ -69,15 +83,6 @@ const styles = StyleSheet.create({
   },
   avatar: {
     flex: 10,
-  },
-  widgets: {
-    position: 'absolute',
-    right: 0,
-    flexDirection: 'column',
-  },
-  tabs: {
-    flex: 0.2,
-    flexDirection: 'row',
   },
 });
 

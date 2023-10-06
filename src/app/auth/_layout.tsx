@@ -10,28 +10,13 @@ const AuthStack: React.FC<AuthStackProps> = () => {
   return (
       <Stack
           screenOptions={{
-            headerStyle: {
-              backgroundColor: theme.primaryBackgroundColor,
-            },
-            headerTintColor: theme.primaryTextColor,
-            headerTitleStyle: {
-              fontWeight: 'bold',
-            },
+            headerShown: false,
           }}
-          >
-        <Stack.Screen
-          name="sign-in"
-          options={{ title: 'Login' }}
-          />
+      >
       {/* <Stack.Screen
           name="signup"
           options={{ title: 'signup' }}
         /> */}
-        <Stack.Screen
-          name="/auth/[provider]"
-          // path="/auth/[provider]"
-          options={{ title: '3rd Party Login' }}
-          />
       </Stack>
   );
 };

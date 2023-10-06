@@ -6,6 +6,8 @@ import iosHealth from './ios-health-kit';
 import androidHealth from './android-health-connect';
 import maliksMajik from './maliks-majik';
 import spotify from './spotify';
+import locationForeground from './phone-location-foreground';
+import locationBackground from './phone-location-background';
 
 import { getAppConfig } from 'utils/config';
 
@@ -13,7 +15,7 @@ import { getAppConfig } from 'utils/config';
 import {
     InventoryItem,
     ItemStatus,
-    JinniStat,
+    DjinnStat,
     HealthStat,
     CommunityStat,
     IntelligenceStat,
@@ -34,11 +36,18 @@ const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> 
     const coreInventory = [
         maliksMajik.item,
         spotify.item,
-    ]
+    ];
+
+    const mobileInventory = [
+        locationForeground.item,
+        // locationBackground, // Dont need feature yet and it adds admin overhead for app review
+    ];
+
     // any data that can come directly from local device
     const platformInventoryItems: InventoryItem[] = Platform.select({
         ios: [
             ...coreInventory,
+            ...mobileInventory,
             {
                 id: "iphone-health-kit",
                 name: "iPhone Health Kit",
@@ -46,7 +55,7 @@ const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> 
                 image: "https://www.apple.com/v/ios/ios-13/images/overview/health/health_hero__fjxh8smk2q6q_large_2x.jpg",
                 installLink: "https://apps.apple.com/us/app/health/id1206187994",
                 attributes: [
-                    { ...JinniStat, value: 5 },
+                    { ...DjinnStat, value: 5 },
                     { ...HealthStat, value: 5 },
                     { ...IntelligenceStat, value: 2 },
                 ],
@@ -66,7 +75,7 @@ const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> 
                 image: "https://www.apple.com/v/ios/ios-13/images/overview/health/health_hero__fjxh8smk2q6q_large_2x.jpg",
                 installLink: "https://apps.apple.com/us/app/health/id1206187994",
                 attributes: [
-                    { ...JinniStat, value: 15 },
+                    { ...DjinnStat, value: 15 },
                     { ...HealthStat, value: 10 },
                     { ...IntelligenceStat, value: 2 },
                 ],
