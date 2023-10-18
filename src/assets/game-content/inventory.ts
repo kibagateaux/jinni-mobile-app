@@ -1,5 +1,5 @@
 export default {
-    "maliks-majik": {
+    "MaliksMajik": {
         "equipping": {
             "modal": {
                 "title": "You are equipping an item",
@@ -21,7 +21,7 @@ export default {
             },
         },
     },
-    "android-health-connect": {
+    "AndroidHealthConnect": {
         "equipping": {
             "modal": {
                 "title": "You are equipping an item",

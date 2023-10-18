@@ -190,39 +190,7 @@ const tones: MayanTone[] = [
         number: 13,
     },
 ];
-const archetypes: MayanArchetype[] = [
-    {
-        id: "Red Dragon",
-        number: 1,
-        energyType: "initiate",
-        activations: ["birth", "nurture", "being"]
-    },
-    {
-        id: "White Wind",
-        number: 2,
-        energyType: "refine",
-        activations: ["spirit", "communication", "breath"]
-    },
-    {
-        id: "Blue Night",
-        number: 3,
-        energyType: "transform",
-        activations: ["abundance", "intuition", "dream"]
-    },
-    {
-        id: "Yellow Seed",
-        number: 4,
-        energyType: "ripen",
-        activations: ["awareness", "targeting", "flowering"]
-    },
-    // ... continue for all 20 archetypes
-];
 
-const tzolkinConfig: TzolkinConfig = {
-    "2023-06-20": [1, tones[0], archetypes[0]],
-    "2023-06-21": [2, tones[1], archetypes[1]],
-    // ... continue for all 260 days of the Tzolkin cycle
-};
 /// @notice day that Jinn started enterinng this world and we start tracking data for bonding
 /// Hardecoded values to derive past/future tzolkin data from
 /// @dev day that Malik arrived at Cohere in Berlin

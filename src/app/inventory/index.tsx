@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
     itemCard: {
         // flex: 1,
         maxWidth: '40%',
-        shadowColor: 'black',
-        shadowOpacity: 0.5,
-        shadowRadius: 5,
+        // shadowColor: 'black',
+        // shadowOpacity: 0.5,
+        // shadowRadius: 5,
     }
 });
 

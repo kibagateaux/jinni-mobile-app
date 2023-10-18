@@ -49,9 +49,9 @@ const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> 
             ...coreInventory,
             ...mobileInventory,
             {
-                id: "iphone-health-kit",
+                id: "IphoneHealthKit",
                 name: "iPhone Health Kit",
-                dataSourceProvider: "ios-health-kit",
+                datasource: "ios-health-kit",
                 image: "https://www.apple.com/v/ios/ios-13/images/overview/health/health_hero__fjxh8smk2q6q_large_2x.jpg",
                 installLink: "https://apps.apple.com/us/app/health/id1206187994",
                 attributes: [
@@ -69,9 +69,9 @@ const getInventoryItems = async (username?: string): Promise<InventoryItem[]>=> 
                 // actions: [],
             },
             {
-                id: "iwatch-health-kit",
+                id: "IwatchHealthKit",
                 name: "iWatch Health Kit",
-                dataSourceProvider: "iwatch-health-kit",
+                datasource: "IwatchHealthKit",
                 image: "https://www.apple.com/v/ios/ios-13/images/overview/health/health_hero__fjxh8smk2q6q_large_2x.jpg",
                 installLink: "https://apps.apple.com/us/app/health/id1206187994",
                 attributes: [

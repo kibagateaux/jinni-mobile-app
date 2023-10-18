@@ -21,7 +21,7 @@ const equip = async () => {
     try {
         const result = await signWithId(ID_ANON_SLOT);
         if(result && result.etherAddress === MALIKS_MAJIK_CARD) {
-            console.log("Inv:maliks-majik:equip:SUCC", result);
+            console.log("Inv:MaliksMajik:equip:SUCC", result);
             // ensure result is valid ?
             // send to our server for storage or some
             // save result to local storage for later authentication
@@ -31,7 +31,7 @@ const equip = async () => {
             return false;
         }
     } catch(e) {
-        console.log("Inv:maliks-majik:equip:ERR", e);
+        console.log("Inv:MaliksMajik:equip:ERR", e);
         return false;
     }
 }
@@ -41,16 +41,16 @@ const unequip = async () => {
     try {
         _delete_id(PROOF_MALIKS_MAJIK_SLOT);
     } catch(e) {
-        console.log("Inv:maliks-majik:equip:ERR", e);
+        console.log("Inv:MaliksMajik:equip:ERR", e);
         return false;
     }
 }
 
 
 const item = {
-    id: "maliks-majik",
+    id: "MaliksMajik",
     name: "Malik's Majik",
-    dataSourceProvider: "maliks-majik-card",
+    datasource: "MaliksMajik-card",
     image: "https://cdn.drawception.com/drawings/3yyv096cK5.png",
     attributes: [
         { ...DjinnStat, value: 10 },

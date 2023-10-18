@@ -6,7 +6,7 @@ import NfcManager, {NfcTech} from 'react-native-nfc-manager';
 import {execHaloCmdRN} from '@arx-research/libhalo/api/react-native.js';
 
 export const ID_ANON_SLOT = "_anon_id"
-export const PROOF_MALIKS_MAJIK_SLOT = "maliks-majik"
+export const PROOF_MALIKS_MAJIK_SLOT = "MaliksMajik"
 
 export const generateIdentity = (): Identity => new Identity();
 export const generateIdentityWithSecret = (secret: string): Identity => new Identity(secret);

@@ -35,7 +35,7 @@ const unequip = async () => {
 const item = {
     id: "phone-location-background",
     name: "Orb of Telepathy",
-    dataSourceProvider: "phone-location-background",
+    datasource: "phone-location-background",
     image: "https://i1.sndcdn.com/artworks-000415907772-8vekjg-t500x500.jpg",
     attributes: [
         { ...DjinnStat, value: 20 },

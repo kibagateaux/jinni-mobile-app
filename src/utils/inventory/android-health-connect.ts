@@ -43,10 +43,10 @@ const checkEligibility = async (): Promise<boolean> => {
     if(Platform.OS !== 'android') return false;
 
     const status = await getSdkStatus();
-    console.log("Inv:android-health-connect:checkEligibility: ", status);
+    console.log("Inv:AndroidHealthConnect:checkEligibility: ", status);
 
     if (status !== SdkAvailabilityStatus.SDK_AVAILABLE) {
-        console.log("Inv:android-health-connect:checkElig: NOT ELIIGBLE", );
+        console.log("Inv:AndroidHealthConnect:checkElig: NOT ELIIGBLE", );
         // TODO link to Google play store link for download
         return false;
     }
@@ -67,22 +67,22 @@ const getPermissions = async () => {
             return false;
         }
     } catch(e) {
-        console.log("Inv:android-health-connect:checkElig: ", e);
+        console.log("Inv:AndroidHealthConnect:checkElig: ", e);
         return false;
     }
 
     try {
         const grantedPerms = await getGrantedPermissions();
-        console.log("Inv:android-health-connect:getPerm: GrantedPerms ", grantedPerms);
+        console.log("Inv:AndroidHealthConnect:getPerm: GrantedPerms ", grantedPerms);
 
         // if(grantedPerms !== ANDROID_HEALTH_PERMISSIONS) {
         if(grantedPerms.length === 0) {
-            console.log("Inv:android-health-connect:getPerm: NO PERMISSIONS");
+            console.log("Inv:AndroidHealthConnect:getPerm: NO PERMISSIONS");
             return false;
         }
         return true;
     } catch(e) {
-        console.log("Inv:android-health-connect:getPerm: ", e);
+        console.log("Inv:AndroidHealthConnect:getPerm: ", e);
         return false;
     }
 }
@@ -91,7 +91,7 @@ const initPermissions = async () => {
     checkEligibility();
     console.log("Inv:andoird-health-connect:Init");
     const permissions = await requestPermission(ANDROID_HEALTH_PERMISSIONS);
-    console.log("Inv:android-health-connect:Init: Permissions Granted!", permissions);
+    console.log("Inv:AndroidHealthConnect:Init: Permissions Granted!", permissions);
     return true;
 }
  
@@ -121,9 +121,9 @@ const unequip = async () => {
 }
 
 const item = {
-    id: "android-health-connect",
+    id: "AndroidHealthConnect",
     name: "Cyborg Repair Pack",
-    dataSourceProvider: "android-health-connect",
+    datasource: "AndroidHealthConnect",
     image: "https://play-lh.googleusercontent.com/EbzDx68RZddtIMvs8H8MLcO-KOiBqEYJbi_kRjEdXved0p3KXr0nwUnLUgitZ5kQVWVZ=w480-h960-rw",
     installLink: "https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata",
     attributes: [
@@ -133,18 +133,18 @@ const item = {
     ],
     checkStatus: async () => {
         const isInstalled = await checkEligibility();
-        console.log("Inv:android-health-connect:checkStatus: installed?", isInstalled)
+        console.log("Inv:AndroidHealthConnect:checkStatus: installed?", isInstalled)
         if(!isInstalled) return "ethereal";
         
         const isEquipped = await getPermissions() ;
-        console.log("Inv:android-health-connect:checkStatus: equipped?", isEquipped)
+        console.log("Inv:AndroidHealthConnect:checkStatus: equipped?", isEquipped)
         if(isEquipped) return 'equipped';
         
         // if getPermissions() permissions have been revoked 
         // return 'destroyed';
         // TODO
         // see if health connect is installed
-        console.log("Inv:android-health-connect:checkStatus: unequipped!", isEquipped)
+        console.log("Inv:AndroidHealthConnect:checkStatus: unequipped!", isEquipped)
         return 'unequipped';
     },
     // must have app installed but not equipped yet
@@ -170,7 +170,6 @@ export default {
  * @returns HealthRecords[]
  */
 export const queryHealthData = async ({ activity, operator, startTime, endTime }: QueryAndroidHealthDataProps) => {
-    // TODO abstract to utils
     const records = await readRecords(activity, {
         timeRangeFilter: {
             operator,
@@ -178,7 +177,16 @@ export const queryHealthData = async ({ activity, operator, startTime, endTime }
             endTime: endTime ?? Date.now().toLocaleString(),
         },
     });
-    // console.log("Android Health Steps", records);
+    console.log("Android Health Steps", records.slice(0, 10));
 
     return records;
 }
+
+/**
+ * @desc - Query Android health data from phone
+ * @dev - Custom Item Function
+ * @param 
+ * @returns HealthRecords[]
+ */
+export const getSteps = async ({ startTime, endTime }) =>
+    queryHealthData({ activity: 'Steps', operator: 'between', startTime, endTime });

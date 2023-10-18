@@ -12,9 +12,10 @@ export type GameContent = {
 }
 export interface Action {
   id: string; // uuid
-  name: string; // human readable name
-  dataSourceProvider: string; // Ingester if Incipient? Transformer if Consequential?
-  timestamp: string; // time action occured IRL
+  name: string; // human readable action name e.g. "walking"
+  datasource: string; // Ingester if Incipient? Transformer if Consequential?
+  startTime: string; // ISO string '2023-06-20T23:53:15.405Z'
+  endTime: string; // ISO string '2023-06-20T23:53:15.405Z'
 }
 
 export interface StatsAttribute {
@@ -82,11 +83,11 @@ export const StatsConfig = [
   DjinnStat,
 ]
 
-export type ItemIds = 'maliks-majik'
-  | 'iphone-health-kit'
-  | 'iwatch-health-kit'
-  | 'android-health-connect'
-  & OAuthProviders;
+export type ItemIds = 'MaliksMajik'
+  | 'IphoneHealthKit'
+  | 'IwatchHealthKit'
+  | 'AndroidHealthConnect'
+  & OAuthProviderIds;
 
 export type ItemStatus = 'ethereal' // can be used by player but isnt installed or accessible at the moment
   | 'unequipped' // player can equip but hasnt yet
@@ -106,7 +107,7 @@ export interface InventoryItem {
     benefits: string;
     description: string;
     attributes: StatsAttribute[];
-    dataSourceProvider: string;
+    datasource: string;
     installLink?: string;
 
     //dynamic metadata
@@ -137,9 +138,9 @@ export interface InventoryIntegration {
   unequip: () => Promise<boolean>;
 }
 
-export type OAuthProviders = 'spotify' 
-    | 'coinbase'
-    | 'strava'
+export type OAuthProviderIds = 'Spotify' 
+    | 'Coinbase'
+    | 'Strava'
     // TODO 'fitbit'export interface OAuthProviderConfig {
 
 export interface OAuthProvider {

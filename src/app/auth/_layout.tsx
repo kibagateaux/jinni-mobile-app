@@ -13,10 +13,10 @@ const AuthStack: React.FC<AuthStackProps> = () => {
             headerShown: false,
           }}
       >
-      {/* <Stack.Screen
-          name="signup"
-          options={{ title: 'signup' }}
-        /> */}
+      <Stack.Screen
+          name="oauth-callback"
+          options={{ title: 'Confirm Login' }}
+        />
       </Stack>
   );
 };

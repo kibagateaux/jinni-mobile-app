@@ -34,7 +34,7 @@ const unequip = async () => {
 const item = {
     id: "spotify",
     name: "Da Bumpin Horn o' Vibranium",
-    dataSourceProvider: "spotify",
+    datasource: "spotify",
     image: "https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png",
     installLink: "https://www.spotify.com/us/download/",
     attributes: [

@@ -33,6 +33,7 @@ export type TabIds =
     | 'experiment'  // 010
     | ''
 
+// TODO to capital case? like DataSource names?
 export type GameWidgetIds = 'stat-djinn'
     | 'stat-health'
     | 'stat-community'

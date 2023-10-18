@@ -29,11 +29,15 @@ const ItemPage: React.FC<ItemPageProps> = () => {
   
   // hooks for items that require 3rd party authentication
   const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
+  const redirectUri = createOauthRedirectURI();
+  console.log('[OAUTH redirectUri]', redirectUri);
+  
   const [request, response, promptAsync] = useAuthRequest(
     {
         clientId: itemOauthConfig.clientId,
         scopes: itemOauthConfig.scopes,
-        redirectUri: createOauthRedirectURI(),
+        redirectUri: `${redirectUri}?provider=${item?.id}`,
+        usePKCE: false,
     },
     itemOauthConfig,
   );
@@ -99,7 +103,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
   const renderItemButton = () => {
     // console.log("Item: button? ", status, item.equip, item.unequip, item);
 
-    if(status === "unequipped" && item.equip) return (
+    if(status === "unequipped" && (item.equip && (!itemOauthConfig || request))) return (
       <Button style={styles.equipButton} title="Equip" onPress={onItemEquipPress}/>
     );
 

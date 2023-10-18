@@ -6,9 +6,16 @@ import { useAuth } from 'contexts/AuthContext';
 import { getSteps } from 'utils/inventory/android-health-connect';
 import { PORTAL_DAY } from 'utils/mayanese';
 
-export default () => {
+export default (props) => {
+    console.log('oauth callback props', props);
+    // So this works but not entirely sure what to do now?
+    // think we've done first half of authorization code
+    // now we do second half of exchanging code for access token
+    // have to make a request to server to initiate? Dont necessarily need server can just do thru client
+    // doing through server would let us expose your data to other users e.g. let us show them ur top 10 songs (right now we could only get ur top 10 for u on ur device)
+
     const { user, login, anonId } = useAuth();
-    console.log('signin anonid', anonId?._commitment);
+    console.log('oauth callback', anonId?._commitment);
     useEffect(() => {
         // getSteps({
         //   startTime: PORTAL_DAY,
