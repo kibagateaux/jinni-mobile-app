@@ -1,4 +1,6 @@
 import { Platform } from "react-native";
+import { format, formatDistance, startOfDay, addDays, subDays, formatISO, } from 'date-fns/fp';
+import { sortBy, reduce, values } from 'lodash/fp';
 import {
     getSdkStatus,
     openHealthConnectSettings,
@@ -19,6 +21,7 @@ import {
 } from 'types/GameMechanics';
 
 import { PORTAL_DAY } from "utils/mayanese";
+import { AndroidHealthRecord, GetHealthDataProps } from "types/HealthData";
 
 const ANDROID_HEALTH_PERMISSIONS = [
     // summaries
@@ -188,5 +191,34 @@ export const queryHealthData = async ({ activity, operator, startTime, endTime }
  * @param 
  * @returns HealthRecords[]
  */
-export const getSteps = async ({ startTime, endTime }) =>
+export const getSteps = async ({ startTime, endTime }: GetHealthDataProps) =>
     queryHealthData({ activity: 'Steps', operator: 'between', startTime, endTime });
+
+/**
+ * @desc - Aggregate multiple steps data into single object for an entire day to save DB space
+ * @dev - Assumes all records are of the same activity/type
+ * @param records -  all records queried from phone
+ * @returns HealthRecords[] - one health record per day.
+ */
+export const _agg_daily = (records: AndroidHealthRecord[]): AndroidHealthRecord[]  => {  
+    const sortedRecords = sortBy((r: AndroidHealthRecord) => new Date(r.startTime).getTime())(records);
+    const groupedRecords = reduce((acc: any, record: AndroidHealthRecord) => {
+        const recordDate = formatISO(startOfDay(new Date(record.startTime)));
+        return !acc[recordDate] ?
+            {...acc, [recordDate] : record } :
+            {...acc, [recordDate] : {
+                ...acc[recordDate],
+                count: acc[recordDate].count + record.count, // TODO abstract activity specific data by recordType
+                startTime: acc[recordDate].startTime < record.startTime ? acc[recordDate].startTime : record.startTime,
+                endTime: acc[recordDate].endTime > record.endTime ? acc[recordDate].endTime : record.endTime,
+            }};
+    }, {})(sortedRecords);
+    
+    return Object.values(groupedRecords) as AndroidHealthRecord[];
+}
+
+    // records.reduce((agg, record) => ({
+    //     count: record.count + agg.count,
+    //     endTime: agg.endTime > record.endTime ? agg.endTime : record.endTime,
+    //     startTime: agg.startTime < record.startTime ? agg.startTime : record.startTime,
+    // }));
