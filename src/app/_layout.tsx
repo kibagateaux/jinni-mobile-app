@@ -1,12 +1,11 @@
 // add React Native NodeJS polyfills
-import "utils/polyfills";
+import 'utils/polyfills';
 
 /**
  * Normal RN imports
-*/
+ */
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import {  Slot, Stack, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 
 import { useHomeConfig } from 'hooks';
 import { ContextProvider } from 'contexts';

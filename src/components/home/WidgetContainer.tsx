@@ -1,18 +1,13 @@
-import React, { useState } from "react";
-import { View, FlatList, StyleSheet, Alert, Button } from "react-native";
+import React, { useState } from 'react';
+import { View, FlatList, StyleSheet, Button } from 'react-native';
 import DraggableFlatList, {
     ScaleDecorator,
-    ShadowDecorator,
-    RenderItemParams
+    // ShadowDecorator,
+    RenderItemParams,
 } from 'react-native-draggable-flatlist';
-import { GestureDetector, Gesture, TouchableOpacity } from 'react-native-gesture-handler';
-import { useSharedValue, runOnJS } from 'react-native-reanimated';
-import { filter } from 'lodash/fp';
-
-import { getIconForWidget } from "utils/rendering";
-import { WidgetConfig, RenovatingWidgetConfig } from "types/UserConfig";
-
-import { WidgetIcon } from 'components';
+import { TouchableOpacity /** GestureHAndler */ } from 'react-native-gesture-handler';
+// import { useSharedValue, runOnJS } from 'react-native-reanimated';
+import { WidgetConfig } from 'types/UserConfig';
 
 interface WidgetContainerProps {
     widgets: WidgetConfig[];
@@ -20,20 +15,20 @@ interface WidgetContainerProps {
     finalizeRenovation?: () => void; // send to server
     WidgetRenderer: React.FC<WidgetConfig>;
     renovationConfig?: object; // options for DraggableFlatList
-};
+}
 
 const WidgetContainer = ({
     widgets,
     WidgetRenderer,
     saveWidgets,
     finalizeRenovation,
-    renovationConfig = {}
+    renovationConfig = {},
 }: WidgetContainerProps) => {
     // TODO https://reactnative.dev/docs/optimizing-flatlist-configuration
     const [editMode, setEditMode] = useState<boolean>(false);
     // const _setEditMode = runOnJS(_setEditMode);
 
-    // // TODO no buttons to enter renovate mode, just pres & hold widget module and it enters 
+    // // TODO no buttons to enter renovate mode, just pres & hold widget module and it enters
     // // on hold down View, enter edit mode. React Native gesture handler
     // // might need to wrap everything in Gesture Detector and pass into DraggableList.simultaneousHandlers
     // // problem is its probs not a hook so not rerendering
@@ -50,37 +45,39 @@ const WidgetContainer = ({
     //         // _setEditMode(false);
     //     });
 
-    const addWidget = (widget: WidgetConfig) =>
-        () => saveWidgets && saveWidgets([...widgets, widget]);
+    // TODO implement add/remove
 
-    const removeWidget = (widget: WidgetConfig) =>
-        () => saveWidgets && saveWidgets(filter(({ id }) => id !== widget.id)(widgets));
+    // const addWidget = (widget: WidgetConfig) => () =>
+    //     saveWidgets && saveWidgets([...widgets, widget]);
 
-    const onRenovateEnd = ({ data }: { data: WidgetConfig[]}) => {
+    // const removeWidget = (widget: WidgetConfig) => () =>
+    //     saveWidgets && saveWidgets(filter(({ id }) => id !== widget.id)(widgets));
+
+    const onRenovateEnd = ({ data }: { data: WidgetConfig[] }) => {
         console.log('draggable resordered', data);
-        if(saveWidgets) {
+        if (saveWidgets) {
             saveWidgets(data);
         }
-    }
+    };
 
     const onEditModeEnd = () => {
         console.log('end edit Mode');
         setEditMode(false);
-        if(finalizeRenovation) finalizeRenovation();
-    }
+        if (finalizeRenovation) finalizeRenovation();
+    };
 
     const renderRenovationMode = () => {
-        console.log('Widgi:renovation', );
+        console.log('Widgi:renovation');
         const defaultRenovationConfig = {
             dragItemOverflow: true,
             // debug: __DEV__ ? true : false,
-        }
+        };
         return (
             <DraggableFlatList
                 data={widgets}
-                keyExtractor={item => item.id}
+                keyExtractor={(item) => item.id}
                 onDragEnd={onRenovateEnd}
-                renderItem={({ item, drag, isActive}: RenderItemParams<WidgetConfig>) => (
+                renderItem={({ item, drag, isActive }: RenderItemParams<WidgetConfig>) => (
                     <ScaleDecorator>
                         <TouchableOpacity onLongPress={drag} disabled={isActive}>
                             {/* add delete icon button with onPress={removeWidget(item)} */}
@@ -90,56 +87,56 @@ const WidgetContainer = ({
                 )}
                 {...defaultRenovationConfig}
                 {...renovationConfig}
-            /> 
+            />
         );
-    }
+    };
 
     const renderBaseMode = () => {
-        console.log('Widgi:base', );
+        console.log('Widgi:base');
         return (
-            // <GestureDetector gesture={longPress}>
-                <FlatList
-                    data={widgets}
-                    renderItem={({item}: { item: WidgetConfig }) =>
-                        <WidgetRenderer {...item} />}
-                    keyExtractor={item => item.id}
-                />
-            // </GestureDetector>
+            // <gesture={longPress}>
+            <FlatList
+                data={widgets}
+                renderItem={({ item }: { item: WidgetConfig }) => <WidgetRenderer {...item} />}
+                keyExtractor={(item) => item.id}
+            />
+            // <
         );
-    }
-2
+    };
+    2;
 
     return (
         <View style={styles.widgets}>
-            { editMode ? renderRenovationMode() : renderBaseMode()}
-            { editMode ? // TODO use icons not buttons
-                (<>
-                    <Button title="Close" onPress={onEditModeEnd}/> 
-                    <Button title="Add Widget"/>
-                </>) :
-                <Button title="Renovate" onPress={() => setEditMode(true)}/>}
+            {editMode ? renderRenovationMode() : renderBaseMode()}
+            {editMode ? ( // TODO use icons not buttons
+                <>
+                    <Button title="Close" onPress={onEditModeEnd} />
+                    <Button title="Add Widget" />
+                </>
+            ) : (
+                <Button title="Renovate" onPress={() => setEditMode(true)} />
+            )}
         </View>
-        
     );
-}
+};
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     avatar: {
-      flex: 10,
+        flex: 10,
     },
     widgets: {
-      position: 'absolute',
-      right: 0,
-      flexDirection: 'column',
+        position: 'absolute',
+        right: 0,
+        flexDirection: 'column',
     },
     tabs: {
-      flex: 0.2,
-      flexDirection: 'row',
+        flex: 0.2,
+        flexDirection: 'row',
     },
 });
-  
+
 export default WidgetContainer;

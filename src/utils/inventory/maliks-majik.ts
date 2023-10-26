@@ -1,4 +1,5 @@
-import { MALIKS_MAJIK_CARD } from "utils/config";
+import { MALIKS_MAJIK_CARD } from 'utils/config';
+import { HoF } from 'types/GameMechanics';
 
 import {
     ID_ANON_SLOT,
@@ -9,19 +10,14 @@ import {
     signWithId,
 } from 'utils/zkpid';
 
-import {
-    InventoryIntegration,
-    DjinnStat,
-    CommunityStat,
-    InventoryItem,
-} from 'types/GameMechanics';
+import { InventoryIntegration, DjinnStat, CommunityStat, InventoryItem } from 'types/GameMechanics';
 
-const equip = async () => {
+const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
         const result = await signWithId(ID_ANON_SLOT);
-        if(result && result.etherAddress === MALIKS_MAJIK_CARD) {
-            console.log("Inv:MaliksMajik:equip:SUCC", result);
+        if (result && result.etherAddress === MALIKS_MAJIK_CARD) {
+            console.log('Inv:MaliksMajik:equip:SUCC', result);
             // ensure result is valid ?
             // send to our server for storage or some
             // save result to local storage for later authentication
@@ -30,42 +26,41 @@ const equip = async () => {
         } else {
             return false;
         }
-    } catch(e) {
-        console.log("Inv:MaliksMajik:equip:ERR", e);
+    } catch (e) {
+        console.log('Inv:MaliksMajik:equip:ERR', e);
         return false;
     }
-}
+};
 
-const unequip = async () => {
+const unequip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
         _delete_id(PROOF_MALIKS_MAJIK_SLOT);
-    } catch(e) {
-        console.log("Inv:MaliksMajik:equip:ERR", e);
+    } catch (e) {
+        console.log('Inv:MaliksMajik:equip:ERR', e);
         return false;
     }
-}
+};
 
-
-const item = {
-    id: "MaliksMajik",
+const item: InventoryItem = {
+    id: 'MaliksMajik',
     name: "Malik's Majik",
-    datasource: "MaliksMajik-card",
-    image: "https://cdn.drawception.com/drawings/3yyv096cK5.png",
+    datasource: 'MaliksMajik-card',
+    image: 'https://cdn.drawception.com/drawings/3yyv096cK5.png',
     attributes: [
         { ...DjinnStat, value: 10 },
         { ...CommunityStat, value: 10 },
     ],
     checkStatus: async () => {
         const proof = await getId(PROOF_MALIKS_MAJIK_SLOT);
-        if(proof) return 'equipped';
+        if (proof) return 'equipped';
         return 'unequipped';
     },
     canEquip: async () => true,
     equip,
-    unequip: process.env.NODE_ENV === 'development' ? unequip : null,
+    unequip: process.env.NODE_ENV === 'development' ? unequip : undefined,
     // actions: [],
-}
+};
 
 // TODO should we abstract NFC Manager out of SignWithID so we can request permissions separately?
 const initPermissions = () => {};
@@ -78,4 +73,4 @@ export default {
     unequip,
     getPermissions,
     initPermissions,
-} as InventoryIntegration
+} as InventoryIntegration;

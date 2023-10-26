@@ -12,7 +12,7 @@ export interface UserSettings {
 export interface HomeConfig {
     jinniImage: string;
     widgets: WidgetConfig[];
-    tabs: WidgetConfig[]
+    tabs: WidgetConfig[];
 }
 
 export interface WidgetConfig {
@@ -21,32 +21,32 @@ export interface WidgetConfig {
     path: string;
 }
 
-export type RenovatingWidgetConfig = RenderItemParams<WidgetConfig>
+export type RenovatingWidgetConfig = RenderItemParams<WidgetConfig>;
 
-export type TabIds = 
-    'home'          // 2/10
-    | 'inventory'   // 8/10
-    | 'tzolkin'     // 1/10
-    | 'auth'        // 10/10
-    | 'intention'   // 0/10
-    | 'quest'       // 0/10
-    | 'experiment'  // 010
-    | ''
+export type TabIds =
+    | 'home' // 2/10
+    | 'inventory' // 8/10
+    | 'tzolkin' // 1/10
+    | 'auth' // 10/10
+    | 'intention' // 0/10
+    | 'quest' // 0/10
+    | 'experiment' // 010
+    | '';
 
 // TODO to capital case? like DataSource names?
-export type GameWidgetIds = 'stat-djinn'
+export type GameWidgetIds =
+    | 'stat-djinn'
     | 'stat-health'
     | 'stat-community'
     | 'stat-intelligence'
     | 'stat-faith'
     | 'stat-stength'
     | 'stat-stamina'
-    | 'stat-spirit'
-    // player action portals
+    | 'stat-spirit';
+// player action portals
 
-
-
-export type ItemWidgetIds = 'maliks-majik-leaderboard'
+export type ItemWidgetIds =
+    | 'maliks-majik-leaderboard'
     // identity
     | 'spotify-profile'
     | 'spotify-most-played'
@@ -56,6 +56,6 @@ export type ItemWidgetIds = 'maliks-majik-leaderboard'
     // social
     | 'jubjub-collect'
     | 'jubjub-talk'
-    | 'jubjub-display'
+    | 'jubjub-display';
 
 export type WidgetIds = TabIds & GameWidgetIds & ItemWidgetIds;

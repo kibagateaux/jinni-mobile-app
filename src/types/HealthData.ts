@@ -6,13 +6,13 @@ export interface GetHealthDataProps {
     operator?: 'between' | 'before';
 }
 
-interface QueryIosHealthDataProps {
+export interface QueryIosHealthDataProps {
     startDate: number;
     endDate: number;
     activity: string;
 }
 
-interface QueryAndroidHealthDataProps extends GetHealthDataProps {
+export interface QueryAndroidHealthDataProps extends GetHealthDataProps {
     activity: 'Steps';
     startTime?: string; // ISO string '2023-06-20T23:53:15.405Z'
     endTime?: string; // ISO string '2023-10-10T23:53:15.405Z'
@@ -23,7 +23,7 @@ interface QueryAndroidHealthDataProps extends GetHealthDataProps {
 // TODO make subtypes <T> like Steps, HeartRate, etc.
 export interface AndroidHealthRecord {
     count: number; // might only be true for steps not everything
-    endTime: string;  // ISO string '2023-06-20T23:53:15.405Z'
+    endTime: string; // ISO string '2023-06-20T23:53:15.405Z'
     startTime: string; // ISO string '2023-06-20T23:53:15.405Z'
     metadata: {
         clientRecordId: null;
@@ -32,7 +32,7 @@ export interface AndroidHealthRecord {
         id: string; // uuid
         lastModifiedTime: string; // ISO string '2023-06-20T23:53:15.405Z'
         recordingMethod: number;
-    }
+    };
 }
 // ios specific query structure
 // android specific query structure

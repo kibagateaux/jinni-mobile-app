@@ -4,22 +4,22 @@ import { ThemeProvider } from './ThemeContext';
 import { GameContentProvider } from './GameContentContext';
 import { ExternalServicesProvider } from './ExternalServicesContext';
 
-
-export const ContextProvider = ({ children }) => {
+type Props = {
+    children?: React.ReactNode;
+};
+export const ContextProvider: React.FC<Props> = ({ children }) => {
     return (
         <ExternalServicesProvider>
             <GameContentProvider>
                 <AuthProvider>
-                    <ThemeProvider>
-                        {children}
-                    </ThemeProvider>
+                    <ThemeProvider>{children}</ThemeProvider>
                 </AuthProvider>
             </GameContentProvider>
         </ExternalServicesProvider>
-    )
+    );
 };
 // granular exports for specific usages
-export * from "./AuthContext";
-export * from "./ThemeContext";
+export * from './AuthContext';
+export * from './ThemeContext';
 
 export default ContextProvider;

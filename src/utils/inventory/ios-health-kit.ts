@@ -1,12 +1,9 @@
 import { Platform } from 'react-native';
-import AppleHealthKit, {
-    HealthValue,
-    HealthKitPermissions,
-} from 'react-native-health'
-import { InventoryIntegration } from 'types/GameMechanics';
-import { QueryIosHealthDataProps } from "types/HealthData";
+import AppleHealthKit, { HealthValue, HealthKitPermissions } from 'react-native-health';
+import { InventoryIntegration, HoF } from 'types/GameMechanics';
+import { QueryIosHealthDataProps } from 'types/HealthData';
 
-  /* Permission options */
+/* Permission options */
 const permissions = {
     permissions: {
         read: [
@@ -30,30 +27,30 @@ const permissions = {
             // AppleHealthKit.Constants.Permissions.MindfulSession,
         ],
     },
-} as HealthKitPermissions
+} as HealthKitPermissions;
 
 const checkEligibility = async (): Promise<boolean> => {
-    if(Platform.OS !== 'ios') return false;
+    if (Platform.OS !== 'ios') return false;
 
     return new Promise((resolve, reject) => {
-        AppleHealthKit.isAvailable((err: Object, available: boolean) => {
+        AppleHealthKit.isAvailable((err: object, available: boolean) => {
             if (err) {
-                console.log('error initializing Healthkit: ', err)
-                reject(false);
-            } else {
+                console.log('error initializing Healthkit: ', err);
+                return reject(false);
+            }
+            if (available) {
                 // TODO check if we have permissions already
-                resolve(true);
+                return resolve(true);
+            } else {
+                return resolve(false);
             }
         });
     });
-
-    return true
-}
+};
 
 const getPermissions = async () => {
     return true;
-}
-
+};
 
 const initPermissions = async () => {
     // todo abstract to utils function  -
@@ -62,39 +59,38 @@ const initPermissions = async () => {
     // 3. if not granted, open settings
     // 4. once granted, read records
     // 5. once read, send to API
-   if(!checkEligibility()) return false;
+    if (!checkEligibility()) return false;
 
     AppleHealthKit.initHealthKit(permissions, (error: string) => {
         /* Called after we receive a response from the system */
         if (error) {
-            console.log('[ERROR] Cannot grant permissions!')
+            console.log('[ERROR] Cannot grant permissions!');
         }
-    
+
         /* Can now read or write to HealthKit */
         getStepCount({
             startDate: new Date(2020, 1, 1).toISOString(),
         });
-
-    })
+    });
 };
 
-const equip = async () => {
+const equip: HoF = async () => {
     initPermissions();
     return true;
-}
+};
 
-const unequip = async () => {
+const unequip: HoF = async () => {
     // TODO: Implement unequip functionality
     console.log('Unequip called');
     return true;
-}
+};
 
 const getStepCount = async (options: QueryIosHealthDataProps) => {
     // TODO abstract to utils
-    AppleHealthKit.getStepCount(options, (err: Object, steps: HealthValue) => {
-        console.log("Apple Health Steps", steps)
-    })
-}
+    AppleHealthKit.getStepCount(options, (err: object, steps: HealthValue) => {
+        console.log('Apple Health Steps', steps);
+    });
+};
 
 export default {
     checkEligibility,

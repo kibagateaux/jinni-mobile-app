@@ -3,7 +3,4 @@
 
 import BaseModal from './BaseModal';
 import ItemEquipWizardModal from './ItemEquipWizardModal';
-export {
-    BaseModal,
-    ItemEquipWizardModal
-};
+export { BaseModal, ItemEquipWizardModal };

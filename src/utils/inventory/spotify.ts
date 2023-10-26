@@ -1,42 +1,43 @@
-import { Platform } from 'react-native';
 import {
     InventoryIntegration,
     DjinnStat,
     SpiritStat,
     CommunityStat,
     InventoryItem,
+    ItemStatus,
+    HoF,
 } from 'types/GameMechanics';
 
-const equip = async (promptAsync) => {
-    console.log("equipping spotiyfy!!!");
+const equip: HoF = async (promptAsync) => {
+    console.log('equipping spotiyfy!!!');
     try {
         // expo-auth-session only exposes API via hooks which we cant embed in this since its a conditional call
-        // should we roll our own OAuth lib or just have this callback method?
-        // Slightly complicates equip() vs no params but also enables a ton of functionality for any item with callback
-        promptAsync();
-    } catch(e) {
-        console.log("Inv:spotify:equip:ERR", e);
+        // should we roll our own OAuth lib or just keep this callback method?
+        // Slightly complicates equip() vs no params but also enables a ton of functionality for any item
+        promptAsync!();
+        return true;
+    } catch (e) {
+        console.log('Inv:spotify:equip:ERR', e);
         return false;
     }
-}
+};
 
-const unequip = async () => {
-    console.log("unequip spotify!!!");
+const unequip: HoF = async () => {
+    console.log('unequip spotify!!!');
     try {
-
-    } catch(e) {
-        console.log("Inv:spotify:equip:ERR", e);
+        return true;
+    } catch (e) {
+        console.log('Inv:spotify:equip:ERR', e);
         return false;
     }
-}
+};
 
-
-const item = {
-    id: "spotify",
+const item: InventoryItem = {
+    id: 'Spotify',
     name: "Da Bumpin Horn o' Vibranium",
-    datasource: "spotify",
-    image: "https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png",
-    installLink: "https://www.spotify.com/us/download/",
+    datasource: 'Spotify',
+    image: 'https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png',
+    installLink: 'https://www.spotify.com/us/download/',
     attributes: [
         { ...DjinnStat, value: 1 },
         { ...CommunityStat, value: 10 },
@@ -52,12 +53,49 @@ const item = {
     canEquip: async () => true,
     equip,
     unequip,
-    // actions: [],
-}
+    abilities: [
+        {
+            id: 'spotify-share-playlist',
+            name: 'Share Playlist',
+            symbol: '🎶',
+            description: 'Share a playlist on Spotify with another player',
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            do: async () => {
+                // fetch their playlists from spotify
+                // open modal
+                // display playlists
+                // player selects playlist
+                // open phone native share/contacts module
+                // player selects people to send to
+                return () => true;
+            },
+        },
+        {
+            id: 'spotify-share-profile',
+            name: 'Share Profile',
+            symbol: '🦹‍♂️',
+            description: 'Share your Spotfiy profile with another player',
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            do: async () => {
+                // fetch their playlists from spotify
+                // open modal
+                // display playlists
+                // player selects playlist
+                // open phone native share/contacts module
+                // player selects people to send to
+                return () => true;
+            },
+        },
+    ],
+};
 
 // TODO should we abstract NFC Manager out of SignWithID so we can request permissions separately?
-const initPermissions = () => {};
-const getPermissions = () => {};
+const initPermissions = async () => {
+    return true;
+};
+const getPermissions = async () => {
+    return true;
+};
 
 export default {
     item,
@@ -66,4 +104,4 @@ export default {
     unequip,
     getPermissions,
     initPermissions,
-} as InventoryIntegration
+} as InventoryIntegration;

@@ -1,32 +1,27 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Text, StyleSheet, View, FlatList } from 'react-native';
-import { CalendarList, Agenda } from 'react-native-calendars';
+import React, { useState } from 'react';
+import { StyleSheet } from 'react-native';
+import { CalendarList } from 'react-native-calendars';
 
-import { useAuth } from 'contexts';
 import { tzolkinHistory } from 'utils/mayanese';
 import { MarkedDates } from 'react-native-calendars/src/types';
 
 type CalendarDisplayTypes = 'serial' | 'synchronous';
 
 const TzolkinScreen = () => {
-    const { user } = useAuth();
-    const [displayType, setDisplayType] = useState<CalendarDisplayTypes>('serial');
+    const [displayType /* setDisplayType */] = useState<CalendarDisplayTypes>('serial');
     console.log('Tzolkin:config', tzolkinHistory);
-    
 
     const onMonthsChanged = (months) => {
         // TODO compute or call API for wavespell and Kin days
         // TODO call API for transmissions for KIN
         console.log('now these months are visible', months);
-    }
-
-    const TzolkinDay = () => {
-        return (
-            <></>
-        );
     };
 
-    // TODO have data for selected day show up below calendar 
+    // const TzolkinDay = () => {
+    //     return <></>;
+    // };
+
+    // TODO have data for selected day show up below calendar
 
     const renderNormieCalendar = () => {
         return (
@@ -37,7 +32,7 @@ const TzolkinScreen = () => {
                 markingType={'custom'}
                 markedDates={tzolkinHistory as MarkedDates}
                 // dayComponent={TzolkinDay}
-                
+
                 // Enable paging on horizontal, default = false
                 pagingEnabled={true}
                 onVisibleMonthsChange={onMonthsChanged}
@@ -47,7 +42,7 @@ const TzolkinScreen = () => {
                 // calendarWidth={320}
                 // ...calendarListParams
                 // ...calendarParams
-                />
+            />
             // </View>
         );
     };
@@ -55,15 +50,15 @@ const TzolkinScreen = () => {
     const renderThorstiqueCalendar = () => {
         // TODO build interwoven frequencies of data. vertical = day, horizontal = trends
     };
-    
-    return displayType === 'serial' ? renderNormieCalendar() : renderThorstiqueCalendar(); 
+
+    return displayType === 'serial' ? renderNormieCalendar() : renderThorstiqueCalendar();
 };
 
 const styles = StyleSheet.create({
     serialCalendar: {
         height: '50%',
-        width:  '100%',
-    }
+        width: '100%',
+    },
 });
 
 export default TzolkinScreen;

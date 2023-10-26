@@ -1,15 +1,17 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
+import { merge } from 'lodash/fp';
 
-import {
-    InventoryItem,
-} from 'types/GameMechanics';
+import { CurrentConnection } from 'types/SpiritWorld';
 import { HomeConfig, WidgetConfig } from 'types/UserConfig';
 import { UpdateWidgetConfigParams } from 'types/api';
 
-export const MALIKS_MAJIK_CARD = "0x46C79830a421038E75853eD0b476Ae17bFeC289A"
-export const MAJIK_CARDS = [
-    MALIKS_MAJIK_CARD,
-]
+// Storage slots for different config items
+export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
+
+export const MALIKS_MAJIK_CARD = '0x46C79830a421038E75853eD0b476Ae17bFeC289A';
+export const MAJIK_CARDS = [MALIKS_MAJIK_CARD];
 
 type AppConfig = {
     NODE_ENV: 'development' | 'production' | 'test';
@@ -20,12 +22,12 @@ type AppConfig = {
     SENTRY_ORG: string | undefined;
     SENTRY_PROJECT: string | undefined;
     SEGMENT_API_KEY: string | undefined;
-}
+};
 
-console.log("Config:env", process.env);
+console.log('Config:env', process.env);
 
 export const getAppConfig = (): AppConfig => ({
-    NODE_ENV: process.env.NODE_ENV || 'development', 
+    NODE_ENV: process.env.NODE_ENV || 'development',
     API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000',
     API_KEY: process.env.EXPO_PUBLIC_API_KEY || 'test-api-key',
 
@@ -36,32 +38,58 @@ export const getAppConfig = (): AppConfig => ({
 });
 
 export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
-    if(!username) return defaultHomeConfig;
-    return axios.get(`${getAppConfig().API_URL}/scry/${username}/home-config/`)
-        .then(response => {
+    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    // can only login from app so all changes MUST be saved locally if they exist on db
+    if (customConfig) return customConfig;
+    // if not logged in then no reason to fetch custom config
+    if (!username) return defaultHomeConfig;
+    // if no internet connection, return default config
+    if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
+
+    return axios
+        .get(`${getAppConfig().API_URL}/scry/${username}/home-config/`)
+        .then((response) => {
+            AsyncStorage.setItem(HOME_CONFIG_STORAGE_SLOT, JSON.stringify(response.data));
             // console.log("Home:config:get: SUCC", response)
             return response.data as HomeConfig;
         })
-        .catch(error => {
-            // console.error("Home:config:get: ERR ", error)
+        .catch((error) => {
+            console.error('Home:config:get: ERR ', error);
             return defaultHomeConfig;
         });
-}
+};
 
+export const saveHomeConfig = async ({
+    username,
+    widgets,
+    proof,
+}: UpdateWidgetConfigParams): Promise<boolean> => {
+    const newHomeCofig = await saveStorage<HomeConfig>(
+        HOME_CONFIG_STORAGE_SLOT,
+        { widgets },
+        true,
+        defaultHomeConfig,
+    );
 
-export const saveHomeConfig = async ({ username, widgets, proof }: UpdateWidgetConfigParams): Promise<HomeConfig> => {
-    if(!username) return defaultHomeConfig;
-    return axios.post(`${getAppConfig().API_URL}/scry/${username}/home-config/`, { widgets, proof })
-        .then(response => {
-            console.log("Home:config:save: SUCC", response)
-            return response.data as HomeConfig;
-        })
-        .catch(error => {
-            console.error("Home:config:save: ERR", error)
-            return defaultHomeConfig;
-        });
-}
+    if (!username) return true;
 
+    if (!(await getNetworkState()).isNoosphere) {
+        await newHomeCofig;
+        return true;
+    } else {
+        // dont await localSave. assume it returns before externalSave and is successful
+        return axios
+            .post(`${getAppConfig().API_URL}/scry/${username}/home-config/`, { widgets, proof })
+            .then((response) => {
+                console.log('Home:config:save: SUCC', response);
+                return true;
+            })
+            .catch((error) => {
+                console.error('Home:config:save: ERR', error);
+                return false;
+            });
+    }
+};
 
 const defaultWidgetConfig: WidgetConfig[] = [
     {
@@ -85,7 +113,6 @@ const defaultWidgetConfig: WidgetConfig[] = [
         path: '/stats/spirit',
     },
 ];
-
 
 const defaultTabConfig: WidgetConfig[] = [
     {
@@ -126,9 +153,84 @@ const defaultTabConfig: WidgetConfig[] = [
     // },
 ];
 
-
 const defaultHomeConfig: HomeConfig = {
     jinniImage: '',
     widgets: defaultWidgetConfig,
-    tabs: defaultTabConfig
+    tabs: defaultTabConfig,
+};
+
+export const defaultConnection = {
+    type: NetworkStateType.NONE,
+    isLocal: false,
+    isNoosphere: false,
+};
+
+export const getNetworkState = async (): Promise<CurrentConnection> => {
+    try {
+        const info = await getNetworkStateAsync();
+        // console.log('network state info', info);
+        return parseNetworkState(info);
+    } catch (e) {
+        // console.log('Config:network:ERR', e);
+        return defaultConnection;
+    }
+};
+
+const parseNetworkState = (networkState: NetworkState) => {
+    const { type, isInternetReachable } = networkState;
+    const isNoosphere = isInternetReachable ?? false;
+    switch (type) {
+        case NetworkStateType.WIFI:
+            return {
+                type,
+                isLocal: true,
+                isNoosphere,
+            };
+        case NetworkStateType.CELLULAR:
+            return {
+                type,
+                isLocal: false,
+                isNoosphere,
+            };
+        case NetworkStateType.BLUETOOTH:
+            return {
+                type,
+                isLocal: true,
+                isNoosphere,
+            };
+        case NetworkStateType.VPN:
+            return {
+                type,
+                isLocal: false,
+                isNoosphere,
+            };
+        default:
+            return defaultConnection;
+    }
+};
+
+export const getStorage: <T>(key: string) => Promise<T | null> = async (key) => {
+    const value = await AsyncStorage.getItem(key);
+    return value ? JSON.parse(value) : null;
+};
+
+export const saveStorage: <T>(
+    key: string,
+    value: string | number | object,
+    defaultVal?: string | number | object,
+    shouldMerge?: boolean,
+) => Promise<T> = async (key, value, defaultVal, shouldMerge = false) => {
+    const existingVal = await AsyncStorage.getItem(HOME_CONFIG_STORAGE_SLOT);
+    const newVal = !shouldMerge
+        ? value // replace if requested
+        : existingVal && shouldMerge
+        ? merge(JSON.parse(existingVal), value)
+        : merge(defaultVal, value);
+    try {
+        await AsyncStorage.setItem(HOME_CONFIG_STORAGE_SLOT, JSON.stringify(newVal));
+        return newVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
+    } catch (e) {
+        console.log('Failed to save locally k/v : ', key, value);
+        return newVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
+    }
 };
