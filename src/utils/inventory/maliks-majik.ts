@@ -36,6 +36,7 @@ const unequip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
         _delete_id(PROOF_MALIKS_MAJIK_SLOT);
+        return true;
     } catch (e) {
         console.log('Inv:MaliksMajik:equip:ERR', e);
         return false;

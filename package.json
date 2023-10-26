@@ -37,6 +37,7 @@
     "expo-router": "2.0.0",
     "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",
+    "jest-expo": "^49.0.0",
     "lodash": "^4.17.21",
     "process": "^0.11.10",
     "react": "18.2.0",
@@ -58,12 +59,14 @@
     "readable-stream": "^1.0.33",
     "sentry-expo": "~7.0.0",
     "stream-browserify": "^1.0.0",
-    "util": "^0.10.4"
+    "util": "^0.10.4",
+    "expo-file-system": "~15.4.4"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@babel/preset-env": "^7.22.20",
+    "@types/jest": "^29.5.6",
     "@types/react": "^18.2.23",
     "@typescript-eslint/eslint-plugin": "^6.7.3",
     "@typescript-eslint/parser": "^6.7.3",
@@ -83,14 +86,17 @@
     "typescript": "^5.2.2"
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ]
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-        "prettier src/ --config .prettierrc --write --ignore-unknown",
-        "eslint src/ --fix .eslintrc.js"
+      "prettier src/ --config .prettierrc --write --ignore-unknown",
+      "eslint src/ --fix .eslintrc.js"
     ]
-},
+  },
   "react-native": {
     "crypto": "react-native-crypto",
     "_stream_transform": "readable-stream/transform",

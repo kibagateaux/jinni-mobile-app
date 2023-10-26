@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
-import { merge } from 'lodash/fp';
+import { merge, concat } from 'lodash/fp';
 
 import { CurrentConnection } from 'types/SpiritWorld';
 import { HomeConfig, WidgetConfig } from 'types/UserConfig';
@@ -62,9 +62,9 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
 export const saveHomeConfig = async ({
     username,
     widgets,
-    proof,
 }: UpdateWidgetConfigParams): Promise<boolean> => {
-    const newHomeCofig = await saveStorage<HomeConfig>(
+    // save locally first
+    const newHomeConfig = await saveStorage<HomeConfig>(
         HOME_CONFIG_STORAGE_SLOT,
         { widgets },
         true,
@@ -73,22 +73,25 @@ export const saveHomeConfig = async ({
 
     if (!username) return true;
 
-    if (!(await getNetworkState()).isNoosphere) {
-        await newHomeCofig;
-        return true;
-    } else {
-        // dont await localSave. assume it returns before externalSave and is successful
-        return axios
-            .post(`${getAppConfig().API_URL}/scry/${username}/home-config/`, { widgets, proof })
-            .then((response) => {
-                console.log('Home:config:save: SUCC', response);
-                return true;
-            })
-            .catch((error) => {
-                console.error('Home:config:save: ERR', error);
-                return false;
-            });
-    }
+    // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
+    // if (!(await getNetworkState()).isNoosphere) {
+    //     return true;
+    // }
+
+    const proof = 'TODO'; // sign Mutation with user address for API verification
+    return axios
+        .post(`${getAppConfig().API_URL}/scry/${username}/home-config/`, {
+            config: newHomeConfig,
+            proof,
+        })
+        .then((response) => {
+            console.log('Home:config:save: SUCC', response);
+            return true;
+        })
+        .catch((error) => {
+            console.error('Home:config:save: ERR', error);
+            return false;
+        });
 };
 
 const defaultWidgetConfig: WidgetConfig[] = [
@@ -153,13 +156,13 @@ const defaultTabConfig: WidgetConfig[] = [
     // },
 ];
 
-const defaultHomeConfig: HomeConfig = {
+export const defaultHomeConfig: HomeConfig = {
     jinniImage: '',
     widgets: defaultWidgetConfig,
     tabs: defaultTabConfig,
 };
 
-export const defaultConnection = {
+export const noConnection = {
     type: NetworkStateType.NONE,
     isLocal: false,
     isNoosphere: false,
@@ -172,11 +175,11 @@ export const getNetworkState = async (): Promise<CurrentConnection> => {
         return parseNetworkState(info);
     } catch (e) {
         // console.log('Config:network:ERR', e);
-        return defaultConnection;
+        return noConnection;
     }
 };
 
-const parseNetworkState = (networkState: NetworkState) => {
+export const parseNetworkState = (networkState: NetworkState) => {
     const { type, isInternetReachable } = networkState;
     const isNoosphere = isInternetReachable ?? false;
     switch (type) {
@@ -205,32 +208,71 @@ const parseNetworkState = (networkState: NetworkState) => {
                 isNoosphere,
             };
         default:
-            return defaultConnection;
+            return noConnection;
     }
 };
 
 export const getStorage: <T>(key: string) => Promise<T | null> = async (key) => {
     const value = await AsyncStorage.getItem(key);
-    return value ? JSON.parse(value) : null;
+    return value ? JSON.parse(value) : null; // TODO add try/catch block on parse?
 };
 
+/**
+ * @dev can pass in type that you want to be saved in storage slot with saveStorage<MyType>
+ *      shouldMerge only works on objects and arrays, not strings and numbers
+ * @param key - storage key to write to
+ * @param value  - new value to save
+ * @param shouldMerge  - if should merge `value` into existing storage value
+ * @param defaultVal - if merging, the default value to merge into if existing storage is empty
+ * @returns new item that can be found in storage
+ */
 export const saveStorage: <T>(
     key: string,
     value: string | number | object,
-    defaultVal?: string | number | object,
     shouldMerge?: boolean,
-) => Promise<T> = async (key, value, defaultVal, shouldMerge = false) => {
-    const existingVal = await AsyncStorage.getItem(HOME_CONFIG_STORAGE_SLOT);
-    const newVal = !shouldMerge
-        ? value // replace if requested
-        : existingVal && shouldMerge
-        ? merge(JSON.parse(existingVal), value)
-        : merge(defaultVal, value);
+    defaultVal?: string | number | object,
+) => Promise<T> = async (key, value, shouldMerge = false, defaultVal) => {
+    const existingVal = await getStorage(key);
+    // TODO require that existing val == null or T?
+    // do not merge if not requested or primitive types
+    if (!shouldMerge || typeof value === 'string' || typeof value === 'number') {
+        await AsyncStorage.setItem(key, JSON.stringify(value));
+        return value;
+    }
+
     try {
-        await AsyncStorage.setItem(HOME_CONFIG_STORAGE_SLOT, JSON.stringify(newVal));
-        return newVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
+        if (shouldMerge) {
+            console.log(
+                'Config:saveStorage:shouldMerge?',
+                Array.isArray(existingVal),
+                Array.isArray(defaultVal) || defaultVal === undefined,
+            );
+
+            if (
+                Array.isArray(value) &&
+                (Array.isArray(existingVal) ||
+                    Array.isArray(defaultVal) ||
+                    defaultVal === undefined)
+            ) {
+                const newVal = existingVal
+                    ? concat(existingVal, value)
+                    : concat(defaultVal ?? [], value);
+                console.log('Config:saveStorage:array', newVal);
+                await AsyncStorage.setItem(key, JSON.stringify(newVal));
+                return newVal;
+            } else {
+                // assume its an object. technically could be a function but thats an object too
+                const newVal = existingVal
+                    ? merge(existingVal, value)
+                    : merge(defaultVal ?? {}, value);
+
+                console.log('Config:saveStorage:object', newVal);
+                await AsyncStorage.setItem(key, JSON.stringify(newVal));
+                return newVal;
+            }
+        }
     } catch (e) {
         console.log('Failed to save locally k/v : ', key, value);
-        return newVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
+        return existingVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
     }
 };

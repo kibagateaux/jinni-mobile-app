@@ -193,38 +193,34 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 ))}
             </ScrollView>
         ) : (
-            <Text>
-                {' '}
-                No Actions Available For This Item Yet.
-                <Link to="https://nootype.substack.com/subscribe">
-                    Stay Tuned For Game Updates!!
-                </Link>
-            </Text>
+            <Link to="https://nootype.substack.com/subscribe">
+                <Text>No Actions Available For This Item Yet. Stay Tuned For Game Updates!!</Text>
+            </Link>
         );
 
-    const renderItemWidgets = () =>
-        item?.widgets?.length ? (
-            <View></View>
-        ) : (
-            <Text>
-                {' '}
-                No Actions Available For This Item Yet.
-                <Link to="https://nootype.substack.com/subscribe">
-                    Stay Tuned For Game Updates!!
-                </Link>
-            </Text>
-        );
+    // const renderItemWidgets = () =>
+    //     item?.widgets?.length ? (
+    //         <View></View>
+    //     ) : (
+    //         <Text>
+    //             {' '}
+    //             No Actions Available For This Item Yet.
+    //             <Link to="https://nootype.substack.com/subscribe">
+    //                 Stay Tuned For Game Updates!!
+    //             </Link>
+    //         </Text>
+    //     );
 
     const renderItemContent = () => (
         <ScrollView style={{ flex: 1 }}>
             <Text style={styles.sectionTitle}>Description</Text>
             <View style={styles.sectionBody}>
-                <Text>{content[id].meta.description}</Text>
+                <Text>{content[id]?.meta?.description}</Text>
             </View>
 
             <Text style={styles.sectionTitle}>Perks</Text>
             <View style={styles.sectionBody}>
-                <Text>{content[id].meta.perks}</Text>
+                <Text>{content[id]?.meta?.perks}</Text>
             </View>
         </ScrollView>
     );
@@ -235,7 +231,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 return (
                     <View>
                         {renderItemAbilities()}
-                        {renderItemWidgets()}
+                        {/* {renderItemWidgets()} */}
                         {renderItemContent()}
                     </View>
                 );
@@ -245,7 +241,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                     <View>
                         {renderItemContent()}
                         {renderItemAbilities()}
-                        {renderItemWidgets()}
+                        {/* {renderItemWidgets()} */}
                     </View>
                 );
         }

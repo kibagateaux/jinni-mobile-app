@@ -1,9 +1,8 @@
 import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
-
+import { getStorage, saveStorage } from './config';
 export const ID_ANON_SLOT = '_anon_id';
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
 
@@ -12,12 +11,13 @@ export const generateIdentityWithSecret = (secret: string): Identity => new Iden
 
 export const saveId = async (idType: string, id: Identity): Promise<void> => {
     try {
-        const value = await AsyncStorage.getItem(idType);
-        // console.log("save id existing value!", value, value === null, id)
+        const value = await getStorage(idType);
+        // console.log("save id existing value?", value, !value, id)
 
         // @dev INVARIANT: MUST NOT OVERWRITE OR DELTE ZK IDs
-        if (value === null) {
-            await AsyncStorage.setItem(idType, JSON.stringify(toObject(id)));
+        if (!value) {
+            // console.log("SAVE ID TO STORAGE", toObject(id))
+            await saveStorage(idType, toObject(id));
             // console.log("anon id saved to storage!", idType, id)
         }
     } catch (error) {
@@ -25,11 +25,8 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
     }
 };
 
-export const getId = async (idType: string): Promise<Identity | null> => {
-    const id = await AsyncStorage.getItem(idType);
-    // console.log("getId", idType, id);
-    return id ? JSON.parse(id) : null;
-};
+export const getId = async (idType: string): Promise<Identity | null> =>
+    await getStorage<Identity>(idType);
 
 export const _delete_id = async (idType: string): Promise<void> => {
     console.log('node env', process.env.NODE_ENV);
@@ -37,7 +34,7 @@ export const _delete_id = async (idType: string): Promise<void> => {
         '\n\n\nZK: DELETING ID!!!! ONLY AVAILABKLE IN DEVELOPMENT!!!! ENSURE THIS IS INTENDED BEHAVIOUR!!!!!\n\n\n',
     );
     if (!__DEV__) throw Error('CANNOT DELETE ZK IDs');
-    await AsyncStorage.setItem(idType, '');
+    await saveStorage(idType, '');
 };
 
 /** TODO figure out return types from HaLo lib  */
@@ -77,16 +74,16 @@ const groupIds = {
 };
 
 const groupMaliksMajik = new Group(groupIds['MaliksMajikGroup'], 18);
-// Mastrer Djinn group is all players blesswith Malik's Majik to play the game, traverse portal and bond to jinn
+// Mastrer Djinn group is all players blessed with Malik's Majik to play the game, traverse portal and bond to jinn
 console.log('semaphore group - core majik : ', groupMaliksMajik);
 
 // helper func to format BigInts from Idenity for JSON
-const toObject = (thing: object) => {
+const toObject = (thing: Identity) => {
     return JSON.parse(
         JSON.stringify(
             thing,
             (key, value) =>
-                typeof value === 'bigint' // || 'bignumber' || 'number'
+                typeof value === 'bigint' // || 'bignumber'
                     ? value.toString()
                     : value, // return everything else unchanged
         ),

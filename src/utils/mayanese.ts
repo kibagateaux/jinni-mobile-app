@@ -5,7 +5,11 @@ import {
     // subDays,
     // formatISO
 } from 'date-fns/fp';
-import { now, map, range } from 'lodash/fp';
+import {
+    // now,
+    map,
+    range,
+} from 'lodash/fp';
 
 import { TzolkinConfig, Kin, MayanArchetype, MayanTone } from 'types/SpiritWorld';
 // thing to calculate kin number from
@@ -230,9 +234,8 @@ export const tzolkinHistory: TzolkinConfig = (() => {
     //     // subDays(addDays(TZOLKIN_LENGTH_DAYS)(now()), TZOLKIN_LENGTH_DAYS)
     // );
 
-    const totalDaysToCalculate = (now() + TZOLKIN_LENGTH_UNIX - PORTAL_DAY_UNIX) / DAYS_UNIX;
-
-    console.log('txolkin calculations', totalDaysToCalculate, range(10), range(10)(1));
+    // const totalDaysToCalculate = (now() + TZOLKIN_LENGTH_UNIX - PORTAL_DAY_UNIX) / DAYS_UNIX;
+    // console.log('txolkin calculations', totalDaysToCalculate, range(10), range(10)(1));
 
     const generateTzolkinCalConfig = (i) => {
         const kin = ((portalDayConfig[0] + i) % 260) + 1; // offby1 bc kin is 1-indexed

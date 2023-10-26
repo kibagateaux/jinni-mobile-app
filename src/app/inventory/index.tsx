@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, SectionList, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, SectionList, ActivityIndicator } from 'react-native';
 import { groupBy, entries, map } from 'lodash/fp';
 
 import { useInventory } from 'hooks';
@@ -35,7 +35,7 @@ const InventoryScreen: React.FC = () => {
 
     const renderItem = ({ item }: { item: InventoryItem }) => (
         <Card
-            key={item.id}
+            // key={item.id}
             styleOverride={styles.itemCard}
             image={item.image}
             title={item.name}

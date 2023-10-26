@@ -1,7 +1,9 @@
 import { Platform } from 'react-native';
 import AppleHealthKit, { HealthValue, HealthKitPermissions } from 'react-native-health';
-import { InventoryIntegration, HoF } from 'types/GameMechanics';
+import { InventoryIntegration, HoF, InventoryItem } from 'types/GameMechanics';
 import { QueryIosHealthDataProps } from 'types/HealthData';
+
+import { DjinnStat, HealthStat, IntelligenceStat } from 'types/GameMechanics';
 
 /* Permission options */
 const permissions = {
@@ -92,7 +94,29 @@ const getStepCount = async (options: QueryIosHealthDataProps) => {
     });
 };
 
+const item: InventoryItem = {
+    id: 'IphoneHealthKit',
+    name: 'iPhone Health Kit',
+    datasource: 'ios-health-kit',
+    image: 'https://www.apple.com/v/ios/ios-13/images/overview/health/health_hero__fjxh8smk2q6q_large_2x.jpg',
+    installLink: 'https://apps.apple.com/us/app/health/id1206187994',
+    attributes: [
+        { ...DjinnStat, value: 5 },
+        { ...HealthStat, value: 5 },
+        { ...IntelligenceStat, value: 2 },
+    ],
+    checkStatus: async () => {
+        // TODO
+        return 'unequipped';
+    },
+    canEquip: async () => true,
+    // equip: () => {} ,
+    // unequip: () => {} ,
+    // actions: [],
+};
+
 export default {
+    item,
     checkEligibility,
     getPermissions,
     initPermissions,
