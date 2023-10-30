@@ -11,6 +11,7 @@ import {
 import { MALIKS_MAJIK_CARD, getStorage, saveStorage } from 'utils/config';
 
 import { InventoryIntegration, DjinnStat, CommunityStat, InventoryItem } from 'types/GameMechanics';
+import { MU_ACTIVATE_JINNI, gqlClient } from 'utils/api';
 
 const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
@@ -82,11 +83,35 @@ const item: InventoryItem = {
                     const signer = await hydrateWallet();
                     const myId = signer.address;
                     const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
-                    const q = `gql`;
-                    const signedQ = signer.signMessage(q);
-                    console.log('my jinni activation', myId, myProof, signedQ);
+                    if (!myId) throw Error('You need to create an magic ID first');
+                    if (!myProof)
+                        throw Error(
+                            'You need to meetthe Master Djinn before you can activate your jinni',
+                        );
+                    const q = MU_ACTIVATE_JINNI;
+                    console.log('my jinni activation mutation', q);
+                    const signedQ = signer.signMessage(`q`);
+                    if (!myProof)
+                        throw Error(
+                            'You need to meetthe Master Djinn before you can activate your jinni',
+                        );
+                    console.log('my jinni activation', myId, myProof.ether);
+                    console.log('my jinni activation', signedQ._j, signedQ);
 
-                    return async () => true;
+                    await gqlClient.query({
+                        query: q,
+                        variables: {
+                            majik_msg: myProof,
+                            player_id: myId,
+                            verification: {
+                                _raw_query: q,
+                                signature: signedQ,
+                            },
+                        },
+                    });
+                    return async () => {
+                        return true;
+                    };
                 } catch (e) {
                     return async () => false;
                 }

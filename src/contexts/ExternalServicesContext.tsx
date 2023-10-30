@@ -5,6 +5,8 @@ import Constants from 'expo-constants';
 
 import * as Sentry from 'sentry-expo';
 import { SegmentClient, createClient } from '@segment/analytics-react-native';
+import { ApolloProvider } from '@apollo/client';
+import { gqlClient } from 'utils/api';
 
 type SentryModules = typeof Sentry.Native | typeof Sentry.Browser | null;
 
@@ -78,7 +80,7 @@ export const ExternalServicesProvider: React.FC<Props> = ({ children }) => {
 
     return (
         <ExternalServicesContext.Provider value={{ sentry, segment }}>
-            {children}
+            <ApolloProvider client={gqlClient}>{children}</ApolloProvider>
         </ExternalServicesContext.Provider>
     );
 };
