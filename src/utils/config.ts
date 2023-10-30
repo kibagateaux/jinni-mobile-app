@@ -17,6 +17,9 @@ type AppConfig = {
     NODE_ENV: 'development' | 'production' | 'test';
     API_URL: string;
     API_KEY: string;
+    ETH_NETWORK: string;
+    ETH_API_PROVIDER_URI: string;
+    ETH_API_PROVIDER_API_KEY: string;
 
     SENTRY_DSN: string | undefined;
     SENTRY_ORG: string | undefined;
@@ -24,12 +27,16 @@ type AppConfig = {
     SEGMENT_API_KEY: string | undefined;
 };
 
-console.log('Config:env', process.env);
+// console.log('Config:env', process.env);
 
 export const getAppConfig = (): AppConfig => ({
     NODE_ENV: process.env.NODE_ENV || 'development',
     API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000',
     API_KEY: process.env.EXPO_PUBLIC_API_KEY || 'test-api-key',
+
+    ETH_NETWORK: process.env.EXPO_PUBLIC_ETH_NETWORK || 'optimism',
+    ETH_API_PROVIDER_URI: process.env.EXPO_PUBLIC_ETH_API_PROVIDER_URI || 'test-api-key',
+    ETH_API_PROVIDER_API_KEY: process.env.EXPO_PUBLIC_ETH_API_PROVIDER_API_KEY || 'test-api-key',
 
     SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN || '',
     SENTRY_ORG: process.env.EXPO_PUBLIC_SENTRY_ORG || 'jinni',

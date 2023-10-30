@@ -2,9 +2,43 @@ import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
-import { getStorage, saveStorage } from './config';
+import { getAppConfig, getStorage, saveStorage } from './config';
+import { ethers, Wallet, providers } from 'ethers';
+
 export const ID_ANON_SLOT = '_anon_id';
+export const ID_ADDRESS_SLOT = '_address_id';
+export const ID_PKEY_SLOT = '_private_key*uwu*';
+export const ID_JINNI_SLOT = '_jinni_uuid';
+
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
+
+const defaultProvider = (): providers.Provider =>
+    new ethers.providers.AlchemyProvider(
+        getAppConfig().ETH_NETWORK,
+        getAppConfig().ETH_API_PROVIDER_API_KEY,
+    );
+
+const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvider());
+
+export const hydrateWallet = () =>
+    getStorage(ID_PKEY_SLOT).then((pk) => {
+        console.log('wallet lookup', pk);
+        if (!pk) {
+            // no wallet yet. generate random seed and save to storage
+            const wallet = ethers.Wallet.createRandom();
+            console.log('wallet pk save', wallet.address);
+            console.log('wallet pk save', wallet._mnemonic());
+            saveStorage(ID_ADDRESS_SLOT, wallet.address);
+            saveStorage(ID_PKEY_SLOT, wallet._mnemonic());
+            return connectProvider(wallet);
+        } else {
+            // retrieved seedphrase from storage and recreating wallet
+            const wallet: Wallet = ethers.Wallet.fromMnemonic(pk.phrase, pk.path);
+            console.log('wallet from pk', wallet);
+            console.log('wallet signer', connectProvider(wallet));
+            return connectProvider(wallet);
+        }
+    });
 
 export const generateIdentity = (): Identity => new Identity();
 export const generateIdentityWithSecret = (secret: string): Identity => new Identity(secret);
@@ -38,18 +72,19 @@ export const _delete_id = async (idType: string): Promise<void> => {
 };
 
 /** TODO figure out return types from HaLo lib  */
-export const signWithId = async (idType: string): Promise<object | null> => {
-    const id = await getId(idType);
-    if (!id) throw new Error(`ZK:HaLo: No id found for ${idType}`);
+export const signWithId = async (id: string | Identity): Promise<object | null> => {
+    // if (!id) throw new Error(`ZK:HaLo: No id found for ${idType}`);
+    console.log('sign anon id with majik', id, typeof id);
 
     try {
+        const msg = typeof id === 'string' ? id : id._commitment;
         await NfcManager.requestTechnology(NfcTech.IsoDep);
         const tag = await NfcManager.getTag();
         console.log('ZK:HaLo: NFC tag reader: ', tag);
-        console.log('ZK:HaLo: Id to sign with card: ', id._commitment);
+        console.log('ZK:HaLo: Id to sign with card: ', msg);
         const result = await execHaloCmdRN(NfcManager, {
             name: 'sign',
-            message: id._commitment,
+            message: msg,
             format: 'text',
             keyNo: 1, // TODO do we want to use primary wallet for signing?
         });

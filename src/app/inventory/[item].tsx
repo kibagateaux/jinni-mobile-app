@@ -38,6 +38,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
     const redirectUri = createOauthRedirectURI();
     console.log('[OAUTH redirectUri]', redirectUri);
+    console.log('ITEM CONFIG: status', item?.status, status);
 
     const [request, , promptAsync] = useAuthRequest(
         {
@@ -70,8 +71,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     }, [id, inventory]);
 
     useMemo(() => {
-        if (item) {
-            item.checkStatus().then((status: ItemStatus) => setStatus(status));
+        console.log('use item status ', status, item);
+
+        if (item && !status) {
+            item!.checkStatus().then((status: ItemStatus) => setStatus(status));
         }
     }, [item?.id]);
 
@@ -157,7 +160,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const renderDefaultItemInfo = () => (
         <View style={styles.defaultInfoContainer}>
             <View style={{ flexDirection: 'row', flex: 0.1 }}>
-                <Pill size="sm" text={item?.status ?? 'unequipped'} />
+                <Pill size="sm" text={status ?? 'unequipped'} />
                 {!item?.installLink ? null : (
                     // TODO open app if equipped else open app store and change trackingId
                     <Link to={item.installLink} trackingId={'inventory-item-install:' + item.id}>
@@ -179,24 +182,33 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         </View>
     );
 
-    const renderItemAbilities = () =>
-        item?.abilities?.length ? (
-            <ScrollView horizontal style={{ flex: 1 }}>
-                {item?.abilities.map((ability) => (
-                    <View key={ability.id} style={{ marginRight: 24, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 54 }}>{ability.symbol}</Text>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{ability.name}</Text>
+    const renderItemAbilities = () => (
+        <View>
+            <Text style={styles.sectionTitle}>Abilities</Text>
+            {item?.abilities?.length ? (
+                <ScrollView horizontal style={{ flex: 1 }}>
+                    {item?.abilities.map((ability) => (
                         <TouchableOpacity onPress={() => ability.do()}>
-                            <Text>Do</Text>
+                            <View
+                                key={ability.id}
+                                style={{ marginRight: 24, alignItems: 'center' }}
+                            >
+                                <Text style={styles.sectionTitle}>{ability.symbol}</Text>
+                                <Text style={styles.sectionBody}>{ability.name}</Text>
+                                <Text>Do</Text>
+                            </View>
                         </TouchableOpacity>
-                    </View>
-                ))}
-            </ScrollView>
-        ) : (
-            <Link to="https://nootype.substack.com/subscribe">
-                <Text>No Actions Available For This Item Yet. Stay Tuned For Game Updates!!</Text>
-            </Link>
-        );
+                    ))}
+                </ScrollView>
+            ) : (
+                <Link to="https://nootype.substack.com/subscribe">
+                    <Text>
+                        No Actions Available For This Item Yet. Stay Tuned For Game Updates!!
+                    </Text>
+                </Link>
+            )}
+        </View>
+    );
 
     // const renderItemWidgets = () =>
     //     item?.widgets?.length ? (

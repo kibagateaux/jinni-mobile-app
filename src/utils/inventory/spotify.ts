@@ -67,7 +67,7 @@ const item: InventoryItem = {
                 // player selects playlist
                 // open phone native share/contacts module
                 // player selects people to send to
-                return () => true;
+                return async () => true;
             },
         },
         {
@@ -83,7 +83,7 @@ const item: InventoryItem = {
                 // player selects playlist
                 // open phone native share/contacts module
                 // player selects people to send to
-                return () => true;
+                return async () => true;
             },
         },
     ],

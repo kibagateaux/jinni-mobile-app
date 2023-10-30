@@ -128,6 +128,7 @@ export interface ItemAbility {
     id: string;
     name: string;
     symbol: string;
+    description: string;
     isDoable?: boolean; // if undefined, call canDo() to get value and store to local object
     canDo: (status: ItemStatus) => Promise<boolean>; // checks if action can be done right now with current item status
     do: () => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
