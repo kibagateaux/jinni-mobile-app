@@ -30,7 +30,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const { inventory, loading } = useInventory();
 
     const [item, setItem] = useState<InventoryItem | null>(null);
-    const [status, setStatus] = useState<ItemStatus>('unequipped');
+    const [status, setStatus] = useState<ItemStatus | null>(null);
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const { inventory: content } = useGameContent();
 
@@ -74,7 +74,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         console.log('use item status ', status, item);
 
         if (item && !status) {
-            item!.checkStatus().then((status: ItemStatus) => setStatus(status));
+            item!.checkStatus().then((newStatus: ItemStatus) => {
+                console.log('update item status ', newStatus);
+                setStatus(newStatus);
+            });
         }
     }, [item?.id]);
 
@@ -187,18 +190,21 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             <Text style={styles.sectionTitle}>Abilities</Text>
             {item?.abilities?.length ? (
                 <ScrollView horizontal style={{ flex: 1 }}>
-                    {item?.abilities.map((ability) => (
-                        <TouchableOpacity onPress={() => ability.do()}>
-                            <View
-                                key={ability.id}
-                                style={{ marginRight: 24, alignItems: 'center' }}
-                            >
-                                <Text style={styles.sectionTitle}>{ability.symbol}</Text>
-                                <Text style={styles.sectionBody}>{ability.name}</Text>
-                                <Text>Do</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ))}
+                    {item?.abilities.map(
+                        (
+                            ability, // TODO return null if canDo === false but its async function
+                        ) => (
+                            <TouchableOpacity onPress={() => ability.do()}>
+                                <View
+                                    key={ability.id}
+                                    style={{ marginRight: 24, alignItems: 'center' }}
+                                >
+                                    <Text style={styles.sectionTitle}>{ability.symbol}</Text>
+                                    <Text style={styles.sectionBody}>{ability.name}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        ),
+                    )}
                 </ScrollView>
             ) : (
                 <Link to="https://nootype.substack.com/subscribe">
@@ -210,21 +216,30 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         </View>
     );
 
-    // const renderItemWidgets = () =>
-    //     item?.widgets?.length ? (
-    //         <View></View>
-    //     ) : (
-    //         <Text>
-    //             {' '}
-    //             No Actions Available For This Item Yet.
-    //             <Link to="https://nootype.substack.com/subscribe">
-    //                 Stay Tuned For Game Updates!!
-    //             </Link>
-    //         </Text>
-    //     );
+    const renderItemWidgets = () => (
+        <ScrollView>
+            <Text style={styles.sectionTitle}>Widgets</Text>
+            {item?.widgets?.length ? (
+                item.widgets.map((widgy) => (
+                    <TouchableOpacity onPress={() => widgy.do()}>
+                        <View key={widgy.id} style={{ marginRight: 24, alignItems: 'center' }}>
+                            <Text style={styles.sectionTitle}>{widgy.symbol}</Text>
+                            <Text style={styles.sectionBody}>{widgy.name}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ))
+            ) : (
+                <Link to="https://nootype.substack.com/subscribe">
+                    <Text>
+                        No Widgets Available For This Item Yet. Stay Tuned For Game Updates!!
+                    </Text>
+                </Link>
+            )}
+        </ScrollView>
+    );
 
     const renderItemContent = () => (
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView>
             <Text style={styles.sectionTitle}>Description</Text>
             <View style={styles.sectionBody}>
                 <Text>{content[id]?.meta?.description}</Text>
@@ -243,7 +258,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 return (
                     <View>
                         {renderItemAbilities()}
-                        {/* {renderItemWidgets()} */}
+                        {renderItemWidgets()}
                         {renderItemContent()}
                     </View>
                 );
@@ -253,7 +268,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                     <View>
                         {renderItemContent()}
                         {renderItemAbilities()}
-                        {/* {renderItemWidgets()} */}
+                        {renderItemWidgets()}
                     </View>
                 );
         }
@@ -262,10 +277,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     return (
         <View style={styles.container}>
             {/* <Stack.Screen
-        options={{
-          title: item.name,
-        }}
-      /> */}
+                options={{
+                title: item.name,
+                }}
+            /> */}
             <View style={styles.topContainer}>
                 <View style={styles.itemImageContainer}>
                     <Image source={{ uri: item.image }} style={styles.itemImage} />
@@ -287,19 +302,21 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 25,
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
     },
     itemImageContainer: {
         flex: 1,
-    },
-    itemImage: {
-        // TODO make image responsive
-        width: 100,
-        height: 100,
         margin: 20,
     },
+    itemImage: {
+        width: 120,
+        height: 120,
+        // TODO make image responsive
+        // width: '100%',
+        // height: '100%',
+    },
     activeItemStatusButton: {
-        flex: 2,
+        width: 30,
     },
     equipButton: {
         backgroundColor: 'gold',
@@ -310,6 +327,7 @@ const styles = StyleSheet.create({
 
     topContainer: {
         flex: 1,
+        maxHeight: 200, // idk why this is necessariy. flex: 3 on bottomContainer isnt working
         flexDirection: 'row',
         justifyContent: 'flex-start',
     },
@@ -323,11 +341,11 @@ const styles = StyleSheet.create({
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
+        marginTop: 24,
     },
 
     bottomContainer: {
         flex: 3,
-        width: '100%',
         display: 'flex',
         flexDirection: 'column',
     },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, Text, View, StyleSheet } from 'react-native';
-import { Link, Pill } from 'components';
+import Link from './Link';
+import Pill from './Pill';
 
 interface CardProps {
     image: string;
@@ -20,6 +21,8 @@ const Card: React.FC<CardProps> = ({
     badges,
 }) => {
     const CardContent = () => (
+        // maybe react rendered keeps complaining bc chaning between Link and Card direclty?
+        // move view wrapper outside, return fragment. might reduce rerenders
         <View style={[styles.card, styleOverride]}>
             <Image source={{ uri: image }} style={styles.image} />
             <Text>{title}</Text>

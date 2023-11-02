@@ -53,8 +53,8 @@
         {
           "file": "sentry-expo/upload-sourcemaps",
           "config": {
-            "organization": "${SENTRY_ORG}",
-            "project": "${SENTRY_PROJECT}"
+            "organization": "${EXPO_PUBLIC_SENTRY_ORG}",
+            "project": "${EXPO_PUBLIC_SENTRY_PROJECT}"
           }
         }
       ]
@@ -62,7 +62,7 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSContactsUsageDescription": "Let $(PRODUCT_NAME) access your contact to create parties for your jinni."
+        "NSContactsUsageDescription": "Allow your jinni to access your friends list to contact their jinn and communicate with them in the spiritual world."
       },
       "bundleIdentifier": "com.jinnihealth"
     },
@@ -89,7 +89,10 @@
         "android.permission.health.READ_RESPIRATORY_RATE",
         "android.permission.health.READ_RESTING_HEART_RATE",
         "android.permission.health.READ_SLEEP",
-        "android.permission.health.READ_WEIGHT"
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE"
       ],
       "package": "com.jinnihealth"
     },
@@ -104,6 +107,7 @@
       "eas": {
         "projectId": "9d90a8bf-a538-49f0-925c-afd83fd4c8d3"
       }
-    }
+    },
+    "owner": "malik2"
   }
 }

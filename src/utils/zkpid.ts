@@ -20,25 +20,29 @@ const defaultProvider = (): providers.Provider =>
 
 const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvider());
 
-export const hydrateWallet = () =>
-    getStorage(ID_PKEY_SLOT).then((pk) => {
-        console.log('wallet lookup', pk);
-        if (!pk) {
-            // no wallet yet. generate random seed and save to storage
-            const wallet = ethers.Wallet.createRandom();
-            console.log('wallet pk save', wallet.address);
-            console.log('wallet pk save', wallet._mnemonic());
-            saveStorage(ID_ADDRESS_SLOT, wallet.address);
-            saveStorage(ID_PKEY_SLOT, wallet._mnemonic());
-            return connectProvider(wallet);
-        } else {
-            // retrieved seedphrase from storage and recreating wallet
-            const wallet: Wallet = ethers.Wallet.fromMnemonic(pk.phrase, pk.path);
-            console.log('wallet from pk', wallet);
-            console.log('wallet signer', connectProvider(wallet));
-            return connectProvider(wallet);
-        }
-    });
+let spellbook: Wallet;
+export const getSpellBook = async (): Promise<Wallet> => {
+    if (spellbook) return spellbook;
+    const pk = await getStorage(ID_PKEY_SLOT);
+    console.log('spellbook lookup', pk);
+    if (!pk) {
+        // no spellbook yet. generate random seed and save to storage
+        const newSpellbook = ethers.Wallet.createRandom();
+        console.log('spellbook pk save', newSpellbook.address);
+        console.log('spellbook pk save', newSpellbook._mnemonic());
+        saveStorage(ID_ADDRESS_SLOT, newSpellbook.address);
+        saveStorage(ID_PKEY_SLOT, newSpellbook._mnemonic());
+        spellbook = connectProvider(newSpellbook);
+        return spellbook;
+    } else {
+        // retrieved seedphrase from storage and recreating spellbook
+        const newSpellbook: Wallet = ethers.Wallet.fromMnemonic(pk.phrase, pk.path);
+        console.log('spellbook from pk', newSpellbook);
+        console.log('spellbook signer', connectProvider(newSpellbook));
+        spellbook = connectProvider(newSpellbook);
+        return spellbook;
+    }
+};
 
 export const generateIdentity = (): Identity => new Identity();
 export const generateIdentityWithSecret = (secret: string): Identity => new Identity(secret);
@@ -110,10 +114,10 @@ const groupIds = {
 
 const groupMaliksMajik = new Group(groupIds['MaliksMajikGroup'], 18);
 // Mastrer Djinn group is all players blessed with Malik's Majik to play the game, traverse portal and bond to jinn
-console.log('semaphore group - core majik : ', groupMaliksMajik);
 
 // helper func to format BigInts from Idenity for JSON
 const toObject = (thing: Identity) => {
+    groupMaliksMajik;
     return JSON.parse(
         JSON.stringify(
             thing,

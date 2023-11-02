@@ -75,7 +75,7 @@ describe('Game inventory system', () => {
             test('player must have maliks majik to have remote inventory', async () => {
                 // TODO stub API
                 expect(await getInventoryItems('myname')).toEqual(
-                    expect.arrayContaining([maliksMajik]),
+                    expect.arrayContaining([maliksMajik.item]),
                 );
             });
 

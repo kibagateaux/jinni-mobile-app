@@ -22,7 +22,7 @@ const HomeScreen = () => {
         }
     }, [homeConfig]);
 
-    console.log('Home:widgi', widgetConfig);
+    // console.log('Home:widgi', widgetConfig);
 
     const saveWidgets = (widgets: WidgetConfig[]) => {
         console.log(

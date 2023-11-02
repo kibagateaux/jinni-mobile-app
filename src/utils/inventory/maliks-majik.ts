@@ -1,17 +1,18 @@
-import { HoF } from 'types/GameMechanics';
+import { HoF, ItemStatus } from 'types/GameMechanics';
 
 import {
     ID_ADDRESS_SLOT,
+    ID_JINNI_SLOT,
     PROOF_MALIKS_MAJIK_SLOT,
     _delete_id,
     getId,
-    hydrateWallet,
+    getSpellBook,
     signWithId,
 } from 'utils/zkpid';
 import { MALIKS_MAJIK_CARD, getStorage, saveStorage } from 'utils/config';
 
 import { InventoryIntegration, DjinnStat, CommunityStat, InventoryItem } from 'types/GameMechanics';
-import { MU_ACTIVATE_JINNI, gqlClient } from 'utils/api';
+import { MU_ACTIVATE_JINNI, mu } from 'utils/api';
 
 const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
@@ -72,47 +73,45 @@ const item: InventoryItem = {
             name: 'Activate Jinni',
             symbol: '🧞‍♂️',
             description: 'Get access to the full game',
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            canDo: async (status: ItemStatus) => {
+                const isBonded = await getStorage(ID_JINNI_SLOT);
+                if (isBonded) return false;
+                if (status === 'equipped') return true;
+                return false;
+            },
             do: async () => {
                 try {
-                    // retrieve player address from storage
-                    // retrieve proof from storage
-                    // sign raw api query
-                    // add all variables to graphql api query
-                    // send request
-                    const signer = await hydrateWallet();
+                    const [signer, myProof] = await Promise.all([
+                        getSpellBook(),
+                        getStorage(PROOF_MALIKS_MAJIK_SLOT),
+                    ]);
                     const myId = signer.address;
-                    const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
                     if (!myId) throw Error('You need to create an magic ID first');
                     if (!myProof)
                         throw Error(
-                            'You need to meetthe Master Djinn before you can activate your jinni',
+                            'You must to meet the Master Djinn before you can activate your jinni',
                         );
                     const q = MU_ACTIVATE_JINNI;
                     console.log('my jinni activation mutation', q);
-                    const signedQ = signer.signMessage(`q`);
-                    if (!myProof)
-                        throw Error(
-                            'You need to meetthe Master Djinn before you can activate your jinni',
-                        );
-                    console.log('my jinni activation', myId, myProof.ether);
-                    console.log('my jinni activation', signedQ._j, signedQ);
+                    const mySpell = await signer.signMessage(q);
+                    if (!mySpell) throw Error('Could not imbue your magic into your spell');
 
-                    await gqlClient.query({
-                        query: q,
-                        variables: {
-                            majik_msg: myProof,
-                            player_id: myId,
-                            verification: {
-                                _raw_query: q,
-                                signature: signedQ,
-                            },
+                    console.log('my jinni activation ID', myId, myProof.ether);
+                    console.log('my jinni activation Verification', mySpell);
+
+                    await mu(q)({
+                        majik_msg: myProof,
+                        player_id: myId,
+                        verification: {
+                            _raw_query: q,
+                            signature: mySpell,
                         },
                     });
                     return async () => {
                         return true;
                     };
                 } catch (e) {
+                    console.error('Failed to active Jinni -- ', e);
                     return async () => false;
                 }
             },

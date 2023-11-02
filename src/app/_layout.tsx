@@ -37,5 +37,3 @@ export default function HomeLayout() {
         </ContextProvider>
     );
 }
-
-// export default Stack;

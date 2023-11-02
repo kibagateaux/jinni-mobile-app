@@ -14,12 +14,12 @@ type ItemEquipWizardModalProps = {
 
 const ItemEquipWizardModal = ({ item, dialogueData = {}, status }: ItemEquipWizardModalProps) => {
     // console.log('get equip item modal content', status, dialogueData, item);
-    console.log('game item content', useGameContent(), useGameContent().inventory);
+    // console.log('game item content', useGameContent(), useGameContent().inventory);
     const content = useGameContent().inventory[item.id];
-    console.log('game item content', content);
+    // console.log('game item content', content);
     if (!content) return null;
     if (!content[status]) return null;
-    console.log('game item content', content[status]);
+    // console.log('game item content', content[status]);
 
     const titleTemplate = content[status].modal.title;
     const dialogueTemplate = content[status].modal.text;

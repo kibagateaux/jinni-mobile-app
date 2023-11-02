@@ -1,5 +1,5 @@
 import { NetworkStateType } from 'expo-network';
-// import { MarkedDates } from 'react-native-calendars/src/types';
+import { MarkedDates } from 'react-native-calendars/src/types';
 
 export interface CurrentConnection {
     type: NetworkStateType;
@@ -21,4 +21,6 @@ export interface MayanTone {
 
 export type Kin = [number, MayanTone, MayanArchetype];
 export type Wavespell = [Kin, Kin]; // [start day, end day]
-export type TzolkinConfig = { [key: string]: Kin }; // key = yyyy-mm-dd
+
+export type DailyConnectionData = MarkedDates & { kin: Kin };
+export type TzolkinConfig = { [key: string]: DailyConnectionData }; // key = yyyy-mm-dd

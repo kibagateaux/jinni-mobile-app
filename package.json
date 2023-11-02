@@ -9,6 +9,9 @@
     "start": "expo start",
     "postinstall": "patch-package && rn-nodeify --install all --hack",
     "android": "expo run:android",
+    "build:android": "eas build --local --platform android",
+    "deploy:android": "eas build --platform android",
+    "deploy:secrets": "eas secret:push --scope jinni-health --env-file ./.env",
     "ios": "expo run:ios",
     "lint:dry": "eslint src/ .eslintrc.js --ext .ts,.tsx && prettier src/ --config .prettierrc --check",
     "lint:fix": "eslint src/ --fix .eslintrc.js --ext .ts,.tsx && prettier src/ --config .prettierrc --write --ignore-unknown"
@@ -44,7 +47,7 @@
     "lodash": "^4.17.21",
     "process": "^0.11.10",
     "react": "18.2.0",
-    "react-native": "0.72.5",
+    "react-native": "0.72.6",
     "react-native-calendars": "^1.1301.0",
     "react-native-crypto": "^2.2.0",
     "react-native-draggable-flatlist": "^4.0.1",

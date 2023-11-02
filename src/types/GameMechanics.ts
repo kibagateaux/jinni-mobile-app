@@ -118,10 +118,12 @@ export interface InventoryItem {
     // helper function passes in contextdual data, user input, react hook, etc.  that we cant hardcode in equip()
     equip?: HoF;
     unequip?: HoF;
+    // TODO refactor to object with ids as keys
+    //
     abilities?: ItemAbility[]; // things user can do with the item
     // dont know if widget on item page will be same as WidgetConfig.
     // Might just be content and the id so only need list of ID strings here
-    // widgets?: WidgetConfig[]; // things user can do with the item
+    widgets?: ItemAbility[]; // things user can do with the item
 }
 
 export interface ItemAbility {

@@ -58,9 +58,8 @@ export default {
         meta: {
             description:
                 'Login to Spotify so your Jinni can listen to your music with you, learn what kind of music you like, and resonate with your current vibes',
-            perks: `1. Unlocks homepage widget to show your profile and playlists to other players visiting your page
-2. Unlocks abilities to create shared playlists with other players to discover new music together
-3. Train your Jinni to vibe with you better
+            perks: `1. Imbue your energy into your Jinni so it can vibe with you better
+2. Unlock social features to discover and share music with your friends
             `,
         },
         equipping: {

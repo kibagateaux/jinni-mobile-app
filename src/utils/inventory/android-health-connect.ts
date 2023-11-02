@@ -22,7 +22,11 @@ import {
 } from 'types/GameMechanics';
 
 import { PORTAL_DAY } from 'utils/mayanese';
-import { AndroidHealthRecord, GetHealthDataProps } from 'types/HealthData';
+import {
+    AndroidHealthRecord,
+    GetHealthDataProps,
+    QueryAndroidHealthDataProps,
+} from 'types/HealthData';
 
 const ANDROID_HEALTH_PERMISSIONS = [
     // summaries
@@ -205,6 +209,7 @@ export const getSteps = async ({ startTime, endTime }: GetHealthDataProps) =>
  * @returns HealthRecords[] - one health record per day.
  */
 export const _agg_daily = (records: AndroidHealthRecord[]): AndroidHealthRecord[] => {
+    // TODO pass in getStartTime(item), getEndTime(item), getActionMetadata(acc, item) func to abstract away from Android and Steps
     const sortedRecords = sortBy((r: AndroidHealthRecord) => new Date(r.startTime).getTime())(
         records,
     );

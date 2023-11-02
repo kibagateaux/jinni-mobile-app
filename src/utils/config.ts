@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
 import { merge, concat } from 'lodash/fp';
+import { isEmpty } from 'lodash';
 
 import { CurrentConnection } from 'types/SpiritWorld';
 import { HomeConfig, WidgetConfig } from 'types/UserConfig';
@@ -45,9 +46,11 @@ export const getAppConfig = (): AppConfig => ({
 });
 
 export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
+    // await saveStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT, '', false);
     const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    // console.log("custom config ", customConfig)
     // can only login from app so all changes MUST be saved locally if they exist on db
-    if (customConfig) return customConfig;
+    if (!isEmpty(customConfig)) return customConfig!;
     // if not logged in then no reason to fetch custom config
     if (!username) return defaultHomeConfig;
     // if no internet connection, return default config
@@ -135,17 +138,17 @@ const defaultTabConfig: WidgetConfig[] = [
         id: 'inventory',
         path: '/inventory',
     },
-    {
-        title: 'tzolkin',
-        id: 'tzolkin',
-        path: '/tzolkin',
-    },
-    {
-        title: '/auth',
-        id: 'auth-main',
-        path: '/auth',
-        // path: null, // dont display login
-    },
+    // {
+    //     title: 'tzolkin',
+    //     id: 'tzolkin',
+    //     path: '/tzolkin',
+    // },
+    // {
+    //     title: '/auth',
+    //     id: 'auth-main',
+    //     path: '/auth',
+    //     // path: null, // dont display login
+    // },
     // {
     //     title: 'incantations',
     //     id: 'Incantations',
@@ -230,7 +233,7 @@ export const getStorage: <T>(key: string) => Promise<T | null> = async (key) => 
  * @param key - storage key to write to
  * @param value  - new value to save
  * @param shouldMerge  - if should merge `value` into existing storage value
- * @param defaultVal - if merging, the default value to merge into if existing storage is empty
+ * @param defaultVal - if merging, the default value to merge into if existing storage is isEmpty
  * @returns new item that can be found in storage
  */
 export const saveStorage: <T>(

@@ -67,7 +67,7 @@ const WidgetContainer = ({
     };
 
     const renderRenovationMode = () => {
-        console.log('Widgi:renovation');
+        // console.log('Widgi:renovation');
         const defaultRenovationConfig = {
             dragItemOverflow: true,
             // debug: __DEV__ ? true : false,
@@ -92,7 +92,7 @@ const WidgetContainer = ({
     };
 
     const renderBaseMode = () => {
-        console.log('Widgi:base');
+        // console.log('Widgi:base');
         return (
             // <gesture={longPress}>
             <FlatList

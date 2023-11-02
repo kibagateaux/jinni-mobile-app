@@ -15,6 +15,7 @@ const equip: HoF = async (promptAsync) => {
         // should we roll our own OAuth lib or just keep this callback method?
         // Slightly complicates equip() vs no params but also enables a ton of functionality for any item
         promptAsync!();
+        // TODO how to know if they complete login + accept or if they cancel?
         return true;
     } catch (e) {
         console.log('Inv:spotify:equip:ERR', e);
@@ -75,6 +76,37 @@ const item: InventoryItem = {
             name: 'Share Profile',
             symbol: '🦹‍♂️',
             description: 'Share your Spotfiy profile with another player',
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            do: async () => {
+                // fetch your profile name from API (or maybe in user.identities.spotify?)
+                // pull up native share feature
+                //
+                return async () => true;
+            },
+        },
+        {
+            id: 'spotify-silent-disco',
+            name: 'Silent Disco',
+            symbol: '🪩',
+            description: 'Create an IRL rave right now!',
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            do: async () => {
+                // find other devices on bluetooth network ?
+                // find local music?
+                // how to make blended playlist without seding request to spotify?
+                // how to add music to playlist without sending request to spotify?
+
+                return async () => true;
+            },
+        },
+    ],
+    widgets: [
+        {
+            id: 'spotify-playlist',
+            name: 'Homepage Playlist',
+            symbol: '💃',
+            description:
+                'Add a playlist to your homepage that will autoplay when people visit your profile',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
             do: async () => {
                 // fetch their playlists from spotify

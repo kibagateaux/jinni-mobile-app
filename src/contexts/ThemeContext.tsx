@@ -10,8 +10,10 @@ type Theme = {
     secondaryColor: string;
     primaryBackgroundColor: string;
     secondaryBackgroundColor: string;
+    accentColor: string;
     primaryTextColor: string;
     secondaryTextColor: string;
+    altTextColor: string;
 };
 
 const lightTheme: Theme = {
@@ -20,18 +22,22 @@ const lightTheme: Theme = {
     secondaryColor: '#fff',
     primaryBackgroundColor: '#EBEBEB',
     secondaryBackgroundColor: '#AA00FF',
+    accentColor: '#131862',
     primaryTextColor: '#000',
     secondaryTextColor: '#1C0221',
+    altTextColor: '#C0C0C0',
 };
 
 const darkTheme: Theme = {
     colorScheme: 'dark',
     primaryColor: '#AA00FF',
     secondaryColor: '#1C0221',
-    primaryBackgroundColor: '#000',
+    primaryBackgroundColor: '#131862',
     secondaryBackgroundColor: '#1C0221',
+    accentColor: '#ffcff9',
     primaryTextColor: '#C0C0C0',
     secondaryTextColor: '#EBEBEB',
+    altTextColor: '#1C0221',
 };
 
 const ThemeContext = createContext<Theme>(lightTheme);

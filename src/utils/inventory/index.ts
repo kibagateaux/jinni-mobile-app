@@ -36,18 +36,6 @@ export const isEquipped = checkItemHasStatus('equipped');
 export const isEquipping = checkItemHasStatus('equipping');
 export const isUnequipped = checkItemHasStatus('unequipped');
 
-export const coreInventory = [maliksMajik.item, spotify.item];
-
-export const mobileInventory: InventoryItem[] = [
-    ...coreInventory,
-    // locationForeground.item,
-    // locationBackground, // Dont need feature yet and it adds admin overhead for app review
-];
-
-export const iosInventory = [...mobileInventory, iosHealth.item, iwatchHealth.item];
-
-export const androidInventory = [...mobileInventory, androidHealth.item];
-
 export const getInventoryItems = async (username?: string): Promise<InventoryItem[]> => {
     console.group('getInventoryItems user/platform : ', username, Platform.OS);
     console.group(
@@ -76,6 +64,15 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
             return [];
         });
 };
+
+export const coreInventory = [maliksMajik.item, spotify.item];
+export const mobileInventory: InventoryItem[] = [
+    ...coreInventory,
+    // locationForeground.item,
+    // locationBackground, // Dont need feature yet and it adds admin overhead for app review
+];
+export const iosInventory = [...mobileInventory, iosHealth.item, iwatchHealth.item];
+export const androidInventory = [...mobileInventory, androidHealth.item];
 
 // pulled into its own function instead of Platform.select because thats a bitch to stub in tests
 export const getPlatformItems = (platform: string): InventoryItem[] => {
