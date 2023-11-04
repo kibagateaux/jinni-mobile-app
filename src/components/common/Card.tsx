@@ -10,6 +10,7 @@ interface CardProps {
     path?: string;
     styleOverride?: object;
     badges: string[];
+    horizontal: boolean;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -19,62 +20,74 @@ const Card: React.FC<CardProps> = ({
     subtitle,
     path,
     badges,
+    horizontal,
 }) => {
-    const CardContent = () => (
-        // maybe react rendered keeps complaining bc chaning between Link and Card direclty?
-        // move view wrapper outside, return fragment. might reduce rerenders
-        <View style={[styles.card, styleOverride]}>
-            <Image source={{ uri: image }} style={styles.image} />
-            <Text>{title}</Text>
-            <Text>{subtitle}</Text>
-            {!badges.length ? null : (
-                <View style={styles.badgeContainer}>
-                    {badges.map((badge) => (
-                        <Pill size="sm" text={badge} />
-                    ))}
+    const Wrapper = path ? ({ children }) => <Link to={path}>{children}</Link> : React.Fragment;
+    return (
+        <Wrapper>
+            <View
+                style={[
+                    styles.card,
+                    horizontal ? styles.cardRow : styles.cardColumn,
+                    styleOverride,
+                ]}
+            >
+                <View style={styles.contentContainer}>
+                    <Image source={{ uri: image }} style={styles.image} />
+                    <Text style={styles.cardContent}>{title}</Text>
+                    <Text style={styles.cardContent}>{subtitle}</Text>
                 </View>
-            )}
-        </View>
-    );
-
-    return path ? (
-        <Link to={path}>
-            <CardContent />
-        </Link>
-    ) : (
-        <CardContent />
+                {!badges.length ? null : (
+                    <View
+                        style={[
+                            styles.badgeContainer,
+                            horizontal ? styles.badgeColumn : styles.badgeRow,
+                        ]}
+                    >
+                        {badges.map((badge) => (
+                            <Pill size="sm" text={badge} />
+                        ))}
+                    </View>
+                )}
+            </View>
+        </Wrapper>
     );
 };
 
 const styles = StyleSheet.create({
     card: {
         flex: 1,
-        margin: 10,
-        height: 200,
-        width: 200,
-        alignItems: 'center',
-        alignContent: 'center',
     },
+    cardColumn: {
+        flexDirection: 'column',
+    },
+    cardRow: {
+        flexDirection: 'row',
+    },
+    contentContainer: {
+        flex: 1,
+        margin: 10,
+        width: 150,
+        // alignContent: 'center',
+        // textAlign: 'center',
+    },
+    cardContent: {},
     image: {
-        alignSelf: 'center',
         width: 100,
         height: 100,
     },
     badgeContainer: {
+        flex: 1,
+        flexWrap: 'wrap',
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        justifyContent: 'space-around',
     },
-    badge: {
-        height: 35,
-        width: 70,
-        padding: 7,
-        textAlign: 'center',
-        backgroundColor: 'purple',
-        borderRadius: 20,
+    badgeColumn: {
+        flexDirection: 'column',
+        // marginRight: 24,
     },
-    badgeText: {
-        color: 'white',
+    badgeRow: {
+        // justifyContent: 'center',
     },
 });
 

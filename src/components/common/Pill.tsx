@@ -18,17 +18,18 @@ const Pill: React.FC<CardProps> = ({ size, text, theme = 'primary' }) => {
 
 const styles = StyleSheet.create({
     sm: {
-        minHeight: 35,
-        minWidth: 70,
+        padding: 7,
+        height: 35,
+        width: 70,
     },
     md: {
-        minHeight: 70,
-        minWidth: 140,
+        padding: 25,
+        height: 70,
+        width: 140,
     },
     pill: {
-        padding: 7,
         textAlign: 'center',
-        alignSelf: 'flex-start', // extend to text width
+        // alignSelf: 'flex-start', // extend to text width
         borderRadius: 20,
     },
     primary: {

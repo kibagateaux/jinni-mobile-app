@@ -36,6 +36,7 @@ const InventoryScreen: React.FC = () => {
     const renderItem = ({ item }: { item: InventoryItem }) => (
         <Card
             // key={item.id}
+            horizontal
             styleOverride={styles.itemCard}
             image={item.image}
             title={item.name}
@@ -55,6 +56,7 @@ const InventoryScreen: React.FC = () => {
         // TODO https://reactnative.dev/docs/optimizing-flatlist-configuration
         <SectionList
             style={styles.container}
+            // contentContainerStyle={styles.itemList}
             sections={categorizedInventory}
             renderSectionHeader={renderCategoryHeader}
             renderItem={({ item }) => renderItem({ item })}
@@ -74,17 +76,19 @@ const styles = StyleSheet.create({
     },
     itemList: {
         flex: 1,
-        // height: 400,
         padding: 50,
+        height: 400,
         width: '100%',
         flexDirection: 'row',
+        justifyContent: 'flex-start',
     },
     itemCard: {
-        // flex: 1,
-        maxWidth: '40%',
-        // shadowColor: 'black',
-        // shadowOpacity: 0.5,
-        // shadowRadius: 5,
+        flex: 1,
+        marginBottom: 18,
+        // maxWidth: 500,
+        shadowColor: 'black',
+        shadowOpacity: 0.5,
+        shadowRadius: 5,
     },
 });
 

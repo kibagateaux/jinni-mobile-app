@@ -95,9 +95,14 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             try {
                 // TODO should we add tags to items for different callback types and UI filtering?
                 // or just a single, optional callback func that handles everything for equip?
-                if (itemOauthConfig.authorizationEndpoint) await item.equip(promptAsync);
-                else await item.equip();
-                setStatus('post-equip');
+                const result = itemOauthConfig.authorizationEndpoint
+                    ? await item.equip(promptAsync)
+                    : await item.equip();
+                // if result.error = "transceive fai" try majik ritual again
+                if (result) setStatus('post-equip');
+
+                // assume failure
+                setStatus('unequipped');
             } catch (e) {
                 console.log('Error Equipping:', e);
                 setStatus('unequipped');
@@ -144,9 +149,11 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     const renderActiveModal = () => {
         // console.log('Inventory Active Modal data', status, item);
-        const onClose = () => setActiveModal(null);
         switch (activeModal) {
             case 'equip-wizard':
+                const onClose = () => {
+                    setActiveModal(null);
+                };
                 return (
                     <ItemEquipWizardModal
                         size="mid"

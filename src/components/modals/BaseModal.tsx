@@ -1,6 +1,6 @@
 import { useTheme } from 'contexts/ThemeContext';
 import React, { useState, ReactNode } from 'react';
-import { Text, Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, Modal, View, TouchableOpacity, StyleSheet, Button } from 'react-native';
 
 interface ModalProps {
     size: 'lg' | 'md' | 'sm';
@@ -60,9 +60,10 @@ const BaseModal: React.FC<ModalProps> = ({
                             </TouchableOpacity>
                         )}
                     </View>
-                    <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                        <Text>Close</Text>
-                    </TouchableOpacity>
+                    <Button title="Close" color="purple" onPress={closeModal} />
+                    {/* // <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                    //     <Text style={styles.close}>Close</Text>
+                    // </TouchableOpacity> */}
                 </View>
             </Modal>
         </View>
@@ -90,12 +91,13 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     button: {
-        backgroundColor: 'blue',
+        backgroundColor: 'gold',
         padding: 10,
         borderRadius: 5,
     },
     closeButton: {
-        backgroundColor: 'red',
+        color: 'white',
+        backgroundColor: 'purple',
         padding: 10,
         borderRadius: 5,
         marginTop: 20,

@@ -19,7 +19,10 @@ const equip: HoF = async () => {
     try {
         const address = await getStorage<string>(ID_ADDRESS_SLOT);
         console.log('address to get verified: ', address);
-        const result = address ? await signWithId(address) : null;
+        const result = address
+            ? await signWithId(address)
+            : await signWithId((await getSpellBook()).address);
+
         console.log('verified address signature: ', result);
         if (result && result.etherAddress === MALIKS_MAJIK_CARD) {
             console.log('Inv:MaliksMajik:equip:SUCC', result.signature);
@@ -29,6 +32,7 @@ const equip: HoF = async () => {
             await saveStorage(PROOF_MALIKS_MAJIK_SLOT, result.signature);
             return true;
         } else {
+            // TODO return error message. "Wrong maji for ritual"
             return false;
         }
     } catch (e) {
