@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import { getAppConfig } from './config';
 
-// TODO persist cahce to local storage for better offline use once internet connection lost?
+// TODO persist cache to local storage for better offline use once internet connection lost?
 // https://www.apollographql.com/docs/react/caching/advanced-topics#persisting-the-cache
 
 let client: ApolloClient;

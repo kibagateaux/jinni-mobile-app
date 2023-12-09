@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { startOfDay, formatISO } from 'date-fns/fp';
+import { keys, merge } from 'lodash';
 import { sortBy, reduce } from 'lodash/fp';
 import {
     getSdkStatus,
@@ -11,6 +12,8 @@ import {
     getGrantedPermissions,
     SdkAvailabilityStatus,
 } from 'react-native-health-connect';
+import { Permission } from 'react-native-health-connect/types';
+import { getSentry, getSegment, TRACK_PERMS_REQUESTED, TRACK_DATA_QUERIED } from 'utils/logging';
 
 import {
     InventoryIntegration,
@@ -28,24 +31,25 @@ import {
     QueryAndroidHealthDataProps,
 } from 'types/HealthData';
 
+const ITEM_ID = 'AndroidHealthConnect';
 const ANDROID_HEALTH_PERMISSIONS = [
     // summaries
     { accessType: 'read', recordType: 'Steps' },
     { accessType: 'read', recordType: 'Distance' },
     { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
-    { accessType: 'read', recordType: 'TotalCaloriesBurned' },
-    { accessType: 'read', recordType: 'ExerciseSession' },
-    // { accessType: 'read', recordType: 'SleepSession' },
     { accessType: 'read', recordType: 'Hydration' },
+    // { accessType: 'read', recordType: 'TotalCaloriesBurned' },
+    // { accessType: 'read', recordType: 'ExerciseSession' },
+    // { accessType: 'read', recordType: 'SleepSession' },
     // physiological data
     // { accessType: 'read', recordType: 'BasalMetabolicRate' },
     // { accessType: 'read', recordType: 'BodyFat' },
     // { accessType: 'read', recordType: 'LeanBodyMass' },
     // { accessType: 'read', recordType: 'HeartRate' },
     // { accessType: 'read', recordType: 'RespiratoryRate' },
-    { accessType: 'read', recordType: 'Weight' },
+    // { accessType: 'read', recordType: 'Weight' },
     // { accessType: 'read', recordType: 'RestingHeartRate' },
-];
+] as Permission[];
 
 const checkEligibility = async (): Promise<boolean> => {
     if (Platform.OS !== 'android') return false;
@@ -62,7 +66,7 @@ const checkEligibility = async (): Promise<boolean> => {
     // @dev MUST always init first thing otherwise any SDK calls including getPermissions fails.
     // we always call checkEligibilty before anything else so all gucci.
     const isInitialized = await initialize();
-    if (!isInitialized) throw Error('Unable Anddroid Health to initialize');
+    if (!isInitialized) throw Error('Unable to initialize Android Health');
 
     return true;
 };
@@ -71,11 +75,11 @@ const getPermissions = async () => {
     try {
         if (!(await checkEligibility())) {
             console.log('Android Health is not available on this device');
-            // TODO link to Google play store link for Health Connect app download
             return false;
         }
     } catch (e) {
         console.log('Inv:AndroidHealthConnect:checkElig: ', e);
+        getSentry()?.captureException(e);
         return false;
     }
 
@@ -91,20 +95,28 @@ const getPermissions = async () => {
         return true;
     } catch (e) {
         console.log('Inv:AndroidHealthConnect:getPerm: ', e);
+        getSentry()?.captureException(e);
         return false;
     }
 };
 
 const initPermissions = async () => {
-    checkEligibility();
-    console.log('Inv:andoird-health-connect:Init');
-    const permissions = await requestPermission(ANDROID_HEALTH_PERMISSIONS);
-    console.log('Inv:AndroidHealthConnect:Init: Permissions Granted!', permissions);
-    return true;
+    if (!(await checkEligibility())) return false;
+    try {
+        console.log('Inv:andoird-health-connect:Init');
+        const permissions = await requestPermission(ANDROID_HEALTH_PERMISSIONS);
+        getSegment()?.track(TRACK_PERMS_REQUESTED, { itemId: ITEM_ID });
+        console.log('Inv:AndroidHealthConnect:Init: Permissions Granted!', permissions);
+        return true;
+    } catch (e) {
+        console.log('C:AndroidHealth:InitPerm: ERROR - ', e);
+        getSentry()?.captureException(e);
+        return false;
+    }
 };
 
 const equip: HoF = async () => {
-    if (!checkEligibility()) return false;
+    if (!(await checkEligibility())) return false;
 
     try {
         await initPermissions();
@@ -113,8 +125,9 @@ const equip: HoF = async () => {
         // getStepCount();
 
         return true;
-    } catch (error) {
-        console.log('Error requesting permissions: ', error);
+    } catch (e) {
+        console.log('Error requesting permissions: ', e);
+        getSentry()?.captureException(e);
         return false;
     }
 };
@@ -126,10 +139,28 @@ const unequip: HoF = async () => {
     return true;
 };
 
+const checkStatus = async () => {
+    const isInstalled = await checkEligibility();
+    console.log('Inv:AndroidHealthConnect:checkStatus: installed?', isInstalled);
+    if (!isInstalled) return 'ethereal';
+
+    const isEquipped = await getPermissions();
+    console.log('Inv:AndroidHealthConnect:checkStatus: equipped?', isEquipped);
+    if (isEquipped) return 'equipped';
+
+    // if getPermissions() permissions have been revoked
+    // return 'destroyed';
+    // TODO
+    // see if health connect is installed
+    console.log('Inv:AndroidHealthConnect:checkStatus: unequipped!', isEquipped);
+    return 'unequipped';
+};
+
 const item: InventoryItem = {
-    id: 'AndroidHealthConnect',
+    id: ITEM_ID,
     name: 'Cyborg Repair Pack',
-    datasource: 'AndroidHealthConnect',
+    datasource: ITEM_ID,
+    tags: ['physical', 'exercise'],
     image: 'https://play-lh.googleusercontent.com/EbzDx68RZddtIMvs8H8MLcO-KOiBqEYJbi_kRjEdXved0p3KXr0nwUnLUgitZ5kQVWVZ=w480-h960-rw',
     installLink: 'https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata',
     attributes: [
@@ -137,22 +168,7 @@ const item: InventoryItem = {
         { ...HealthStat, value: 10 },
         { ...IntelligenceStat, value: 2 },
     ],
-    checkStatus: async () => {
-        const isInstalled = await checkEligibility();
-        console.log('Inv:AndroidHealthConnect:checkStatus: installed?', isInstalled);
-        if (!isInstalled) return 'ethereal';
-
-        const isEquipped = await getPermissions();
-        console.log('Inv:AndroidHealthConnect:checkStatus: equipped?', isEquipped);
-        if (isEquipped) return 'equipped';
-
-        // if getPermissions() permissions have been revoked
-        // return 'destroyed';
-        // TODO
-        // see if health connect is installed
-        console.log('Inv:AndroidHealthConnect:checkStatus: unequipped!', isEquipped);
-        return 'unequipped';
-    },
+    checkStatus,
     // must have app installed but not equipped yet
     canEquip: async () => (await checkEligibility()) === true && (await getPermissions()) === false,
     equip,
@@ -180,17 +196,24 @@ export const queryHealthData = async ({
     operator,
     startTime,
     endTime,
-}: QueryAndroidHealthDataProps) => {
-    const records = await readRecords(activity, {
-        timeRangeFilter: {
-            operator,
-            startTime: startTime ?? PORTAL_DAY,
-            endTime: endTime ?? Date.now().toLocaleString(),
-        },
-    });
-    console.log('Android Health Steps', records.slice(0, 10));
+}: QueryAndroidHealthDataProps): Promise<AndroidHealthRecord[]> => {
+    try {
+        const records = await readRecords(activity, {
+            timeRangeFilter: {
+                operator,
+                startTime: startTime ?? PORTAL_DAY,
+                endTime: endTime ?? Date.now().toLocaleString(),
+            },
+        });
 
-    return records;
+        getSegment()?.track(TRACK_DATA_QUERIED, { itemId: ITEM_ID, actionType: activity });
+        console.log('Android Health Steps', records.slice(0, 10));
+
+        return records as AndroidHealthRecord[];
+    } catch (e) {
+        console.log('C:AndroidHealthConnect:ERROR - ', e);
+        return [];
+    }
 };
 
 /**
@@ -199,8 +222,40 @@ export const queryHealthData = async ({
  * @param
  * @returns HealthRecords[]
  */
-export const getSteps = async ({ startTime, endTime }: GetHealthDataProps) =>
-    queryHealthData({ activity: 'Steps', operator: 'between', startTime, endTime });
+export const getActivityData = async ({
+    startTime,
+    endTime,
+}: GetHealthDataProps): Promise<object[]> => {
+    const steps = queryHealthData({ activity: 'Steps', operator: 'between', startTime, endTime });
+    const distance = queryHealthData({
+        activity: 'Distance',
+        operator: 'between',
+        startTime,
+        endTime,
+    });
+    const caloriesBurned = queryHealthData({
+        activity: 'ActiveCaloriesBurned',
+        operator: 'between',
+        startTime,
+        endTime,
+    });
+    const [aggSteps, aggDist, aggCals] = (await Promise.all([steps, distance, caloriesBurned])).map(
+        aggDailyData,
+    );
+    const dailyData = keys(steps).reduce((agg: object[], date: string) => {
+        console.log(
+            'C:AndroidHealthConnect:GetActs:agg - ',
+            date,
+            aggSteps[date],
+            aggDist[date],
+            aggCals[date],
+        );
+        return [...agg, merge(aggSteps[date], [aggDist[date], aggCals[date]])];
+    }, []);
+    console.log('C:AndroidHealthConnect:GetActs:fin - ', dailyData);
+
+    return dailyData;
+};
 
 /**
  * @desc - Aggregate multiple steps data into single object for an entire day to save DB space
@@ -208,11 +263,14 @@ export const getSteps = async ({ startTime, endTime }: GetHealthDataProps) =>
  * @param records -  all records queried from phone
  * @returns HealthRecords[] - one health record per day.
  */
-export const _agg_daily = (records: AndroidHealthRecord[]): AndroidHealthRecord[] => {
+export const aggDailyData = (
+    records: AndroidHealthRecord[],
+): { [key: string]: AndroidHealthRecord[] } => {
     // TODO pass in getStartTime(item), getEndTime(item), getActionMetadata(acc, item) func to abstract away from Android and Steps
     const sortedRecords = sortBy((r: AndroidHealthRecord) => new Date(r.startTime).getTime())(
         records,
     );
+
     const groupedRecords = reduce(
         (acc: { [key: string]: AndroidHealthRecord }, record: AndroidHealthRecord) => {
             const recordDate = formatISO(startOfDay(new Date(record.startTime)));
@@ -222,7 +280,8 @@ export const _agg_daily = (records: AndroidHealthRecord[]): AndroidHealthRecord[
                       ...acc,
                       [recordDate]: {
                           ...acc[recordDate],
-                          count: acc[recordDate].count + record.count, // TODO abstract activity specific data by recordType
+                          // TODO getActionMEtadata HoF for count, et.c.
+                          count: record.count ? acc[recordDate].count ?? 0 + record.count : 0,
                           startTime:
                               acc[recordDate].startTime < record.startTime
                                   ? acc[recordDate].startTime

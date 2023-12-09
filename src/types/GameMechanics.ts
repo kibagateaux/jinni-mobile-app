@@ -99,6 +99,8 @@ export type ItemStatus =
     | 'bonded' // player has imbued item with their essence
     | 'destroyed'; // item no longer usable in the game. May be repairable.
 
+export type ItemTags = 'physical' | 'digital' | 'exercise' | 'social' | 'music' | 'productivity';
+
 // TODO return null if successful or error string if failure instead of boolean
 // so we can give contextual UI updates based on error path.
 export type HoF = <T, R>(func?: (data?: T) => R) => Promise<boolean>;
@@ -108,6 +110,7 @@ export interface InventoryItem {
     id: string;
     name: string;
     image: string;
+    tags?: ItemTags[];
     attributes: StatsAttribute[];
     datasource: string;
     installLink?: string;
