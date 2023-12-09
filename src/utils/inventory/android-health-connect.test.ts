@@ -1,4 +1,3 @@
-import { InventoryItem, HoF } from 'src/types/GameMechanics';
 import {
     checkEligibility,
     getPermissions,
