@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Text, StyleSheet, SectionList, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, SectionList, ActivityIndicator, View } from 'react-native';
 import { groupBy, entries, map } from 'lodash/fp';
 
 import { useInventory } from 'hooks';
@@ -58,6 +58,7 @@ const InventoryScreen: React.FC = () => {
             style={styles.container}
             // contentContainerStyle={styles.itemList}
             sections={categorizedInventory}
+            ItemSeparatorComponent={() => <View style={styles.itemSeperator} />}
             renderSectionHeader={renderCategoryHeader}
             renderItem={({ item }) => renderItem({ item })}
         />
@@ -66,13 +67,16 @@ const InventoryScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
     container: {
+        backgroundColor: 'pink',
         flex: 1,
         width: '100%',
     },
     inventoryHeader: {
-        fontSize: 20,
+        fontSize: 24,
         fontWeight: 'bold',
-        margin: 25,
+        marginTop: 40,
+        marginBottom: 20,
+        marginLeft: 10, // same as list
     },
     itemList: {
         flex: 1,
@@ -81,6 +85,10 @@ const styles = StyleSheet.create({
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'flex-start',
+    },
+    itemSeperator: {
+        // TODO dope pink/blue wavy thing w/ screen pink background
+        margin: 20,
     },
     itemCard: {
         flex: 1,

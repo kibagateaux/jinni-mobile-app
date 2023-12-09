@@ -9,6 +9,7 @@ import iwatchHealth from './iwatch-health-kit';
 import androidHealth from './android-health-connect';
 import maliksMajik from './maliks-majik';
 import spotify from './spotify';
+import github from './github';
 // import locationForeground from './phone-location-foreground';
 // import locationBackground from './phone-location-background';
 
@@ -65,7 +66,7 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
         });
 };
 
-export const coreInventory = [maliksMajik.item, spotify.item];
+export const coreInventory = [maliksMajik.item, spotify.item, github.item];
 export const mobileInventory: InventoryItem[] = [
     ...coreInventory,
     // locationForeground.item,

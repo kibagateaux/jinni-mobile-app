@@ -71,7 +71,10 @@ const styles = StyleSheet.create({
         // alignContent: 'center',
         // textAlign: 'center',
     },
-    cardContent: {},
+    cardContent: {
+        fontSize: 24,
+        fontWeight: '500',
+    },
     image: {
         width: 100,
         height: 100,

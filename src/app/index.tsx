@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Button } from 'react-native';
 import { saveHomeConfig } from 'utils/config';
 
 import { useHomeConfig } from 'hooks';
@@ -10,6 +10,7 @@ import { getIconForWidget } from 'utils/rendering';
 import { AvatarViewer, WidgetIcon } from 'components/index';
 import DefaultAvatar from 'assets/avatars/happy-ghost';
 import WidgetContainer from 'components/home/WidgetContainer';
+import { getActivityData } from 'utils/inventory/android-health-connect';
 
 const HomeScreen = () => {
     const { user } = useAuth();
@@ -53,11 +54,20 @@ const HomeScreen = () => {
             />
         );
     };
+
+    const onIntentionPress = async () => {
+        const now = new Date();
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const startTime = oneDayAgo.toISOString();
+        const endTime = now.toISOString();
+        await getActivityData({ startTime, endTime });
+    };
     return (
         <View style={{ flex: 1, ...useTheme() }}>
             <View style={styles.container}>
                 <View style={styles.avatar}>
                     <AvatarViewer uri={homeConfig?.jinniImage} SVG={DefaultAvatar} />
+                    <Button color="purple" title="Speak Intention" onPress={onIntentionPress} />
                 </View>
 
                 <WidgetContainer
@@ -73,6 +83,7 @@ const HomeScreen = () => {
 
 const styles = StyleSheet.create({
     container: {
+        backgroundColor: 'skyblue',
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',

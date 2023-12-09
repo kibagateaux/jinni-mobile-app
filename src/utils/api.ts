@@ -18,9 +18,10 @@ export const getGqlClient = () =>
           }));
 
 export const qu = (query: string) => (variables: object) =>
+    // strip /n and /t to prevent weird error converting to byte array on server side on ecrecvoer
     getGqlClient().query({
         query: gql`
-            ${query}
+            ${query.replace(/[\n\t]/g, ' ')}
         `,
         variables,
         fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?

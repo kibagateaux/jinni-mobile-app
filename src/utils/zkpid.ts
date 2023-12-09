@@ -6,7 +6,7 @@ import { getAppConfig, getStorage, saveStorage } from './config';
 import { ethers, Wallet, providers } from 'ethers';
 
 export const ID_ANON_SLOT = '_anon_id';
-export const ID_ADDRESS_SLOT = '_address_id';
+export const ID_PLAYER_SLOT = '_address_id';
 export const ID_PKEY_SLOT = '_private_key*uwu*';
 export const ID_JINNI_SLOT = '_jinni_uuid';
 
@@ -30,7 +30,7 @@ export const getSpellBook = async (): Promise<Wallet> => {
         const newSpellbook = ethers.Wallet.createRandom();
         console.log('spellbook pk save', newSpellbook.address);
         console.log('spellbook pk save', newSpellbook._mnemonic());
-        saveStorage(ID_ADDRESS_SLOT, newSpellbook.address);
+        saveStorage(ID_PLAYER_SLOT, newSpellbook.address);
         saveStorage(ID_PKEY_SLOT, newSpellbook._mnemonic());
         spellbook = connectProvider(newSpellbook);
         return spellbook;

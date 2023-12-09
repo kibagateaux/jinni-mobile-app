@@ -37,14 +37,14 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     // hooks for items that require 3rd party authentication
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
     const redirectUri = createOauthRedirectURI();
-    console.log('[OAUTH redirectUri]', redirectUri);
+    console.log('[OAUTH redirectUri]', `${redirectUri}?provider=${item?.id.toLowerCase()}`);
     console.log('ITEM CONFIG: status', item?.status, status);
 
     const [request, , promptAsync] = useAuthRequest(
         {
             clientId: itemOauthConfig.clientId,
             scopes: itemOauthConfig.scopes,
-            redirectUri: `${redirectUri}?provider=${item?.id}`,
+            redirectUri: `${redirectUri}?provider=${item?.id.toLowerCase()}`,
             usePKCE: false,
         },
         itemOauthConfig,
@@ -306,6 +306,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
 const styles = StyleSheet.create({
     container: {
+        backgroundColor: 'pink',
         flex: 1,
         padding: 25,
         flexDirection: 'column',

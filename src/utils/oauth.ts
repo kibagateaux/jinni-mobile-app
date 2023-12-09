@@ -24,15 +24,28 @@ export const oauthConfigs: { [key: string]: OAuthProvider } = {
         scopes: ['activity:read_all'],
         clientId: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID || '',
     },
+    Github: {
+        authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+        tokenEndpoint: 'https://github.com/login/oauth/access_token',
+        scopes: [
+            //https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
+            'read:user', // get profile info
+            'user:follow', // follow other jinni playeres to create social network on github
+            'repo', // read commits, code content, etc. to update jinni appearance
+        ],
+        clientId: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID || '',
+    },
     Spotify: {
         authorizationEndpoint: 'https://accounts.spotify.com/authorize',
         tokenEndpoint: 'https://accounts.spotify.com/api/token',
         clientId: process.env.EXPO_PUBLIC_SPOTIFY_CLIENT_ID || '',
         scopes: [
-            'user-follow-modify', // create social network on spotfiy
+            'user-follow-modify', // follow other jinni playeres to create social network on spotfiy
             'user-read-recently-played', // let others know what ur listening too
             'playlist-modify-public', // add suggested songs to playlists
-            'playlist-read-collaborative',
+            'playlist-modify-private', // to create collaborative playlists
+            'playlist-read-collaborative', // to read all playlists
+            'user-top-read', // to see most listened to songs/artists
         ],
     },
     Coinbase: {
@@ -57,8 +70,8 @@ export const createOauthRedirectURI = memoize(() => {
     if (Platform.OS !== 'web') {
         return makeRedirectUri({
             native: Platform.select({
-                android: `https://e877-95-14-82-25.ngrok.io/oauth/callback`,
-                ios: `https://e877-95-14-82-25.ngrok.io/oauth/callback`,
+                android: `https://dd2b-45-164-150-39.ngrok.io/oauth/callback`,
+                ios: `https://dd2b-45-164-150-39.ngrok.io/oauth/callback`,
                 // android: `${SCHEME}://auth/oauth-callback`,
                 // ios: `${SCHEME}://auth/oauth-callback`,
             }),

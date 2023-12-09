@@ -3,6 +3,7 @@ import {
     DjinnStat,
     SpiritStat,
     CommunityStat,
+    IntelligenceStat,
     InventoryItem,
     ItemStatus,
     HoF,
@@ -15,7 +16,7 @@ const equip: HoF = async (promptAsync) => {
         // should we roll our own OAuth lib or just keep this callback method?
         // Slightly complicates equip() vs no params but also enables a ton of functionality for any item
         promptAsync!();
-        // TODO how to know if they complete login + accept or if they cancel?
+        // TODO send mu(syncProvideId). If call fails then login unsuccessful
         return true;
     } catch (e) {
         console.log('Inv:spotify:equip:ERR', e);
@@ -26,6 +27,7 @@ const equip: HoF = async (promptAsync) => {
 const unequip: HoF = async () => {
     console.log('unequip spotify!!!');
     try {
+        // TODO call api to delete identity
         return true;
     } catch (e) {
         console.log('Inv:spotify:equip:ERR', e);
@@ -35,20 +37,19 @@ const unequip: HoF = async () => {
 
 const item: InventoryItem = {
     id: 'Spotify',
-    name: "Da Bumpin Horn o' Vibranium",
+    name: "Horn o' Vibranium",
     datasource: 'Spotify',
     image: 'https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png',
+    tags: ['digital', 'music', 'social'],
     installLink: 'https://www.spotify.com/us/download/',
     attributes: [
         { ...DjinnStat, value: 1 },
         { ...CommunityStat, value: 10 },
         { ...SpiritStat, value: 20 },
+        { ...IntelligenceStat, value: 5 },
     ],
     checkStatus: async () => {
-        // TODO figure out auth lol
-        // lookup local storage or server for access/refresh token
-        // const hasToken = await AsyncStorage.getItem('spotify-access-token');
-        // if(proof) return 'equipped';
+        // TODO api request to see if access_token exist on API
         return 'unequipped';
     },
     canEquip: async () => true,
@@ -80,7 +81,6 @@ const item: InventoryItem = {
             do: async () => {
                 // fetch your profile name from API (or maybe in user.identities.spotify?)
                 // pull up native share feature
-                //
                 return async () => true;
             },
         },
@@ -91,11 +91,12 @@ const item: InventoryItem = {
             description: 'Create an IRL rave right now!',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
             do: async () => {
-                // find other devices on bluetooth network ?
-                // find local music?
+                // @DEV: Only Premium users can start Jams!
+                // find local music? (already done by spotify)
+                // find other devices on bluetooth network? (spotify lets u tap phones for bluetooth adding)
                 // how to make blended playlist without seding request to spotify?
                 // how to add music to playlist without sending request to spotify?
-
+                // No api for jams. Need to deeplink into app somehow
                 return async () => true;
             },
         },

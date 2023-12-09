@@ -151,8 +151,7 @@ export interface InventoryIntegration {
     unequip: (helper?: HoF) => Promise<boolean>;
 }
 
-export type OAuthProviderIds = 'Spotify' | 'Coinbase' | 'Strava';
-// TODO 'fitbit'export interface OAuthProviderConfig {
+export type OAuthProviderIds = 'Spotify' | 'Github' | 'Coinbase' | 'Strava';
 
 export interface OAuthProvider {
     authorizationEndpoint: string;

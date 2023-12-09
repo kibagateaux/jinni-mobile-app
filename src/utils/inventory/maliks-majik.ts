@@ -1,7 +1,7 @@
 import { HoF, ItemStatus } from 'types/GameMechanics';
 
 import {
-    ID_ADDRESS_SLOT,
+    ID_PLAYER_SLOT,
     ID_JINNI_SLOT,
     PROOF_MALIKS_MAJIK_SLOT,
     _delete_id,
@@ -17,7 +17,7 @@ import { MU_ACTIVATE_JINNI, mu } from 'utils/api';
 const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
-        const address = await getStorage<string>(ID_ADDRESS_SLOT);
+        const address = await getStorage<string>(ID_PLAYER_SLOT);
         console.log('address to get verified: ', address);
         const result = address
             ? await signWithId(address)

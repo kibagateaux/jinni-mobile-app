@@ -13,8 +13,8 @@
     "deploy:android": "eas build --platform android",
     "deploy:secrets": "eas secret:push --scope jinni-health --env-file ./.env",
     "ios": "expo run:ios",
-    "lint:dry": "eslint src/ .eslintrc.js --ext .ts,.tsx && prettier src/ --config .prettierrc --check",
-    "lint:fix": "eslint src/ --fix .eslintrc.js --ext .ts,.tsx && prettier src/ --config .prettierrc --write --ignore-unknown"
+    "lint:dry": "eslint ./src/ .eslintrc.js --ext .ts,.tsx && prettier ./src/ --config .prettierrc --check",
+    "lint:fix": "eslint ./src/ --fix .eslintrc.js --ext .ts,.tsx && prettier ./src/ --config .prettierrc --write --ignore-unknown"
   },
   "dependencies": {
     "@apollo/client": "^3.8.6",
