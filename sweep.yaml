@@ -12,14 +12,15 @@ rules:
 branch: 'main'
 
 # By default Sweep will read the logs and outputs from your existing Github Actions. To disable this, set this to false.
-gha_enabled: True
+gha_enabled: False
 
 # This is the description of your project. It will be used by sweep when creating PRs. You can tell Sweep what's unique about your project, what frameworks you use, or anything else you want.
 #
 # Example:
 #
 # description: sweepai/sweep is a python project. The main api endpoints are in sweepai/api.py. Write code that adheres to PEP8.
-description: > Jinni is a React Native mobile app using the Expo framework written in typescript.
+description: >
+  Jinni is a React Native mobile app using the Expo framework written in typescript.
   It is a super app wrapping other apps, services, and data sources using an simple inventory system to standardize integrations.
   We aggregate data to create a tomogatchi that evolves based off your data to visualize your progress over time.
 
@@ -27,7 +28,7 @@ description: > Jinni is a React Native mobile app using the Expo framework writt
 draft: False
 
 # This is a list of directories that Sweep will not be able to edit.
-blocked_dirs: ["patches/", ".husky"]
+blocked_dirs: ["patches/", ".husky/"]
 
 # This is a list of documentation links that Sweep will use to help it understand your code. You can add links to documentation for any packages you use here.
 #
