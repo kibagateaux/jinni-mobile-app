@@ -8,11 +8,16 @@ import {
     getId,
     getSpellBook,
     signWithId,
+    ID_PKEY_SLOT,
 } from 'utils/zkpid';
-import { MALIKS_MAJIK_CARD, getStorage, saveStorage } from 'utils/config';
+import { MALIKS_MAJIK_CARD, getStorage, saveMysticCrypt, saveStorage } from 'utils/config';
 
 import { InventoryIntegration, DjinnStat, CommunityStat, InventoryItem } from 'types/GameMechanics';
-import { MU_ACTIVATE_JINNI, mu } from 'utils/api';
+import { MU_ACTIVATE_JINNI, qu } from 'utils/api';
+import { debug, track } from 'utils/logging';
+
+export const ABILITY_ACTIVATE_JINNI = 'activate-jinni';
+export const ABILITY_MYSTIC_CRYPT = 'create-mystic-crypt';
 
 const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
@@ -73,7 +78,7 @@ const item: InventoryItem = {
     unequip: process.env.NODE_ENV === 'development' ? unequip : undefined,
     abilities: [
         {
-            id: 'activate-jinni-game',
+            id: ABILITY_ACTIVATE_JINNI,
             name: 'Activate Jinni',
             symbol: '🧞‍♂️',
             description: 'Get access to the full game',
@@ -81,41 +86,62 @@ const item: InventoryItem = {
                 const isBonded = await getStorage(ID_JINNI_SLOT);
                 if (isBonded) return false;
                 if (status === 'equipped') return true;
-                return false;
+                return false; // if not curated then cant save
             },
             do: async () => {
+                const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
+                const myId = await getStorage<string>(ID_PLAYER_SLOT);
                 try {
-                    const [signer, myProof] = await Promise.all([
-                        getSpellBook(),
-                        getStorage(PROOF_MALIKS_MAJIK_SLOT),
-                    ]);
-                    const myId = signer.address;
+                    track(ABILITY_ACTIVATE_JINNI, { ability: ABILITY_ACTIVATE_JINNI });
                     if (!myId) throw Error('You need to create an magic ID first');
                     if (!myProof)
                         throw Error(
                             'You must to meet the Master Djinn before you can activate your jinni',
                         );
-                    const q = MU_ACTIVATE_JINNI;
-                    console.log('my jinni activation mutation', q);
-                    const mySpell = await signer.signMessage(q);
-                    if (!mySpell) throw Error('Could not imbue your magic into your spell');
-
+                    const m = MU_ACTIVATE_JINNI;
+                    console.log('my jinni activation mutation', m);
                     console.log('my jinni activation ID', myId, myProof.ether);
-                    console.log('my jinni activation Verification', mySpell);
 
-                    await mu(q)({
+                    const uuid = await qu<string>({ mutation: m })({
                         majik_msg: myProof,
                         player_id: myId,
-                        verification: {
-                            _raw_query: q,
-                            signature: mySpell,
-                        },
                     });
-                    return async () => {
-                        return true;
-                    };
+                    // server shouldnt allow multiple jinnis yet. Just in case dont overwrite existing uuid
+                    const result = await saveStorage<string>(ID_JINNI_SLOT, uuid, false);
+                    return async () => (result === uuid ? true : false);
                 } catch (e) {
-                    console.error('Failed to active Jinni -- ', e);
+                    console.error('Mani:Jinni:ActivateJinn:ERROR - ', e);
+                    debug(e, {
+                        user: { id: myId ?? '' },
+                        tags: { api: true },
+                        extra: { ability: ABILITY_ACTIVATE_JINNI },
+                    });
+                    return async () => false;
+                }
+            },
+        },
+        {
+            id: ABILITY_MYSTIC_CRYPT,
+            name: 'Create Mystic Crypt',
+            symbol: '🏦',
+            description:
+                "Save game progress to your phone'scloud storage to restore account if you lose your phone",
+            canDo: async (status: ItemStatus) => {
+                const pk = await getStorage(ID_PKEY_SLOT, true);
+                if (!pk) return false;
+                if (status === 'equipped') return true;
+                return false; // if not curated then cant save
+            },
+            do: async () => {
+                try {
+                    const pk = await getStorage(ID_PKEY_SLOT);
+                    if (!pk) throw Error('No account to backup');
+
+                    const success = await saveMysticCrypt(ID_PKEY_SLOT, pk);
+                    track(ABILITY_MYSTIC_CRYPT, { ability: ABILITY_MYSTIC_CRYPT });
+                    return async () => success;
+                } catch (e) {
+                    console.error('Mani:Jinni:MysticCrypt:ERROR --', e);
                     return async () => false;
                 }
             },

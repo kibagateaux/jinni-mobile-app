@@ -1,24 +1,6 @@
 import { getStorage, saveStorage } from 'utils/config';
 import { generateIdentity, saveId, _delete_id } from 'utils/zkpid';
 
-const mockNfcManager = jest.fn();
-
-jest.mock('react-native-nfc-manager', () => ({
-    // https://github.com/revtel/react-native-nfc-manager/__mocks__
-    NfcManagerModule: { start: mockNfcManager },
-    // NfcTech: { IsoDep: 'IsoDep' },
-    // Ndef: { uriRecord: jest.fn() },
-    // requestTechnology: jest.fn(),
-    // getTag: jest.fn(),
-    // setEventListener: jest.fn(),
-    // registerTagEventEx: jest.fn(),
-    // unregisterTagEventEx: jest.fn(),
-    // unregisterTagEvent: jest.fn(),
-    // registerTagEvent: jest.fn(),
-    // writeNdefMessage: jest.fn(),
-    // requestNdefWrite: jest.fn(),
-}));
-
 describe('Anonymous Authentication and Zero-Knowledge Proofs', () => {
     beforeEach(async () => {
         _delete_id('test'); // only works in dev
