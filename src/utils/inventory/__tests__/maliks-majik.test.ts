@@ -4,8 +4,7 @@
 // storage slot must start with 0x
 // unequip must delete storage slot
 
-import { getStorage, saveStorage } from 'utils/config';
-import { PROOF_MALIKS_MAJIK_SLOT } from 'utils/zkpid';
+import { getStorage, saveStorage, PROOF_MALIKS_MAJIK_SLOT } from 'utils/config';
 import maliksMajik from '../maliks-majik';
 
 // TODO figure out how to stub NFC manager
