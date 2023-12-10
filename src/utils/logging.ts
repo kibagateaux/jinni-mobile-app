@@ -76,7 +76,13 @@ export const getSegment = () => {
  * @returns if event tracking was sent or not
  */
 export const track = (eventName: string, data: JsonMap) =>
-    !__DEV__ && getSegment()?.track(eventName, data);
+    // TODO add EAS_BUILD_PROFILE for tracking in test/prod
+    !__DEV__ &&
+    getSegment()?.track(eventName, {
+        ...data,
+        environment: process.env.EXPO_PUBLIC_APP_VARIANT,
+        platform: Platform.OS,
+    });
 
 export const TRACK_PERMS_REQUESTED = 'TRACK_PERMISSIONS_REQUESTED';
 export const TRACK_DATA_QUERIED = 'TRACK_DATA_QUERIED';
