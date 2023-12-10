@@ -2,15 +2,8 @@ import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
-import { getAppConfig, getStorage, saveStorage } from './config';
+import { getAppConfig, getStorage, saveStorage, ID_PLAYER_SLOT, ID_PKEY_SLOT } from './config';
 import { ethers, Wallet, providers } from 'ethers';
-
-export const ID_ANON_SLOT = '_anon_id';
-export const ID_PLAYER_SLOT = '_address_id';
-export const ID_PKEY_SLOT = '_private_key*uwu*';
-export const ID_JINNI_SLOT = '_jinni_uuid';
-
-export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
 
 const defaultProvider = (): providers.Provider =>
     new ethers.providers.AlchemyProvider(
@@ -30,8 +23,10 @@ export const getSpellBook = async (): Promise<Wallet> => {
         const newSpellbook = ethers.Wallet.createRandom();
         console.log('spellbook pk save', newSpellbook.address);
         console.log('spellbook pk save', newSpellbook._mnemonic());
-        saveStorage(ID_PLAYER_SLOT, newSpellbook.address);
-        saveStorage(ID_PKEY_SLOT, newSpellbook._mnemonic());
+        await Promise.all([
+            saveStorage(ID_PLAYER_SLOT, newSpellbook.address),
+            saveStorage(ID_PKEY_SLOT, newSpellbook._mnemonic()),
+        ]);
         spellbook = connectProvider(newSpellbook);
         return spellbook;
     } else {
@@ -67,7 +62,6 @@ export const getId = async (idType: string): Promise<Identity | null> =>
     await getStorage<Identity>(idType);
 
 export const _delete_id = async (idType: string): Promise<void> => {
-    console.log('node env', process.env.NODE_ENV);
     console.log(
         '\n\n\nZK: DELETING ID!!!! ONLY AVAILABKLE IN DEVELOPMENT!!!! ENSURE THIS IS INTENDED BEHAVIOUR!!!!!\n\n\n',
     );

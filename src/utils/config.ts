@@ -7,16 +7,26 @@ import { merge, concat } from 'lodash/fp';
 import { isEmpty } from 'lodash';
 
 import { CurrentConnection } from 'types/SpiritWorld';
-import { HomeConfig, WidgetConfig } from 'types/UserConfig';
+import { HomeConfig, WidgetConfig, LogDataQueryProps } from 'types/UserConfig';
 import { UpdateWidgetConfigParams } from 'types/api';
-import { debug } from './logging';
-import { ID_PLAYER_SLOT } from './zkpid';
+import { debug, track } from './logging';
 
 // Storage slots for different config items
 export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
 
 export const MALIKS_MAJIK_CARD = '0x46C79830a421038E75853eD0b476Ae17bFeC289A';
 export const MAJIK_CARDS = [MALIKS_MAJIK_CARD];
+
+export const TRACK_PERMS_REQUESTED = 'PERMISSIONS_REQUESTED';
+export const TRACK_DATA_QUERIED = 'DATA_QUERIED';
+
+// local + secure storage slots
+export const LAST_QUERIED_SLOT = 'LAST_TIME_QUERIED';
+export const ID_ANON_SLOT = '_anon_id';
+export const ID_PLAYER_SLOT = '_address_id';
+export const ID_PKEY_SLOT = '_private_key*uwu*';
+export const ID_JINNI_SLOT = '_jinni_uuid';
+export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
 
 type AppConfig = {
     NODE_ENV: 'development' | 'production' | 'test';
@@ -50,12 +60,15 @@ export const getAppConfig = (): AppConfig => ({
 });
 
 export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
+    console.log('get home config', username);
     // await saveStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT, '', false);
     const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
     // console.log("custom config ", customConfig)
     // can only login from app so all changes MUST be saved locally if they exist on db
+    console.log('get home config- custom', customConfig);
     if (!isEmpty(customConfig)) return customConfig!;
     // if not logged in then no reason to fetch custom config
+    console.log('get home config - default', defaultHomeConfig);
     if (!username) return defaultHomeConfig;
     // if no internet connection, return default config
     if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
@@ -226,13 +239,19 @@ export const parseNetworkState = (networkState: NetworkState) => {
     }
 };
 
-export const getStorage: <T>(key: string, mysticCrypt?: boolean) => Promise<T | null> = async (
+// TODO add memo wrappers for ID slots since we'll read those a lot
+export const getStorage: <T>(key: string, useMysticCrypt?: boolean) => Promise<T | null> = async (
     key,
-    mysticCrypt,
+    useMysticCrypt,
 ) => {
+    // await _delete_id(key);
     try {
-        const val = mysticCrypt ? await getItemAsync(key) : await AsyncStorage.getItem(key);
-        return val ? JSON.parse(val) : null; // TODO add try/catch block on parse?
+        console.log('get storage secure?- ', key, useMysticCrypt);
+        const val = useMysticCrypt
+            ? await getItemAsync(key, { requireAuthentication: !__DEV__ })
+            : await AsyncStorage.getItem(key);
+        console.log('get storage val - ', key, val);
+        return val ? JSON.parse(val) : null;
     } catch (e: unknown) {
         debug(e, {
             user: { id: (await getStorage(ID_PLAYER_SLOT)) ?? '' },
@@ -248,10 +267,9 @@ export const getStorage: <T>(key: string, mysticCrypt?: boolean) => Promise<T | 
  * @description save to phones secure storage for recovery on lost phone/app deletion
  * @dev separate secure vs unsecure saving because we dont allow merging and more complex logic on secure stuff
  *      if you write, ensure that what you write is what will be stored
- *
- *
+ * @retuns bool if value saved or not
  */
-export const saveMysticCrypt = async (key: string, value: string | object): Promise<boolean> => {
+export const saveMysticCrypt = async (key: string, value: unknown): Promise<boolean> => {
     try {
         await setItemAsync(key, JSON.stringify(value));
         return true;
@@ -280,6 +298,7 @@ export const saveStorage: <T>(
     shouldMerge?: boolean,
     defaultVal?: string | number | object,
 ) => Promise<T | null> = async (key, value, shouldMerge = false, defaultVal) => {
+    console.log('save store', key, value, shouldMerge);
     const existingVal = await getStorage<unknown>(key);
 
     // do not merge if not requested or primitive types
@@ -323,4 +342,31 @@ export const saveStorage: <T>(
         console.log('Failed to save locally k/v : ', key, value);
         return existingVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
     }
+};
+
+export const logLastDataQuery = ({
+    playerId,
+    itemId,
+    activities,
+    time,
+}: LogDataQueryProps): Promise<boolean> => {
+    const ts = time ? time : new Date().toISOString();
+    const acts = activities.reduce((agg, act) => ({ ...agg, [act]: ts }), {});
+    // .any bc local storage will always be first, want to ensure it succeeds, but not block thread with await
+    return Promise.any([
+        saveStorage<object>(`${LAST_QUERIED_SLOT}_${itemId}`, acts, true),
+        track(TRACK_DATA_QUERIED, {
+            itemId,
+            activities: acts,
+        }),
+    ])
+        .then((success) => success)
+        .catch((errs) =>
+            errs.map(async (err: unknown) =>
+                debug(err, {
+                    user: { id: playerId },
+                    tags: { analytics: true },
+                }),
+            ),
+        );
 };

@@ -2,10 +2,6 @@ import { Platform } from 'react-native';
 import * as Sentry from 'sentry-expo';
 import { JsonMap, SegmentClient as Segment, createClient } from '@segment/analytics-react-native';
 import Constants from 'expo-constants';
-
-import { getAppConfig, saveStorage } from 'utils/config';
-
-import { ItemIds } from 'types/GameMechanics';
 import { CaptureContext } from '@sentry/types';
 
 const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
@@ -13,9 +9,9 @@ const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
 export type SentryClient = typeof Sentry.Native | typeof Sentry.Browser | null;
 let sentryClient: SentryClient;
 export const getSentry = (): SentryClient => {
-    if (!sentryClient && getAppConfig().SENTRY_DSN) {
+    if (!sentryClient && process.env.EXPO_PUBLIC_SENTRY_DSN) {
         Sentry.init({
-            dsn: getAppConfig().SENTRY_DSN!,
+            dsn: process.env.EXPO_PUBLIC_SENTRY_DSN!,
             //   release: 'my release name',
             //   dist: 'my dist',
 
@@ -61,9 +57,9 @@ export const debug = (err: string | Error | unknown, context?: CaptureContext) =
 export type SegmentClient = Segment | null;
 let segmentClient: SegmentClient;
 export const getSegment = () => {
-    if (!segmentClient && getAppConfig().SEGMENT_API_KEY)
+    if (!segmentClient && process.env.EXPO_PUBLIC_SEGMENT_API_KEY)
         segmentClient = createClient({
-            writeKey: getAppConfig().SEGMENT_API_KEY!,
+            writeKey: process.env.EXPO_PUBLIC_SEGMENT_API_KEY!,
             debug: __DEV__ ? true : false,
         });
 
@@ -84,41 +80,3 @@ export const track = (eventName: string, data: JsonMap) =>
         environment: process.env.EXPO_PUBLIC_APP_VARIANT,
         platform: Platform.OS,
     });
-
-export const TRACK_PERMS_REQUESTED = 'PERMISSIONS_REQUESTED';
-export const TRACK_DATA_QUERIED = 'DATA_QUERIED';
-
-interface LogDataQueryProps {
-    playerId: string;
-    itemId: ItemIds;
-    activities: string[];
-    time?: string; // ISO local time
-}
-
-export const LAST_QUERIED_SLOT = 'LAST_TIME_QUERIED';
-export const logLastDataQuery = ({
-    playerId,
-    itemId,
-    activities,
-    time,
-}: LogDataQueryProps): Promise<boolean> => {
-    const ts = time ? time : new Date().toISOString();
-    const acts = activities.reduce((agg, act) => ({ ...agg, [act]: ts }), {});
-    // .any bc local storage will always be first, want to ensure it succeeds, but not block thread with await
-    Promise.any([
-        saveStorage<object>(`${LAST_QUERIED_SLOT}_${itemId}`, acts, true),
-        track(TRACK_DATA_QUERIED, {
-            itemId,
-            activities: acts,
-        }),
-    ])
-        .then((success) => success)
-        .catch((errs) =>
-            errs.map(async (err: unknown) =>
-                debug(err, {
-                    user: { id: playerId },
-                    tags: { analytics: true },
-                }),
-            ),
-        );
-};
