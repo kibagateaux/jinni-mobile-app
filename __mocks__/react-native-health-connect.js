@@ -1,8 +1,8 @@
 module.exports = {
     openHealthConnectSettings: jest.fn(),
     // assume installed for testing purposes. not worth getting into weeds
-    initialize: () => true,
-    getSdkStatus: () => 3,
+    initialize: jest.fn(),
+    getSdkStatus: jest.fn(),
     requestPermission: jest.fn(),
     readRecords: jest.fn(),
     revokeAllPermissions: jest.fn(),

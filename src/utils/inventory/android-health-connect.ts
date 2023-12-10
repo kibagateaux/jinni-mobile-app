@@ -29,6 +29,7 @@ import {
     GetHealthDataProps,
     QueryAndroidHealthDataProps,
 } from 'types/HealthData';
+import { JsonMap } from '@segment/analytics-react-native';
 
 const ITEM_ID = 'AndroidHealthConnect';
 const PERMISSIONS = [
@@ -76,16 +77,7 @@ const checkEligibility = async (): Promise<boolean> => {
 };
 
 const getPermissions = async () => {
-    try {
-        if (!(await checkEligibility())) {
-            console.log('Android Health is not available on this device');
-            return false;
-        }
-    } catch (e: unknown) {
-        console.log('Inv:AndroidHealthConnect:checkElig: ', e);
-        debug(e);
-        return false;
-    }
+    if (!(await checkEligibility())) return false;
 
     try {
         const grantedPerms = await getGrantedPermissions();
@@ -108,8 +100,10 @@ const getPermissions = async () => {
 const initPermissions = async () => {
     if (!(await checkEligibility())) return false;
     try {
-        console.log('Inv:andoird-health-connect:Init');
-        const permissions = await requestPermission(PERMISSIONS);
+        const permissions = (await requestPermission(PERMISSIONS)) as object[] as JsonMap[];
+        console.log('Inv:andoird-health-connect:Init', permissions);
+        if (!permissions?.length) return false;
+
         track(TRACK_PERMS_REQUESTED, { itemId: ITEM_ID, permissions });
         console.log('Inv:AndroidHealthConnect:Init: Permissions Granted!', permissions);
         return true;
@@ -129,9 +123,8 @@ const equip: HoF = async () => {
     if (!(await checkEligibility())) return false;
 
     try {
-        await initPermissions();
+        return await initPermissions();
         // TODO return array of string for permissions granted
-        return true;
     } catch (e: unknown) {
         console.log('Error requesting permissions: ', e);
         debug(e);
