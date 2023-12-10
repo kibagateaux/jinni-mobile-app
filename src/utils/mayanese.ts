@@ -243,7 +243,7 @@ export const formatToUnix = format('XXXXX');
 export const formatToCal = format('y-MM-dd');
 
 // TODO run for past 40 years and next 20 years and export to JSON
-export const tzolkinHistory: TzolkinConfig = (() => {
+export const tzolkinHistory: TzolkinConfig = () => {
     // const portalDay = PORTAL_DAY_0;
     const portalDayUnix = PORTAL_DAY_0_UNIX;
     const portalConfig = portalDay0Config;
@@ -320,4 +320,5 @@ export const tzolkinHistory: TzolkinConfig = (() => {
     // const formattedMarkedDates = reduce((acc, d) => ({...acc, [d[0]]: d[1] }), {})(config);
 
     return config;
-})();
+    // })();
+};

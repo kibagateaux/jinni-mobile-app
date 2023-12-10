@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import * as Sentry from 'sentry-expo';
-import { SegmentClient as Segment, createClient } from '@segment/analytics-react-native';
+import { JsonMap, SegmentClient as Segment, createClient } from '@segment/analytics-react-native';
 import Constants from 'expo-constants';
 
 import { getAppConfig, saveStorage } from 'utils/config';
@@ -20,7 +20,7 @@ export const getSentry = (): SentryClient => {
 
             tracesSampleRate: 1.0,
 
-            // enableInExpoDevelopment: __DEV__, // dont issue sentry events if local development
+            enableInExpoDevelopment: !__DEV__, // dont issue sentry events if local development
             debug: __DEV__, // If `true`, Sentry prints debugging information if error sending the event.
 
             integrations: isNativeApp
@@ -45,6 +45,18 @@ export const getSentry = (): SentryClient => {
     return sentryClient;
 };
 
+/**
+ * @dev does not send logs to sentry during local development.
+ *  Should happen in client config already but just in case.
+ * @param err - Error exception thrown in runtime or manually crafted message
+ */
+export const debug = (err: string | Error | unknown) => {
+    if (!__DEV__)
+        err instanceof Error
+            ? getSentry()?.captureException(err)
+            : getSentry()?.captureMessage(String(err));
+};
+
 export type SegmentClient = Segment | null;
 let segmentClient: SegmentClient;
 export const getSegment = () => {
@@ -56,6 +68,21 @@ export const getSegment = () => {
 
     return segmentClient;
 };
+
+/**
+ * @dev does not track events during local development
+ * @param eventName - action user took within app to track in product analytics
+ * @param data - info about event to pass along
+ * @returns if event tracking was sent or not
+ */
+export const track = (eventName: string, data: JsonMap) =>
+    // TODO add EAS_BUILD_PROFILE for tracking in test/prod
+    !__DEV__ &&
+    getSegment()?.track(eventName, {
+        ...data,
+        environment: process.env.EXPO_PUBLIC_APP_VARIANT,
+        platform: Platform.OS,
+    });
 
 export const TRACK_PERMS_REQUESTED = 'TRACK_PERMISSIONS_REQUESTED';
 export const TRACK_DATA_QUERIED = 'TRACK_DATA_QUERIED';

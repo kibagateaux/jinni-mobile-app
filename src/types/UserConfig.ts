@@ -43,8 +43,8 @@ export type GameWidgetIds =
     | 'stat-stength'
     | 'stat-stamina'
     | 'stat-spirit';
-// player action portals
 
+// player action portals
 export type ItemWidgetIds =
     | 'maliks-majik-leaderboard'
     // identity

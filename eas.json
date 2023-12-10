@@ -5,25 +5,31 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
-    },
-    "dev": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_VARIANT": "development"
+      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
       }
     },
     "test": {
+      "env": {
+        "EXPO_PUBLIC_APP_VARIANT": "testing"
+      },
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": ":app:assembleDebug"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_APP_VARIANT": "production"
+      },
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": ":app:bundleProductionRelease"
       }
     }
   },
