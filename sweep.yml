@@ -3,16 +3,17 @@
 
 # This setting contains a list of rules that Sweep will check for. If any of these rules are broken in a new commit, Sweep will create an pull request to fix the broken rule.
 rules:
-- "All new business logic should have corresponding unit tests."
+- "All new business logic should have unit tests providing 100% test coverage."
 - "Refactor large functions to be more modular."
 - "Add docstrings to all functions and file headers."
 - "Use functional programming and never mutate data."
+
 
 # This is the branch that Sweep will develop from and make pull requests to. Most people use 'main' or 'master' but some users also use 'dev' or 'staging'.
 branch: 'main'
 
 # By default Sweep will read the logs and outputs from your existing Github Actions. To disable this, set this to false.
-gha_enabled: False
+gha_enabled: True
 
 # This is the description of your project. It will be used by sweep when creating PRs. You can tell Sweep what's unique about your project, what frameworks you use, or anything else you want.
 #
@@ -40,7 +41,7 @@ blocked_dirs: ["patches/", ".husky/"]
 # TODO have sweep generate docs on master-djinn API and add link to those here
 docs:
   - ReactNativeExpo: ["https://docs.expo.dev/", "Expo provides React Native packages, build tools, and deployment infrastructure"]
-  - JestTesting: ["https://jestjs.io/docs/", "React testing framework known for Arrange Act Assert pattern, easy mocks, and structuring with describe/it functions"]
+  - JestTesting: ["https://jestjs.io/docs/", "React testing framework with excellent tooling for Arrange Act Assert pattern, easy mocks, and structuring with describe/it functions"]
   - EthereumEthersJs: ["https://docs.ethers.org/v6/", "ethersjs is Ethereum wallet tooling. We use wallet address as player IDs and sign cryptographically sign API requests for authentication"]
 
 # Sandbox executes commands in a sandboxed environment to validate code changes after every edit to guarantee pristine code. For more details, see the [Sandbox](./sandbox) page.
