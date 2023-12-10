@@ -38,19 +38,10 @@ export const isEquipping = checkItemHasStatus('equipping');
 export const isUnequipped = checkItemHasStatus('unequipped');
 
 export const getInventoryItems = async (username?: string): Promise<InventoryItem[]> => {
-    console.group('getInventoryItems user/platform : ', username, Platform.OS);
-    console.group(
-        'Platform OS : ',
-        Platform.select({ ios: 'ios', android: 'android', default: 'web' }),
-    );
-
-    // any data that can come directly from local device
     const platformInventoryItems: InventoryItem[] = getPlatformItems(Platform.OS);
-
-    // console.log("platform inventory", platformInventoryItems)
-
+    // not logged in to get personalizations
     if (!username) return platformInventoryItems;
-    // TODO: read from local storage
+    // no internet access to send request
     if (!(await getNetworkState()).isNoosphere) return platformInventoryItems;
 
     return axios
@@ -66,9 +57,12 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
         });
 };
 
-export const coreInventory = [maliksMajik.item, spotify.item, github.item];
+// items that can be equipd via web browser even if app not installed
+export const coreInventory = [spotify.item, github.item];
+// any data that can come directly from local device
 export const mobileInventory: InventoryItem[] = [
     ...coreInventory,
+    maliksMajik.item, // tricky bc technically works on web if on mobile phone
     // locationForeground.item,
     // locationBackground, // Dont need feature yet and it adds admin overhead for app review
 ];

@@ -144,6 +144,7 @@ export interface ItemAbility {
 // TODO I feel like this should all be rolled into InventoryItem
 export interface InventoryIntegration {
     item: InventoryItem;
+    permissions?: string[];
     checkEligibility: () => Promise<boolean>;
     getPermissions: () => Promise<boolean>;
     initPermissions: () => Promise<boolean>;

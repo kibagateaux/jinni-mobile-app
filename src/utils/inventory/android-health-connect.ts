@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import { startOfDay, formatISO } from 'date-fns/fp';
 import { keys, merge } from 'lodash';
 import { sortBy, reduce } from 'lodash/fp';
@@ -13,7 +12,7 @@ import {
     SdkAvailabilityStatus,
 } from 'react-native-health-connect';
 import { Permission } from 'react-native-health-connect/types';
-import { getSentry, getSegment, TRACK_PERMS_REQUESTED, TRACK_DATA_QUERIED } from 'utils/logging';
+import { debug, track, TRACK_PERMS_REQUESTED, TRACK_DATA_QUERIED } from 'utils/logging';
 
 import {
     InventoryIntegration,
@@ -32,7 +31,7 @@ import {
 } from 'types/HealthData';
 
 const ITEM_ID = 'AndroidHealthConnect';
-const ANDROID_HEALTH_PERMISSIONS = [
+const PERMISSIONS = [
     // summaries
     { accessType: 'read', recordType: 'Steps' },
     { accessType: 'read', recordType: 'Distance' },
@@ -52,13 +51,18 @@ const ANDROID_HEALTH_PERMISSIONS = [
 ] as Permission[];
 
 const checkEligibility = async (): Promise<boolean> => {
-    if (Platform.OS !== 'android') return false;
+    // cant test anything in file if we run this.
+    // if (Platform.OS !== 'android') return false;
 
     const status = await getSdkStatus();
-    console.log('Inv:AndroidHealthConnect:checkEligibility: ', status);
+    console.log(
+        'Inv:AndroidHealthConnect:checkEligibility: ',
+        status,
+        SdkAvailabilityStatus.SDK_AVAILABLE,
+    );
 
     if (status !== SdkAvailabilityStatus.SDK_AVAILABLE) {
-        console.log('Inv:AndroidHealthConnect:checkElig: NOT ELIIGBLE');
+        console.log('Inv:AndroidHealthConnect:checkElig: NOT ELIIGBLE - ');
         // TODO link to Google play store link for download
         return false;
     }
@@ -77,9 +81,9 @@ const getPermissions = async () => {
             console.log('Android Health is not available on this device');
             return false;
         }
-    } catch (e) {
+    } catch (e: unknown) {
         console.log('Inv:AndroidHealthConnect:checkElig: ', e);
-        getSentry()?.captureException(e);
+        debug(e);
         return false;
     }
 
@@ -87,15 +91,16 @@ const getPermissions = async () => {
         const grantedPerms = await getGrantedPermissions();
         console.log('Inv:AndroidHealthConnect:getPerm: GrantedPerms ', grantedPerms);
 
-        // if(grantedPerms !== ANDROID_HEALTH_PERMISSIONS) {
-        if (grantedPerms.length === 0) {
+        // allow them to deselect permissions if they want
+        // if(grantedPerms !== PERMISSIONS) {
+        if (!grantedPerms || grantedPerms.length === 0) {
             console.log('Inv:AndroidHealthConnect:getPerm: NO PERMISSIONS');
             return false;
         }
         return true;
-    } catch (e) {
+    } catch (e: unknown) {
         console.log('Inv:AndroidHealthConnect:getPerm: ', e);
-        getSentry()?.captureException(e);
+        debug(e);
         return false;
     }
 };
@@ -104,30 +109,32 @@ const initPermissions = async () => {
     if (!(await checkEligibility())) return false;
     try {
         console.log('Inv:andoird-health-connect:Init');
-        const permissions = await requestPermission(ANDROID_HEALTH_PERMISSIONS);
-        getSegment()?.track(TRACK_PERMS_REQUESTED, { itemId: ITEM_ID });
+        const permissions = await requestPermission(PERMISSIONS);
+        track(TRACK_PERMS_REQUESTED, { itemId: ITEM_ID, permissions });
         console.log('Inv:AndroidHealthConnect:Init: Permissions Granted!', permissions);
         return true;
-    } catch (e) {
+    } catch (e: unknown) {
         console.log('C:AndroidHealth:InitPerm: ERROR - ', e);
-        getSentry()?.captureException(e);
+        debug(e);
         return false;
     }
 };
 
 const equip: HoF = async () => {
+    // TODO refector checkEligibility out of all these funcs and into inventory UI flow
+    // Why? More functional and helps with testing
+    // return 0, 1, 2, on checkEligibility for 0. cant install, 1. installable, 2. installed
+    // call await initialize() manually on get/initPermissions and queryData
+    console.log('equip eligible', await checkEligibility());
     if (!(await checkEligibility())) return false;
 
     try {
         await initPermissions();
-
-        // todo abstract to utils function
-        // getStepCount();
-
+        // TODO return array of string for permissions granted
         return true;
-    } catch (e) {
+    } catch (e: unknown) {
         console.log('Error requesting permissions: ', e);
-        getSentry()?.captureException(e);
+        debug(e);
         return false;
     }
 };
@@ -170,14 +177,15 @@ const item: InventoryItem = {
     ],
     checkStatus,
     // must have app installed but not equipped yet
+    // TODO refactor to checkEligibility === 1
     canEquip: async () => (await checkEligibility()) === true && (await getPermissions()) === false,
     equip,
     unequip,
-    // actions: [],
 };
 
 export default {
     item,
+    permissions: PERMISSIONS,
     checkEligibility,
     getPermissions,
     initPermissions,
@@ -206,7 +214,7 @@ export const queryHealthData = async ({
             },
         });
 
-        getSegment()?.track(TRACK_DATA_QUERIED, { itemId: ITEM_ID, actionType: activity });
+        track(TRACK_DATA_QUERIED, { itemId: ITEM_ID, actionType: activity });
         console.log('Android Health Steps', records.slice(0, 10));
 
         return records as AndroidHealthRecord[];
