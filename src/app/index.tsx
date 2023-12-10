@@ -58,10 +58,11 @@ const HomeScreen = () => {
     const onIntentionPress = async () => {
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        const startTime = oneDayAgo.toISOString();
+        const startTime = oneDayAgo.toISOString(); // TODO last activity time
         const endTime = now.toISOString();
         await getActivityData({ startTime, endTime });
     };
+
     return (
         <View style={{ flex: 1, ...useTheme() }}>
             <View style={styles.container}>
