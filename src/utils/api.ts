@@ -18,36 +18,48 @@ export const getGqlClient = () =>
               version: '0.0.1',
           }));
 
-export const qu = (query: string) => async (variables: object) =>
-    getGqlClient().query({
-        // strip /n and /t to prevent weird error converting to byte array on server side on ecrecvoer
-        query: gql`
-            ${query.replace(/[\n\t]/g, ' ')}
-        `,
-        variables: {
-            ...variables,
-            verification: (await getSpellBook()).signMessage(query),
-        },
-        fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
-    });
+interface Query {
+    query?: string;
+    mutation?: string;
+}
+// server has issues converting \n + \t to bytes and fucks with ecrecover verification
+const cleanGql = (q: string) => q.replace(/[\n\t]/g, ' ');
+export const qu =
+    <T>({ query, mutation }: Query) =>
+    async (variables: object): Promise<T> => {
+        if (!query && !mutation) throw Error('');
+        const spellbook = await getSpellBook();
+        if (!spellbook) throw Error('No spellbok to cast spells'); // @DEV shouldnt be possible but incase
 
-export const mu = (mutation: string) => async (variables: object) =>
-    getGqlClient().mutate({
-        mutation: gql`
-            ${mutation.replace(/[\n\t]/g, ' ')}
-        `,
-        variables: {
-            ...variables,
-            verification: (await getSpellBook()).signMessage(mutation),
-        },
-
-        optimisticResponse: true,
-    });
+        const cleaned = query ? cleanGql(query) : cleanGql(mutation!);
+        return getGqlClient().query({
+            ...(query
+                ? {
+                      query: gql`
+                          ${cleaned}
+                      `,
+                  }
+                : {
+                      mutation: gql`
+                          ${cleaned}
+                      `,
+                  }),
+            variables: {
+                ...variables,
+                verification: {
+                    _raw_query: cleaned,
+                    signature: (await getSpellBook()).signMessage(cleaned),
+                },
+            },
+            fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
+            optimisticResponse: true,
+        });
+    };
 
 export const MU_ACTIVATE_JINNI = `
     mutation activate_jinni(
-        $verification: SignedRequest!
-        $majik_msg: String!
+        $verification: SignedRequest!,
+        $majik_msg: String!,
         $player_id: String!
     ) {
         activate_jinni(
@@ -62,15 +74,15 @@ export const MU_ACTIVATE_JINNI = `
 
 export const MU_SUBMIT_DATA = `
     mutation submit_data(
-        $verification: SignedRequest!
-        $data: [RawInputData]!
-        $data_provider: DataProvider!
+        $verification: SignedRequest!,
+        $data_provider: DataProvider!,
+        $data: [RawInputData]!,
         $name: String!
     ) {
         submit_data(
             verification: $verification, 
-            data: $data
-            data_provider: $data_provider
+            data_provider: $data_provider,
+            data: $data,
             name: $name
         ) {
             ID
