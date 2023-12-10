@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setItemAsync, getItemAsync } from 'expo-secure-store';
+
 import axios from 'axios';
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
 import { merge, concat } from 'lodash/fp';
@@ -7,6 +9,8 @@ import { isEmpty } from 'lodash';
 import { CurrentConnection } from 'types/SpiritWorld';
 import { HomeConfig, WidgetConfig } from 'types/UserConfig';
 import { UpdateWidgetConfigParams } from 'types/api';
+import { debug } from './logging';
+import { ID_PLAYER_SLOT } from './zkpid';
 
 // Storage slots for different config items
 export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
@@ -222,9 +226,43 @@ export const parseNetworkState = (networkState: NetworkState) => {
     }
 };
 
-export const getStorage: <T>(key: string) => Promise<T | null> = async (key) => {
-    const value = await AsyncStorage.getItem(key);
-    return value ? JSON.parse(value) : null; // TODO add try/catch block on parse?
+export const getStorage: <T>(key: string, mysticCrypt?: boolean) => Promise<T | null> = async (
+    key,
+    mysticCrypt,
+) => {
+    try {
+        const val = mysticCrypt ? await getItemAsync(key) : await AsyncStorage.getItem(key);
+        return val ? JSON.parse(val) : null; // TODO add try/catch block on parse?
+    } catch (e: unknown) {
+        debug(e, {
+            user: { id: (await getStorage(ID_PLAYER_SLOT)) ?? '' },
+            tags: { storage: true },
+            extra: { key },
+        });
+        return null;
+    }
+};
+/**
+ * @function
+ * @name saveMysticCrypt
+ * @description save to phones secure storage for recovery on lost phone/app deletion
+ * @dev separate secure vs unsecure saving because we dont allow merging and more complex logic on secure stuff
+ *      if you write, ensure that what you write is what will be stored
+ *
+ *
+ */
+export const saveMysticCrypt = async (key: string, value: string | object): Promise<boolean> => {
+    try {
+        await setItemAsync(key, JSON.stringify(value));
+        return true;
+    } catch (e: unknown) {
+        debug(e, {
+            user: { id: (await getStorage(ID_PLAYER_SLOT)) ?? '' },
+            tags: { storage: true },
+            extra: { key },
+        });
+        return false;
+    }
 };
 
 /**
@@ -241,9 +279,9 @@ export const saveStorage: <T>(
     value: string | number | object,
     shouldMerge?: boolean,
     defaultVal?: string | number | object,
-) => Promise<T> = async (key, value, shouldMerge = false, defaultVal) => {
-    const existingVal = await getStorage(key);
-    // TODO require that existing val == null or T?
+) => Promise<T | null> = async (key, value, shouldMerge = false, defaultVal) => {
+    const existingVal = await getStorage<unknown>(key);
+
     // do not merge if not requested or primitive types
     if (!shouldMerge || typeof value === 'string' || typeof value === 'number') {
         await AsyncStorage.setItem(key, JSON.stringify(value));

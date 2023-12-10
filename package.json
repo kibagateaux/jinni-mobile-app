@@ -65,7 +65,8 @@
     "readable-stream": "^1.0.33",
     "sentry-expo": "~7.0.0",
     "stream-browserify": "^1.0.0",
-    "util": "^0.10.4"
+    "util": "^0.10.4",
+    "expo-secure-store": "~12.3.1"
   },
   "peerDependencies": {
     "ethers": "5.7.0"

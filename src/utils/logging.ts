@@ -6,6 +6,7 @@ import Constants from 'expo-constants';
 import { getAppConfig, saveStorage } from 'utils/config';
 
 import { ItemIds } from 'types/GameMechanics';
+import { CaptureContext } from '@sentry/types';
 
 const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
 
@@ -50,11 +51,11 @@ export const getSentry = (): SentryClient => {
  *  Should happen in client config already but just in case.
  * @param err - Error exception thrown in runtime or manually crafted message
  */
-export const debug = (err: string | Error | unknown) => {
+export const debug = (err: string | Error | unknown, context?: CaptureContext) => {
     if (!__DEV__)
         err instanceof Error
-            ? getSentry()?.captureException(err)
-            : getSentry()?.captureMessage(String(err));
+            ? getSentry()?.captureException(err, context)
+            : getSentry()?.captureMessage(String(err), context);
 };
 
 export type SegmentClient = Segment | null;
@@ -84,15 +85,40 @@ export const track = (eventName: string, data: JsonMap) =>
         platform: Platform.OS,
     });
 
-export const TRACK_PERMS_REQUESTED = 'TRACK_PERMISSIONS_REQUESTED';
-export const TRACK_DATA_QUERIED = 'TRACK_DATA_QUERIED';
+export const TRACK_PERMS_REQUESTED = 'PERMISSIONS_REQUESTED';
+export const TRACK_DATA_QUERIED = 'DATA_QUERIED';
 
 interface LogDataQueryProps {
+    playerId: string;
     itemId: ItemIds;
-    activities: { [key: string]: string }; // name -> ISO local time
+    activities: string[];
+    time?: string; // ISO local time
 }
 
 export const LAST_QUERIED_SLOT = 'LAST_TIME_QUERIED';
-
-export const logLastDataQuery = ({ itemId, activities }: LogDataQueryProps) =>
-    saveStorage<object>(`${LAST_QUERIED_SLOT}_${itemId}`, activities, true);
+export const logLastDataQuery = ({
+    playerId,
+    itemId,
+    activities,
+    time,
+}: LogDataQueryProps): Promise<boolean> => {
+    const ts = time ? time : new Date().toISOString();
+    const acts = activities.reduce((agg, act) => ({ ...agg, [act]: ts }), {});
+    // .any bc local storage will always be first, want to ensure it succeeds, but not block thread with await
+    Promise.any([
+        saveStorage<object>(`${LAST_QUERIED_SLOT}_${itemId}`, acts, true),
+        track(TRACK_DATA_QUERIED, {
+            itemId,
+            activities: acts,
+        }),
+    ])
+        .then((success) => success)
+        .catch((errs) =>
+            errs.map(async (err: unknown) =>
+                debug(err, {
+                    user: { id: playerId },
+                    tags: { analytics: true },
+                }),
+            ),
+        );
+};

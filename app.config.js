@@ -1,7 +1,8 @@
-const isProd = process.env.EXPO_PUBLIC_APP_VARIANT === 'production';
-
+const VARIANT = process.env.EXPO_PUBLIC_APP_VARIANT;
+const isProd = VARIANT === 'production';
 const packageName = isProd ? 'com.jinnihealth' : `com.jinnihealth.${VARIANT}`;
 const appName = isProd ? 'Jinni Health' : `Jinni Health (${VARIANT})`;
+
 export default {
     expo: {
         name: appName,
@@ -70,6 +71,9 @@ export default {
                     'Allow your jinni to access your friends list to contact their jinn and communicate with them in the spiritual world.',
             },
             bundleIdentifier: packageName,
+            config: {
+                usesNonExemptEncryption: false,
+            },
         },
         android: {
             adaptiveIcon: {
