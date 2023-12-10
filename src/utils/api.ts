@@ -1,6 +1,6 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
-import { getAppConfig } from './config';
-import { getSpellBook } from './zkpid';
+import { getAppConfig } from 'utils/config';
+import { getSpellBook } from 'utils/zkpid';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
 // https://www.apollographql.com/docs/react/caching/advanced-topics#persisting-the-cache

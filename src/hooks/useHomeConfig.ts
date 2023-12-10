@@ -6,13 +6,13 @@ import { HomeConfig } from 'types/UserConfig';
 import { useNetworkState } from './useNetworkState';
 
 export const useHomeConfig = () => {
-    const { user } = useAuth();
-    const { loading: isLoadingNetwork, connection } = useNetworkState();
+    const { player } = useAuth();
+    const { loading: isLoadingNetwork } = useNetworkState();
     const [homeConfig, setHomeConfig] = useState<HomeConfig | null>(null);
 
     useEffect(() => {
-        getHomeConfig(connection, user?.name).then((config) => setHomeConfig(config));
-    }, [user, isLoadingNetwork]);
+        getHomeConfig(player?.name).then((config) => setHomeConfig(config));
+    }, [player, isLoadingNetwork]);
 
     return homeConfig;
 };

@@ -59,3 +59,9 @@ export type ItemWidgetIds =
     | 'jubjub-display';
 
 export type WidgetIds = TabIds & GameWidgetIds & ItemWidgetIds;
+export interface LogDataQueryProps {
+    playerId: string;
+    itemId: string; // just for analytics not used in app so dont need exact type
+    activities: string[];
+    time?: string; // ISO local time
+}

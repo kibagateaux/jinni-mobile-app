@@ -1,31 +1,24 @@
 import React, { createContext, useState, useMemo } from 'react';
 
 import { Avatar } from 'types/UserConfig';
-import {
-    ID_PLAYER_SLOT,
-    ID_ANON_SLOT,
-    generateIdentity,
-    getId,
-    getSpellBook,
-    saveId,
-} from 'utils/zkpid';
+import { generateIdentity, getId, getSpellBook as getSpells, saveId } from 'utils/zkpid';
 import { Identity } from '@semaphore-protocol/identity';
 import { useExternalServices } from './ExternalServicesContext';
 import { Wallet } from 'ethers';
-import { getStorage } from 'utils/config';
+import { getStorage, ID_PLAYER_SLOT, ID_ANON_SLOT } from 'utils/config';
 
 interface AuthConsumables {
     player: Avatar | null;
     anonId: Identity | null;
     spellbook: Wallet | null;
-    getSpellbook: () => void;
+    getSpellBook: () => void;
 }
 
 export const AuthContext = createContext<AuthConsumables>({
     player: null,
     anonId: null,
     spellbook: null,
-    getSpellbook: () => null,
+    getSpellBook: () => null,
 });
 
 export const useAuth = (): AuthConsumables => {
@@ -83,22 +76,22 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
      * @desc Generate an anonymous Ethereum identity for the player if they dont already have one
      *        Save to local storage on the phone for later use and for authentication
      */
-    const getSpellbook = () => {
+    const getSpellBook = () => {
         console.log('hydrate spellbook', spellbook);
         if (spellbook?.address) return spellbook;
         // blocks thread and makes app load super slow.
         // ideally lazy load when we need it to cast spells.
         // TODO add method to load and save when required and add to context
-        getSpellBook()
-            .then((w) => {
+        getSpells()
+            .then((w: Wallet) => {
                 if (!player?.id) login(w.address);
                 setSpellbook(w);
             })
-            .catch((e) => sentry?.captureException(e));
+            .catch((e: unknown) => sentry?.captureException(e));
     };
 
     return (
-        <AuthContext.Provider value={{ player, anonId, spellbook, getSpellbook }}>
+        <AuthContext.Provider value={{ player, anonId, spellbook, getSpellBook }}>
             {children}
         </AuthContext.Provider>
     );

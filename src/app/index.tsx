@@ -13,7 +13,7 @@ import WidgetContainer from 'components/home/WidgetContainer';
 import { getActivityData } from 'utils/inventory/android-health-connect';
 
 const HomeScreen = () => {
-    const { user } = useAuth();
+    const { player } = useAuth();
     const homeConfig = useHomeConfig();
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
 
@@ -36,7 +36,7 @@ const HomeScreen = () => {
     };
     const finalizeRenovation = () =>
         saveHomeConfig({
-            username: user?.name || 'sampleusername',
+            username: player?.name || 'sampleusername',
             widgets: widgetConfig,
             proof: '!believeme!',
         });

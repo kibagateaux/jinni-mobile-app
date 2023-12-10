@@ -14,8 +14,8 @@ export default (props) => {
     // have to make a request to server to initiate? Dont necessarily need server can just do thru client
     // doing through server would let us expose your data to other users e.g. let us show them ur top 10 songs (right now we could only get ur top 10 for u on ur device)
 
-    const { user, login, anonId } = useAuth();
-    console.log('oauth callback', user, anonId?._commitment);
+    const { player, login, anonId } = useAuth();
+    console.log('oauth callback', player, anonId?._commitment);
     useEffect(() => {
         // getSteps({
         //   startTime: PORTAL_DAY,

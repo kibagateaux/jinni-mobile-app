@@ -1,16 +1,16 @@
 import { HoF, ItemStatus } from 'types/GameMechanics';
 
+import { _delete_id, getId, getSpellBook, signWithId } from 'utils/zkpid';
 import {
     ID_PLAYER_SLOT,
     ID_JINNI_SLOT,
     PROOF_MALIKS_MAJIK_SLOT,
-    _delete_id,
-    getId,
-    getSpellBook,
-    signWithId,
     ID_PKEY_SLOT,
-} from 'utils/zkpid';
-import { MALIKS_MAJIK_CARD, getStorage, saveMysticCrypt, saveStorage } from 'utils/config';
+    MALIKS_MAJIK_CARD,
+    getStorage,
+    saveMysticCrypt,
+    saveStorage,
+} from 'utils/config';
 
 import { InventoryIntegration, DjinnStat, CommunityStat, InventoryItem } from 'types/GameMechanics';
 import { MU_ACTIVATE_JINNI, qu } from 'utils/api';

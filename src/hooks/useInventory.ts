@@ -9,7 +9,7 @@ import { useAuth } from 'contexts/AuthContext';
 // }
 
 export const useInventory = () => {
-    const { user } = useAuth();
+    const { player } = useAuth();
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -17,7 +17,7 @@ export const useInventory = () => {
         if (!inventory.length) {
             setLoading(true);
             utils
-                .getInventoryItems(user?.name)
+                .getInventoryItems(player?.name)
                 .then((inventoryItems: InventoryItem[]) => {
                     setInventory(inventoryItems);
                     setLoading(false);
@@ -27,7 +27,7 @@ export const useInventory = () => {
                     setLoading(false);
                 });
         }
-    }, [user]);
+    }, [player]);
 
     return { inventory, loading };
 };
