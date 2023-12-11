@@ -74,7 +74,6 @@ export const getSegment = () => {
  * @returns if event tracking was sent or not
  */
 export const track = (eventName: string, data: JsonMap) =>
-    // TODO add EAS_BUILD_PROFILE for tracking in test/prod
     !__DEV__ &&
     getSegment()?.track(eventName, {
         ...data,

@@ -148,10 +148,6 @@ const checkStatus = async () => {
     console.log('Inv:AndroidHealthConnect:checkStatus: equipped?', isEquipped);
     if (isEquipped) return 'equipped';
 
-    // if getPermissions() permissions have been revoked
-    // return 'destroyed';
-    // TODO
-    // see if health connect is installed
     console.log('Inv:AndroidHealthConnect:checkStatus: unequipped!', isEquipped);
     return 'unequipped';
 };

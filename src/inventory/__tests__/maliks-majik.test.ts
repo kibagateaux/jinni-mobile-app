@@ -7,26 +7,6 @@
 import { getStorage, saveStorage, PROOF_MALIKS_MAJIK_SLOT } from 'utils/config';
 import maliksMajik from '../maliks-majik';
 
-// TODO figure out how to stub NFC manager
-
-const mockNfcManager = jest.fn();
-
-jest.mock('react-native-nfc-manager', () => ({
-    // https://github.com/revtel/react-native-nfc-manager/__mocks__
-    NfcManagerModule: { start: mockNfcManager },
-    // NfcTech: { IsoDep: 'IsoDep' },
-    // Ndef: { uriRecord: jest.fn() },
-    // requestTechnology: jest.fn(),
-    // getTag: jest.fn(),
-    // setEventListener: jest.fn(),
-    // registerTagEventEx: jest.fn(),
-    // unregisterTagEventEx: jest.fn(),
-    // unregisterTagEvent: jest.fn(),
-    // registerTagEvent: jest.fn(),
-    // writeNdefMessage: jest.fn(),
-    // requestNdefWrite: jest.fn(),
-}));
-
 describe('item inventory', () => {
     describe('Item Status', () => {
         test('is unequipped if no proof in local storage', async () => {

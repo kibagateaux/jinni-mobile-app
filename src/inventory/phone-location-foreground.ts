@@ -58,7 +58,6 @@
 //     // actions: [],
 // };
 
-// // TODO should we abstract NFC Manager out of SignWithID so we can request permissions separately?
 // const initPermissions = () => {};
 // const getPermissions = () => {};
 

@@ -87,7 +87,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 const result = itemOauthConfig.authorizationEndpoint
                     ? await item.equip(promptAsync)
                     : await item.equip();
-                // if result.error = "transceive fai" try majik ritual again
+                // if result.error = "transceive fail" try majik ritual again
                 if (result) {
                     setStatus('post-equip');
                     // TODO api request to add item to their avatar (:DataProvider or :Resource?)

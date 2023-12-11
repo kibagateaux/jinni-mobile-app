@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     const { sentry, segment } = useExternalServices();
     const [player, setPlayer] = useState<Avatar | null>(null);
     const [anonId, setAnonId] = useState<Identity | null>(null);
-    const [spellbook, setSpellbook] = useState<Wallet | null>(null); // TODO siger type
+    const [spellbook, setSpellbook] = useState<Wallet | null>(null);
 
     const login = useCallback(
         (id: string) => {
@@ -69,33 +69,26 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
                     // console.log("anon id save", _anon_);
                     setAnonId(_anon_);
                     saveId(ID_ANON_SLOT, _anon_);
+                    // start tracking anon analytics for user if not logged in
+                    segment?.identify(_anon_._commitment.toString());
                 } else {
                     setAnonId(id as Identity);
                 }
             });
         }
-    }, [anonId]);
-
-    // start tracking anon analytics for user if not logged in
-    if (anonId && !player?.id) segment?.identify(anonId.getCommitment().toString());
+    }, [anonId, segment]);
 
     /**
      * @desc Generate an anonymous Ethereum identity for the player if they dont already have one
      *        Save to local storage on the phone for later use and for authentication
      */
-    const getSpellBook = () => {
+    const getSpellBook = useCallback(async () => {
         console.log('hydrate spellbook', spellbook);
         if (spellbook?.address) return spellbook;
-        // blocks thread and makes app load super slow.
-        // ideally lazy load when we need it to cast spells.
-        // TODO add method to load and save when required and add to context
-        getSpells()
-            .then((w: Wallet) => {
-                if (!player?.id) login(w.address);
-                setSpellbook(w);
-            })
-            .catch((e: unknown) => sentry?.captureException(e));
-    };
+        const book = await getSpells();
+        if (!player?.id) login(book.address);
+        setSpellbook(book);
+    }, [spellbook, player, login]);
 
     return (
         <AuthContext.Provider value={{ player, anonId, spellbook, getSpellBook }}>

@@ -6,9 +6,8 @@
   "scripts": {
     "test": "jest",
     "test:ci": "jest --ci --colors",
-    "start": "export EXPO_PUBLIC_APP_VARIANT=development; npx expo start;",
     "postinstall": "patch-package && rn-nodeify --install all --hack",
-    "android": "expo run:android",
+    "android": "export EXPO_PUBLIC_APP_VARIANT=development; expo run:android",
     "build:android": "eas build --local --platform android",
     "deploy:android": "eas build --platform android",
     "deploy:secrets": "eas secret:push --scope jinni-health --env-file ./.env",
