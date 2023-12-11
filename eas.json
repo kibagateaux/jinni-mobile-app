@@ -14,7 +14,7 @@
         "gradleCommand": ":app:assembleDebug"
       }
     },
-    "test": {
+    "testing": {
       "env": {
         "EXPO_PUBLIC_APP_VARIANT": "testing"
       },
@@ -28,8 +28,8 @@
         "EXPO_PUBLIC_APP_VARIANT": "production"
       },
       "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:bundleProductionRelease"
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease"
       }
     }
   },

@@ -12,6 +12,7 @@ export const getSentry = (): SentryClient => {
     if (!sentryClient && process.env.EXPO_PUBLIC_SENTRY_DSN) {
         Sentry.init({
             dsn: process.env.EXPO_PUBLIC_SENTRY_DSN!,
+            environment: process.env.EXPO_PUBLIC_APP_VARIANT,
             //   release: 'my release name',
             //   dist: 'my dist',
             tracesSampleRate: 1.0,
