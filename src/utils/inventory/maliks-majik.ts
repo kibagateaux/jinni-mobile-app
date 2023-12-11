@@ -135,6 +135,7 @@ const item: InventoryItem = {
             do: async () => {
                 try {
                     const pk = await getStorage(ID_PKEY_SLOT);
+                    console.log('save pk mystic crypt', pk);
                     if (!pk) throw Error('No account to backup');
 
                     const success = await saveMysticCrypt(ID_PKEY_SLOT, pk);

@@ -72,8 +72,8 @@ export const createOauthRedirectURI = memoize(() => {
             native: Platform.select({
                 android: `https://dd2b-45-164-150-39.ngrok.io/oauth/callback`,
                 ios: `https://dd2b-45-164-150-39.ngrok.io/oauth/callback`,
-                // android: `${SCHEME}://auth/oauth-callback`,
-                // ios: `${SCHEME}://auth/oauth-callback`,
+                // android: `${getAppConfig().API_URL}://auth/oauth-callback`,
+                // ios: `${getAppConfig().API_URL}://auth/oauth-callback`,
             }),
         });
     } else {

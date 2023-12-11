@@ -222,7 +222,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             <Text style={styles.sectionTitle}>Widgets</Text>
             {item?.widgets?.length ? (
                 item.widgets.map((widgy) => (
-                    <TouchableOpacity key={widget.id} onPress={() => widgy.do()}>
+                    <TouchableOpacity key={widgy.id} onPress={() => widgy.do()}>
                         <View key={widgy.id} style={{ marginRight: 24, alignItems: 'center' }}>
                             <Text style={styles.sectionTitle}>{widgy.symbol}</Text>
                             <Text style={styles.sectionBody}>{widgy.name}</Text>

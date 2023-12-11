@@ -26,7 +26,7 @@ export const SHARE_CONTENT = 'SHARE_CONTENT';
 export const LAST_QUERIED_SLOT = 'LAST_TIME_QUERIED';
 export const ID_ANON_SLOT = '_anon_id';
 export const ID_PLAYER_SLOT = '_address_id';
-export const ID_PKEY_SLOT = '_private_key*uwu*';
+export const ID_PKEY_SLOT = '_private_key_uwu_';
 export const ID_JINNI_SLOT = '_jinni_uuid';
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
 const idStore = memoize((slot) => () => getStorage<string>(slot));
@@ -261,9 +261,11 @@ export const getStorage: <T>(key: string, useMysticCrypt?: boolean) => Promise<T
  */
 export const saveMysticCrypt = async (key: string, value: unknown): Promise<boolean> => {
     try {
+        console.log('Store:MystCrypt: ', key, value);
         await setItemAsync(key, JSON.stringify(value));
         return true;
     } catch (e: unknown) {
+        console.log('Store:MystCrypt:ERROR', key, e);
         debug(e, {
             user: { id: (await getStorage(ID_PLAYER_SLOT)) ?? '' },
             tags: { storage: true },
