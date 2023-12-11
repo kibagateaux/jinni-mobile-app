@@ -15,6 +15,7 @@ const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvid
 
 let spellbook: Wallet;
 export const getSpellBook = async (): Promise<Wallet> => {
+    // TODO used memoized functions
     if (spellbook) return spellbook;
     const pk = await getStorage(ID_PKEY_SLOT);
     console.log('spellbook lookup', pk);

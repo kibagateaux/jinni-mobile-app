@@ -20,7 +20,7 @@ export default function HomeLayout() {
         if (homeConfig?.tabs && homeConfig.tabs !== tabConfig) {
             setTabConfig(homeConfig.tabs);
         }
-    }, [homeConfig]);
+    }, [homeConfig, tabConfig]);
 
     // console.log("Home:tabs", tabConfig)
     return (

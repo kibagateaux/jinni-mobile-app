@@ -14,6 +14,14 @@ type Theme = {
     primaryTextColor: string;
     secondaryTextColor: string;
     altTextColor: string;
+    itemStatusColors: { [key: string]: string };
+};
+
+const itemStatusColors = {
+    unequipped: 'purple',
+    equipped: 'blue',
+    equipping: 'yellow',
+    destroyed: 'red',
 };
 
 const lightTheme: Theme = {
@@ -26,6 +34,7 @@ const lightTheme: Theme = {
     primaryTextColor: '#000',
     secondaryTextColor: '#1C0221',
     altTextColor: '#C0C0C0',
+    itemStatusColors,
 };
 
 const darkTheme: Theme = {
@@ -38,6 +47,7 @@ const darkTheme: Theme = {
     primaryTextColor: '#C0C0C0',
     secondaryTextColor: '#EBEBEB',
     altTextColor: '#1C0221',
+    itemStatusColors,
 };
 
 const ThemeContext = createContext<Theme>(lightTheme);

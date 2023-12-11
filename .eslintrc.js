@@ -1,8 +1,15 @@
+//eslint-ginore-next-line no-undef
 module.exports = {
     parser: '@typescript-eslint/parser',
-    extends: ['plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended'],
+    extends: [
+        'eslint:recommended',
+        'plugin:react/recommended',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:prettier/recommended',
+        'airbnb/hooks',
+    ],
     plugins: ['react-hooks'],
-    ignorePatterns: ['./*,js'], // dont lint config files
+    ignorePatterns: ['**/*.js'], // dont lint config files
     parserOptions: {
         ecmaVersion: 2021,
         sourceType: 'module',

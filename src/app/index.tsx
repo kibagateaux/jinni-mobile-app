@@ -21,7 +21,7 @@ const HomeScreen = () => {
         if (homeConfig && homeConfig.widgets !== widgetConfig) {
             setWidgetConfig(homeConfig.widgets);
         }
-    }, [homeConfig]);
+    }, [homeConfig, widgetConfig]);
 
     // console.log('Home:widgi', widgetConfig);
 

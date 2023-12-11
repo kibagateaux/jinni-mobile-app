@@ -6,7 +6,7 @@ import { useAuth } from 'contexts/AuthContext';
 // import { getSteps } from 'utils/inventory/android-health-connect';
 // import { PORTAL_DAY } from 'utils/mayanese';
 
-export default (props) => {
+const OauthCallback = (props) => {
     console.log('oauth callback props', props);
     // So this works but not entirely sure what to do now?
     // think we've done first half of authorization code
@@ -34,3 +34,5 @@ export default (props) => {
         </View>
     );
 };
+
+export default OauthCallback;

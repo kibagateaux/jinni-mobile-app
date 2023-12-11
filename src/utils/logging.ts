@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import * as Sentry from 'sentry-expo';
 import { JsonMap, SegmentClient as Segment, createClient } from '@segment/analytics-react-native';
 import Constants from 'expo-constants';
-import { CaptureContext } from '@sentry/types';
+import { ScopeContext } from '@sentry/types';
 
 const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
 
@@ -14,12 +14,9 @@ export const getSentry = (): SentryClient => {
             dsn: process.env.EXPO_PUBLIC_SENTRY_DSN!,
             //   release: 'my release name',
             //   dist: 'my dist',
-
             tracesSampleRate: 1.0,
-
             enableInExpoDevelopment: !__DEV__, // dont issue sentry events if local development
             debug: __DEV__, // If `true`, Sentry prints debugging information if error sending the event.
-
             integrations: isNativeApp
                 ? [
                       // https://github.com/expo/sentry-expo/issues/368
@@ -47,7 +44,10 @@ export const getSentry = (): SentryClient => {
  *  Should happen in client config already but just in case.
  * @param err - Error exception thrown in runtime or manually crafted message
  */
-export const debug = (err: string | Error | unknown, context?: CaptureContext) => {
+export const debug = async (
+    err: string | Error | unknown,
+    context?: Partial<ScopeContext>,
+): Promise<void> => {
     if (!__DEV__)
         err instanceof Error
             ? getSentry()?.captureException(err, context)

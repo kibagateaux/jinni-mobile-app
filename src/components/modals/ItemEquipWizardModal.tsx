@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, ActivityIndicator } from 'react-native';
+import { Text, ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useGameContent } from 'contexts/GameContentContext';
 
@@ -29,12 +29,20 @@ const ItemEquipWizardModal = ({ item, dialogueData = {}, status }: ItemEquipWiza
 
     // return null;
     return (
-        <BaseModal size="mid">
-            <Text>{title}</Text>
-            <Text>{dialogue}</Text>
-            <ActivityIndicator size="large" />
+        <BaseModal size="md">
+            <View>
+                <Text style={styles.text}>{title}</Text>
+                <Text style={styles.text}>{dialogue}</Text>
+                <ActivityIndicator size="large" />
+            </View>
         </BaseModal>
     );
 };
+const styles = StyleSheet.create({
+    text: {
+        fontSize: 24,
+        fontWeight: '500',
+    },
+});
 
 export default ItemEquipWizardModal;

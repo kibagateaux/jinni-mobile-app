@@ -13,6 +13,7 @@ export const useInventory = () => {
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
+    // TODO use redux store or something to persists data better
     useMemo(() => {
         if (!inventory.length) {
             setLoading(true);
@@ -27,7 +28,7 @@ export const useInventory = () => {
                     setLoading(false);
                 });
         }
-    }, [player]);
+    }, [player?.name, inventory.length]);
 
     return { inventory, loading };
 };

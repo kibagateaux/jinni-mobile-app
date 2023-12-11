@@ -1,5 +1,4 @@
 import React, { createContext, useState, useMemo } from 'react';
-import { Platform } from 'react-native';
 import { getAppConfig } from 'utils/config';
 
 import { ApolloProvider } from '@apollo/client';
@@ -35,7 +34,7 @@ export const ExternalServicesProvider: React.FC<Props> = ({ children }) => {
         if (!segment && getAppConfig().SEGMENT_API_KEY) {
             setSegment(getSegment());
         }
-    }, [Platform.OS]);
+    }, [sentry, segment]);
 
     // console.log('ESP: segment/sentry', segment, sentry);
 

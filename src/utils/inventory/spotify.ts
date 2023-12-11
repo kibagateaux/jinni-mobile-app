@@ -1,3 +1,6 @@
+import { Platform, Share } from 'react-native';
+import { getProviderId } from 'utils/api';
+
 import {
     InventoryIntegration,
     DjinnStat,
@@ -8,6 +11,12 @@ import {
     ItemStatus,
     HoF,
 } from 'types/GameMechanics';
+import { SHARE_CONTENT, getPlayerId } from 'utils/config';
+import { debug, track } from 'utils/logging';
+
+const ABILITY_SHARE_PROFILE = 'spotify-share-profile';
+const ABILITY_SHARE_PLAYLIST = 'spotify-share-playlist';
+const WIDGET_PIN_PLAYLIST = 'spotify-pin-playlist';
 
 const equip: HoF = async (promptAsync) => {
     console.log('equipping spotiyfy!!!');
@@ -57,7 +66,7 @@ const item: InventoryItem = {
     unequip,
     abilities: [
         {
-            id: 'spotify-share-playlist',
+            id: ABILITY_SHARE_PLAYLIST,
             name: 'Share Playlist',
             symbol: '🎶',
             description: 'Share a playlist on Spotify with another player',
@@ -73,15 +82,67 @@ const item: InventoryItem = {
             },
         },
         {
-            id: 'spotify-share-profile',
+            id: ABILITY_SHARE_PROFILE,
             name: 'Share Profile',
             symbol: '🦹‍♂️',
             description: 'Share your Spotfiy profile with another player',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
             do: async () => {
-                // fetch your profile name from API (or maybe in user.identities.spotify?)
-                // pull up native share feature
-                return async () => true;
+                console.log('Spotify:Ability:ShareProfile');
+                const pid = await getPlayerId();
+                console.log('Spotify:Ability:ShareProfile:pid', pid);
+                if (!pid) return async () => false;
+                try {
+                    const providerId = await getProviderId(pid)('Spotify');
+                    console.log('Spotify:Ability:ShareProfile:pid', providerId);
+                    if (!providerId) {
+                        track(SHARE_CONTENT, {
+                            ability: ABILITY_SHARE_PROFILE,
+                            activityType: 'unequipped',
+                            providerId,
+                        });
+                    }
+                    const profileUrl = `https://open.spotify.com/user/${providerId}`;
+                    const { action, activityType } = await Share.share({
+                        title: 'Tell your 🧞‍♂️ who to share your Spotify profile with ',
+                        ...Platform.select({
+                            ios: { message: 'My Spotify profile via Jinni', url: profileUrl },
+                            android: { message: `My Spotify profile via Jinni - ${profileUrl}` },
+                            default: { message: `My Spotify profile via Jinni - ${profileUrl}` },
+                        }),
+                    });
+
+                    console.log('Spotify:Ability:ShareProfile:share', action);
+                    if (action === Share.sharedAction) {
+                        track(SHARE_CONTENT, {
+                            ability: ABILITY_SHARE_PROFILE,
+                            activityType: activityType ?? 'shared',
+                            providerId,
+                        });
+                        return async () => true;
+                    }
+
+                    if (action === Share.dismissedAction) {
+                        track(SHARE_CONTENT, {
+                            ability: ABILITY_SHARE_PROFILE,
+                            activityType: 'dismissed',
+                            providerId,
+                        });
+                        return async () => false;
+                    }
+                } catch (e: unknown) {
+                    track(SHARE_CONTENT, {
+                        ability: ABILITY_SHARE_PROFILE,
+                        activityType: 'failed',
+                    });
+                    debug({
+                        extra: { ability: ABILITY_SHARE_PROFILE },
+                        tags: { ability: true },
+                    });
+                    return async () => false;
+                }
+
+                return async () => false;
             },
         },
         {
@@ -92,18 +153,18 @@ const item: InventoryItem = {
             canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
             do: async () => {
                 // @DEV: Only Premium users can start Jams!
-                // find local music? (already done by spotify)
-                // find other devices on bluetooth network? (spotify lets u tap phones for bluetooth adding)
-                // how to make blended playlist without seding request to spotify?
-                // how to add music to playlist without sending request to spotify?
-                // No api for jams. Need to deeplink into app somehow
+                // get players playlists with name, id
+                // render list for them to select from
+
+                // No api for jams. Deeplink into app with selected  playlist id
+                // TODO cant just return func, need to return initial data + follow up. follow up neds to take object of data
                 return async () => true;
             },
         },
     ],
     widgets: [
         {
-            id: 'spotify-playlist',
+            id: WIDGET_PIN_PLAYLIST,
             name: 'Homepage Playlist',
             symbol: '💃',
             description:
@@ -118,6 +179,9 @@ const item: InventoryItem = {
                 // player selects people to send to
                 return async () => true;
             },
+            // TODO need a func for when widget pressed on profile which is diff then setting up widget
+            // https://developer.spotify.com/documentation/ios/tutorials/content-linking
+            // Linking.openUrl()
         },
     ],
 };

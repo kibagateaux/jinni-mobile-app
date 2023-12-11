@@ -4,12 +4,13 @@ import { setItemAsync, getItemAsync } from 'expo-secure-store';
 import axios from 'axios';
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
 import { merge, concat } from 'lodash/fp';
-import { isEmpty } from 'lodash';
+import { isEmpty, memoize } from 'lodash';
 
 import { CurrentConnection } from 'types/SpiritWorld';
 import { HomeConfig, WidgetConfig, LogDataQueryProps } from 'types/UserConfig';
 import { UpdateWidgetConfigParams } from 'types/api';
 import { debug, track } from './logging';
+// import { qu } from './api';
 
 // Storage slots for different config items
 export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
@@ -19,6 +20,7 @@ export const MAJIK_CARDS = [MALIKS_MAJIK_CARD];
 
 export const TRACK_PERMS_REQUESTED = 'PERMISSIONS_REQUESTED';
 export const TRACK_DATA_QUERIED = 'DATA_QUERIED';
+export const SHARE_CONTENT = 'SHARE_CONTENT';
 
 // local + secure storage slots
 export const LAST_QUERIED_SLOT = 'LAST_TIME_QUERIED';
@@ -27,6 +29,10 @@ export const ID_PLAYER_SLOT = '_address_id';
 export const ID_PKEY_SLOT = '_private_key*uwu*';
 export const ID_JINNI_SLOT = '_jinni_uuid';
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
+const idStore = memoize((slot) => () => getStorage<string>(slot));
+export const getPlayerId = idStore(ID_PLAYER_SLOT);
+export const getJinniId = idStore(ID_JINNI_SLOT);
+export const getPk = idStore(ID_PKEY_SLOT);
 
 type AppConfig = {
     NODE_ENV: 'development' | 'production' | 'test';
@@ -60,15 +66,11 @@ export const getAppConfig = (): AppConfig => ({
 });
 
 export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
-    console.log('get home config', username);
-    // await saveStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT, '', false);
     const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
     // console.log("custom config ", customConfig)
     // can only login from app so all changes MUST be saved locally if they exist on db
-    console.log('get home config- custom', customConfig);
     if (!isEmpty(customConfig)) return customConfig!;
     // if not logged in then no reason to fetch custom config
-    console.log('get home config - default', defaultHomeConfig);
     if (!username) return defaultHomeConfig;
     // if no internet connection, return default config
     if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
@@ -99,26 +101,16 @@ export const saveHomeConfig = async ({
     );
 
     if (!username) return true;
+    console.log('new home config saved', newHomeConfig);
 
     // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
+    // jest.mock('utils/config').mockResolvedValue(noConnection)
     // if (!(await getNetworkState()).isNoosphere) {
     //     return true;
     // }
 
-    const proof = 'TODO'; // sign Mutation with user address for API verification
-    return axios
-        .post(`${getAppConfig().API_URL}/scry/${username}/home-config/`, {
-            config: newHomeConfig,
-            proof,
-        })
-        .then((response) => {
-            console.log('Home:config:save: SUCC', response);
-            return true;
-        })
-        .catch((error) => {
-            console.error('Home:config:save: ERR', error);
-            return false;
-        });
+    // return await qu<boolean>('TODO query on front+backend')({ config: newHomeConfig })
+    return Promise.resolve(false);
 };
 
 const defaultWidgetConfig: WidgetConfig[] = [
@@ -244,13 +236,11 @@ export const getStorage: <T>(key: string, useMysticCrypt?: boolean) => Promise<T
     key,
     useMysticCrypt,
 ) => {
-    // await _delete_id(key);
     try {
-        console.log('get storage secure?- ', key, useMysticCrypt);
+        // console.log('get storage val - ', useMysticCrypt, key, val);
         const val = useMysticCrypt
             ? await getItemAsync(key, { requireAuthentication: !__DEV__ })
             : await AsyncStorage.getItem(key);
-        console.log('get storage val - ', key, val);
         return val ? JSON.parse(val) : null;
     } catch (e: unknown) {
         debug(e, {
@@ -298,7 +288,7 @@ export const saveStorage: <T>(
     shouldMerge?: boolean,
     defaultVal?: string | number | object,
 ) => Promise<T | null> = async (key, value, shouldMerge = false, defaultVal) => {
-    console.log('save store', key, value, shouldMerge);
+    // console.log('save store', key, value, shouldMerge);
     const existingVal = await getStorage<unknown>(key);
 
     // do not merge if not requested or primitive types
@@ -316,15 +306,14 @@ export const saveStorage: <T>(
             );
 
             if (
-                Array.isArray(value) &&
-                (Array.isArray(existingVal) ||
+                Array.isArray(value) && // check saved type
+                (Array.isArray(existingVal) || // ensure merging vals are same type
                     Array.isArray(defaultVal) ||
                     defaultVal === undefined)
             ) {
                 const newVal = existingVal
                     ? concat(existingVal, value)
                     : concat(defaultVal ?? [], value);
-                console.log('Config:saveStorage:array', newVal);
                 await AsyncStorage.setItem(key, JSON.stringify(newVal));
                 return newVal;
             } else {
@@ -333,7 +322,6 @@ export const saveStorage: <T>(
                     ? merge(existingVal, value)
                     : merge(defaultVal ?? {}, value);
 
-                console.log('Config:saveStorage:object', newVal);
                 await AsyncStorage.setItem(key, JSON.stringify(newVal));
                 return newVal;
             }

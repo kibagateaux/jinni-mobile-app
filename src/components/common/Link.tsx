@@ -1,3 +1,4 @@
+import React from 'react';
 import { useExternalServices } from 'contexts/ExternalServicesContext';
 import { Link } from 'expo-router';
 

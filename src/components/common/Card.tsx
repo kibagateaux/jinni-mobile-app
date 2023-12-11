@@ -45,7 +45,7 @@ const Card: React.FC<CardProps> = ({
                         ]}
                     >
                         {badges.map((badge) => (
-                            <Pill size="sm" text={badge} />
+                            <Pill key={badge} size="sm" text={badge} />
                         ))}
                     </View>
                 )}

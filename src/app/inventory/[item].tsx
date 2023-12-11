@@ -30,35 +30,35 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const { inventory, loading } = useInventory();
 
     const [item, setItem] = useState<InventoryItem | null>(null);
-    const [status, setStatus] = useState<ItemStatus | null>(null);
+    const [status, setStatus] = useState<ItemStatus | null>('unequipped');
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const { inventory: content } = useGameContent();
-
     // hooks for items that require 3rd party authentication
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
-    const redirectUri = createOauthRedirectURI();
-    console.log('[OAUTH redirectUri]', `${redirectUri}?provider=${item?.id.toLowerCase()}`);
-    console.log('ITEM CONFIG: status', item?.status, status);
 
     const [request, , promptAsync] = useAuthRequest(
         {
             clientId: itemOauthConfig.clientId,
             scopes: itemOauthConfig.scopes,
-            redirectUri: `${redirectUri}?provider=${item?.id.toLowerCase()}`,
+            redirectUri: `${createOauthRedirectURI()}?provider=${item?.id.toLowerCase()}`,
             usePKCE: false,
         },
         itemOauthConfig,
     );
-
-    // console.log('Item: oauth', itemOauthConfig, request, response, promptAsync);
+    // console.log('Item: oauth', itemOauthConfig, request, response);
 
     useMemo(() => {
-        if (item) {
+        if (item?.id) {
             // configure oauth if required for item equip/unequip
             const oauth = oauthConfigs[item.id];
             if (oauth) setItemOauth(oauth);
+            // we cant store item status in config so compute and store in store
+            if (!status)
+                item!.checkStatus().then((newStatus: ItemStatus) => {
+                    setStatus(newStatus);
+                });
         }
-    }, [item?.id]);
+    }, [item, status]);
 
     // console.log('Item: item', id, item);
     // console.log('Item: status & modal', status, activeModal);
@@ -68,18 +68,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             const item = inventory.find((item) => item.id === id);
             if (item) setItem(item);
         }
-    }, [id, inventory]);
-
-    useMemo(() => {
-        console.log('use item status ', status, item);
-
-        if (item && !status) {
-            item!.checkStatus().then((newStatus: ItemStatus) => {
-                console.log('update item status ', newStatus);
-                setStatus(newStatus);
-            });
-        }
-    }, [item?.id]);
+    }, [id, item, inventory]);
 
     if (loading) return <ActivityIndicator animating size="large" />;
 
@@ -152,11 +141,11 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     const renderActiveModal = () => {
         // console.log('Inventory Active Modal data', status, item);
+        const onClose = () => {
+            setActiveModal(null);
+        };
         switch (activeModal) {
             case 'equip-wizard':
-                const onClose = () => {
-                    setActiveModal(null);
-                };
                 return (
                     <ItemEquipWizardModal
                         size="mid"
@@ -204,7 +193,9 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                         (
                             ability, // TODO return null if canDo === false but its async function
                         ) => (
-                            <TouchableOpacity onPress={() => ability.do()}>
+                            // TODO check if canDo. yes? do(), no? checkStatus == equipped yes? nothin, no? pop up modal to equip.
+                            // need component for install (maybe rename current 'equipwizard' and copy for modal)
+                            <TouchableOpacity key={ability.id} onPress={() => ability.do()}>
                                 <View
                                     key={ability.id}
                                     style={{ marginRight: 24, alignItems: 'center' }}
@@ -231,7 +222,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             <Text style={styles.sectionTitle}>Widgets</Text>
             {item?.widgets?.length ? (
                 item.widgets.map((widgy) => (
-                    <TouchableOpacity onPress={() => widgy.do()}>
+                    <TouchableOpacity key={widget.id} onPress={() => widgy.do()}>
                         <View key={widgy.id} style={{ marginRight: 24, alignItems: 'center' }}>
                             <Text style={styles.sectionTitle}>{widgy.symbol}</Text>
                             <Text style={styles.sectionBody}>{widgy.name}</Text>

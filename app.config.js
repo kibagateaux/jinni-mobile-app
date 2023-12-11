@@ -1,7 +1,8 @@
+//eslint-ginore-next-line no-undef
 const VARIANT = process.env.EXPO_PUBLIC_APP_VARIANT;
 const isProd = VARIANT === 'production';
 const packageName = isProd ? 'com.jinnihealth' : `com.jinnihealth.${VARIANT}`;
-const appName = isProd ? 'Jinni Health' : `Jinni Health (${VARIANT})`;
+const appName = isProd ? 'Jinni Health' : `(${VARIANT}) Jinni Health`;
 
 export default {
     expo: {
@@ -99,8 +100,6 @@ export default {
                 'android.permission.health.READ_RESTING_HEART_RATE',
                 'android.permission.health.READ_SLEEP',
                 'android.permission.health.READ_WEIGHT',
-                'android.permission.ACCESS_COARSE_LOCATION',
-                'android.permission.ACCESS_FINE_LOCATION',
                 'android.permission.FOREGROUND_SERVICE',
             ],
             package: packageName,

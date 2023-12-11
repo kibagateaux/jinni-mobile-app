@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "test:ci": "jest --ci --colors",
-    "start": "expo start",
+    "start": "export EXPO_PUBLIC_APP_VARIANT=development; npx expo start;",
     "postinstall": "patch-package && rn-nodeify --install all --hack",
     "android": "expo run:android",
     "build:android": "eas build --local --platform android",
@@ -27,6 +27,7 @@
     "@semaphore-protocol/identity": "^3.11.1",
     "@semaphore-protocol/proof": "^3.11.1",
     "@sentry/react-native": "^5.5.0",
+    "@types/lodash": "^4.14.202",
     "axios": "^1.5.1",
     "base-64": "^1.0.0",
     "date-fns": "^2.30.0",
@@ -41,6 +42,7 @@
     "expo-location": "~16.1.0",
     "expo-network": "~5.4.0",
     "expo-router": "2.0.0",
+    "expo-secure-store": "~12.3.1",
     "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",
     "graphql": "^15.8.0",
@@ -65,8 +67,7 @@
     "readable-stream": "^1.0.33",
     "sentry-expo": "~7.0.0",
     "stream-browserify": "^1.0.0",
-    "util": "^0.10.4",
-    "expo-secure-store": "~12.3.1"
+    "util": "^0.10.4"
   },
   "peerDependencies": {
     "ethers": "5.7.0"
@@ -80,9 +81,13 @@
     "@typescript-eslint/eslint-plugin": "^6.7.3",
     "@typescript-eslint/parser": "^6.7.3",
     "babel-plugin-rewrite-require": "^1.14.5",
-    "eslint": "^8.50.0",
+    "eslint": "^8.55.0",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "expo-build-properties": "^0.8.3",
     "husky": "^8.0.3",
