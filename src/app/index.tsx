@@ -10,7 +10,7 @@ import { getIconForWidget } from 'utils/rendering';
 import { AvatarViewer, WidgetIcon } from 'components/index';
 import DefaultAvatar from 'assets/avatars/happy-ghost';
 import WidgetContainer from 'components/home/WidgetContainer';
-import { getActivityData } from 'utils/inventory/android-health-connect';
+import { getActivityData } from 'inventory/android-health-connect';
 
 const HomeScreen = () => {
     const { player } = useAuth();

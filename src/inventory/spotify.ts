@@ -89,6 +89,10 @@ const item: InventoryItem = {
             canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
+                track(SHARE_CONTENT, {
+                    ability: ABILITY_SHARE_PROFILE,
+                    activityType: 'initiated',
+                });
                 const pid = await getPlayerId();
                 console.log('Spotify:Ability:ShareProfile:pid', pid);
                 if (!pid) return async () => false;

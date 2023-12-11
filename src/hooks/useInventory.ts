@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 
 import { InventoryItem } from 'types/GameMechanics';
-import utils from 'utils/inventory';
+import utils from 'inventory';
 import { useAuth } from 'contexts/AuthContext';
 
 // interface UseInventoryProps {

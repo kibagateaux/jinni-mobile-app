@@ -7,7 +7,7 @@ import {
     iosInventory,
     androidInventory,
     // allInventoryItems,
-} from 'utils/inventory';
+} from 'inventory';
 import maliksMajik from '../maliks-majik';
 
 // TODO figure out how to make generalized mock for NFC
