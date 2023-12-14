@@ -33,7 +33,7 @@
 // const item = {
 //     id: 'phone-location-foreground',
 //     name: 'Homing Beacon',
-//     datasource: 'phone-location-foreground',
+//     dataProvider: 'phone-location-foreground',
 //     image: 'https://static.wikia.nocookie.net/starwars/images/2/21/S-threadtransmitterbracelet-TLJVD.png/revision/latest?cb=20230729025521',
 //     attributes: [
 //         { ...DjinnStat, value: 5 },

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useMemo, useCallback } from 'react';
 
-import { Avatar } from 'types/UserConfig';
+import { Avatar } from 'types/GameMechanics';
 import { generateIdentity, getId, getSpellBook as getSpells, saveId } from 'utils/zkpid';
 import { Identity } from '@semaphore-protocol/identity';
 import { useExternalServices } from './ExternalServicesContext';

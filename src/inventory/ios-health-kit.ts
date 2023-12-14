@@ -97,7 +97,7 @@ const getStepCount = async (options: QueryIosHealthDataProps) => {
 const item: InventoryItem = {
     id: 'IphoneHealthKit',
     name: 'iPhone Health Kit',
-    datasource: 'ios-health-kit',
+    dataProvider: 'ios-health-kit',
     image: 'https://www.apple.com/v/ios/ios-13/images/overview/health/health_hero__fjxh8smk2q6q_large_2x.jpg',
     installLink: 'https://apps.apple.com/us/app/health/id1206187994',
     attributes: [

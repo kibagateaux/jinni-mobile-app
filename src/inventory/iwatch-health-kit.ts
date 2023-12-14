@@ -3,7 +3,7 @@ import { DjinnStat, HealthStat, IntelligenceStat, InventoryItem } from 'types/Ga
 const item: InventoryItem = {
     id: 'IwatchHealthKit',
     name: 'iWatch Health Kit',
-    datasource: 'IwatchHealthKit',
+    dataProvider: 'IwatchHealthKit',
     image: 'https://www.apple.com/v/ios/ios-13/images/overview/health/health_hero__fjxh8smk2q6q_large_2x.jpg',
     installLink: 'https://apps.apple.com/us/app/health/id1206187994',
     attributes: [

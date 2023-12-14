@@ -60,7 +60,7 @@ const unequip: HoF = async () => {
 const item: InventoryItem = {
     id: 'MaliksMajik',
     name: "Malik's Majik",
-    datasource: 'MaliksMajik-card',
+    dataProvider: 'MaliksMajik-card',
     image: 'https://cdn.drawception.com/drawings/3yyv096cK5.png',
     attributes: [
         { ...DjinnStat, value: 10 },

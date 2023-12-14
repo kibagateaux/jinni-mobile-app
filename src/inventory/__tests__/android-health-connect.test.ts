@@ -15,7 +15,7 @@ describe('InventoryItem', () => {
         expect(item.item).toHaveProperty('image');
         expect(item.item).toHaveProperty('tags');
         expect(item.item).toHaveProperty('attributes');
-        expect(item.item).toHaveProperty('datasource');
+        expect(item.item).toHaveProperty('dataProvider');
         expect(item.item).toHaveProperty('installLink');
         expect(item.item).toHaveProperty('checkStatus');
         expect(item.item).toHaveProperty('canEquip');

@@ -1,3 +1,9 @@
+export interface Avatar {
+    id: string;
+    name?: string; // TODO username
+    image?: string;
+}
+
 /**
  * @notice - all text content for guiding users through the game
  * @TODO - integrate i18n
@@ -13,9 +19,21 @@ export type GameContent = {
 export interface Action {
     id: string; // uuid
     name: string; // human readable action name e.g. "walking"
-    datasource: string; // Ingester if Incipient? Transformer if Consequential?
+    dataProvider: string; // Ingester if Incipient? Transformer if Consequential?
     startTime: string; // ISO string '2023-06-20T23:53:15.405Z'
     endTime: string; // ISO string '2023-06-20T23:53:15.405Z'
+}
+
+export type ResourceAccessibility = 'public' | 'permissioned' | 'private' | 'secret';
+export interface Resource {
+    id?: string; // uuid
+    name: string; // human readable action name e.g. "walking"
+    href: string; //
+    dataProvider: string;
+    providerId?: string;
+    accessibility: string;
+    image: string;
+    creators: Avatar[];
 }
 
 export interface StatsAttribute {
@@ -112,7 +130,7 @@ export interface InventoryItem {
     image: string;
     tags?: ItemTags[];
     attributes: StatsAttribute[];
-    datasource: string;
+    dataProvider: string;
     installLink?: string;
 
     //dynamic metadata

@@ -37,7 +37,7 @@ const unequip: HoF = async () => {
 const item: InventoryItem = {
     id: 'Github',
     name: 'Octopus Brains',
-    datasource: 'Github',
+    dataProvider: 'Github',
     image: 'https://pngimg.com/uploads/github/github_PNG90.png',
     tags: ['digital', 'productivity'],
     attributes: [

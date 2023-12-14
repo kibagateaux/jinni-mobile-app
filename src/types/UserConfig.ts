@@ -1,11 +1,5 @@
 import { RenderItemParams } from 'react-native-draggable-flatlist';
 
-export interface Avatar {
-    id: string;
-    name?: string; // TODO username
-    image?: string;
-}
-
 export interface UserSettings {
     defaultTheme: 'light' | 'dark';
 }

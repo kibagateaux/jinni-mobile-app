@@ -1,5 +1,5 @@
 import { Platform, Share } from 'react-native';
-import { getProviderId } from 'utils/api';
+import { getProviderId, qu } from 'utils/api';
 
 import {
     InventoryIntegration,
@@ -10,6 +10,7 @@ import {
     InventoryItem,
     ItemStatus,
     HoF,
+    Resource,
 } from 'types/GameMechanics';
 import { SHARE_CONTENT, getPlayerId } from 'utils/config';
 import { debug, track } from 'utils/logging';
@@ -47,7 +48,7 @@ const unequip: HoF = async () => {
 const item: InventoryItem = {
     id: 'Spotify',
     name: "Horn o' Vibranium",
-    datasource: 'Spotify',
+    dataProvider: 'Spotify',
     image: 'https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png',
     tags: ['digital', 'music', 'social'],
     installLink: 'https://www.spotify.com/us/download/',
@@ -72,6 +73,26 @@ const item: InventoryItem = {
             description: 'Share a playlist on Spotify with another player',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
             do: async () => {
+                const pid = await getPlayerId();
+                if (!pid) return async () => false;
+
+                qu<Resource[]>({
+                    query: `
+                    query spotify_top_playlist(
+                        $verification: SignedRequest!
+                        $target_player: SignedRequest!
+                    ) {
+                        spotify_top_playlist(
+                            verification: $verification
+                            target_player: $target_player
+                        ) {
+                            name
+                            href
+                            provider_id
+                        }
+                    }
+                `,
+                })({ player_id: pid });
                 // fetch their playlists from spotify
                 // open modal
                 // display playlists

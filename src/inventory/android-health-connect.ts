@@ -155,7 +155,7 @@ const checkStatus = async () => {
 const item: InventoryItem = {
     id: ITEM_ID,
     name: 'Cyborg Repair Pack',
-    datasource: ITEM_ID,
+    dataProvider: ITEM_ID,
     tags: ['physical', 'exercise'],
     image: 'https://play-lh.googleusercontent.com/EbzDx68RZddtIMvs8H8MLcO-KOiBqEYJbi_kRjEdXved0p3KXr0nwUnLUgitZ5kQVWVZ=w480-h960-rw',
     installLink: 'https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata',
@@ -231,7 +231,7 @@ export const getActivityData = async ({
         endTime,
     });
     const caloriesBurned = queryHealthData({
-        activity: 'ActiveCaloriesBurned',
+        activity: 'TotalCaloriesBurned',
         operator: 'between',
         startTime,
         endTime,

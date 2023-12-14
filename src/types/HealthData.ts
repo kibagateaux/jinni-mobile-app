@@ -16,7 +16,7 @@ export interface QueryIosHealthDataProps {
     activity: string;
 }
 
-type SupportedActivities = 'Steps' | 'Distance' | 'ActiveCaloriesBurned';
+type SupportedActivities = 'Steps' | 'Distance' | 'ActiveCaloriesBurned' | 'TotalCaloriesBurned';
 export interface QueryAndroidHealthDataProps extends GetHealthDataProps {
     activity: SupportedActivities;
     startTime?: string; // ISO string '2023-06-20T23:53:15.405Z'
