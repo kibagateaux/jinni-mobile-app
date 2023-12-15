@@ -2,8 +2,18 @@ import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
-import { getAppConfig, getStorage, saveStorage, ID_PLAYER_SLOT, ID_PKEY_SLOT } from './config';
+import {
+    getAppConfig,
+    getPk,
+    idStore,
+    saveStorage,
+    ID_PLAYER_SLOT,
+    ID_PKEY_SLOT,
+    ID_JINNI_SLOT,
+    ID_ANON_SLOT,
+} from './config';
 import { ethers, Wallet, providers } from 'ethers';
+import { memoize } from 'lodash';
 
 const defaultProvider = (): providers.Provider =>
     new ethers.providers.AlchemyProvider(
@@ -14,10 +24,11 @@ const defaultProvider = (): providers.Provider =>
 const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvider());
 
 let spellbook: Wallet;
-export const getSpellBook = async (): Promise<Wallet> => {
+export const getSpellBook = memoize(async (): Promise<Wallet> => {
+    console.log('GET spellbook lookup');
     // TODO used memoized functions
-    if (spellbook) return spellbook;
-    const pk = await getStorage(ID_PKEY_SLOT);
+    // if (spellbook) return spellbook;
+    const pk = await getPk();
     console.log('spellbook lookup', pk);
     if (!pk) {
         // no spellbook yet. generate random seed and save to storage
@@ -38,14 +49,14 @@ export const getSpellBook = async (): Promise<Wallet> => {
         spellbook = connectProvider(newSpellbook);
         return spellbook;
     }
-};
+});
 
 export const generateIdentity = (): Identity => new Identity();
 export const generateIdentityWithSecret = (secret: string): Identity => new Identity(secret);
 
 export const saveId = async (idType: string, id: Identity): Promise<void> => {
     try {
-        const value = await getStorage(idType);
+        const value = await idStore(idType)();
         // console.log("save id existing value?", value, !value, id)
 
         // @dev INVARIANT: MUST NOT OVERWRITE OR DELTE ZK IDs
@@ -59,8 +70,9 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
     }
 };
 
-export const getId = async (idType: string): Promise<Identity | null> =>
-    await getStorage<Identity>(idType);
+export const getId = memoize(
+    async (idType: string): Promise<Identity | null> => await idStore(idType)(),
+);
 
 export const _delete_id = async (idType: string): Promise<void> => {
     console.log(
@@ -68,6 +80,17 @@ export const _delete_id = async (idType: string): Promise<void> => {
     );
     if (!__DEV__) throw Error('CANNOT DELETE ZK IDs');
     await saveStorage(idType, '');
+};
+
+export const magicRug = () => {
+    console.log('DELETING USER DATA FOR TESTING', __DEV__);
+    if (!__DEV__) throw Error('CANNOT DELETE ZK IDs');
+    Promise.all([
+        saveStorage(ID_PLAYER_SLOT, '', false),
+        saveStorage(ID_PKEY_SLOT, '', false),
+        saveStorage(ID_JINNI_SLOT, '', false),
+        saveStorage(ID_ANON_SLOT, '', false),
+    ]);
 };
 
 /** TODO figure out return types from HaLo lib  */

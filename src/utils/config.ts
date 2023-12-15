@@ -29,7 +29,8 @@ export const ID_PLAYER_SLOT = '_address_id';
 export const ID_PKEY_SLOT = '_private_key_uwu_';
 export const ID_JINNI_SLOT = '_jinni_uuid';
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
-const idStore = memoize((slot) => () => getStorage<string>(slot));
+
+export const idStore = memoize((slot) => () => getStorage<string | Identity>(slot));
 export const getPlayerId = idStore(ID_PLAYER_SLOT);
 export const getJinniId = idStore(ID_JINNI_SLOT);
 export const getPk = idStore(ID_PKEY_SLOT);

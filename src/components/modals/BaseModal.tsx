@@ -12,7 +12,6 @@ interface ModalProps {
 const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, secondaryButton }) => {
     const [visible, setVisible] = useState(true);
     const theme = useTheme();
-    console.log('theme', theme);
 
     // const { height, width } = Dimensions.get('window');
     // const modalStyle = {

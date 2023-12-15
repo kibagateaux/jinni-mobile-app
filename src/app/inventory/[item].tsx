@@ -79,6 +79,11 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const onItemEquipPress = async () => {
         if (item.equip) {
             // console.log('modal to render', ItemEquipWizardModal, Modals);
+            // TODO check if player.id first.
+            // if not the setStatus('activating') ?? not item specific maybe 'imbuing'?
+            // setActiveModal('imbuing-spellbook)
+            // await getSpellBook();
+            // continue
             setStatus('equipping');
             setActiveModal('equip-wizard');
             try {
