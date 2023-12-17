@@ -32,7 +32,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const { player, getSpellBook } = useAuth();
 
     const [item, setItem] = useState<InventoryItem | null>(null);
-    const [status, setStatus] = useState<ItemStatus | null>('unequipped');
+    const [status, setStatus] = useState<ItemStatus | null>(null);
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const { inventory: content } = useGameContent();
     // hooks for items that require 3rd party authentication
@@ -57,6 +57,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             // we cant store item status in config so compute and store in store
             if (!status)
                 item!.checkStatus().then((newStatus: ItemStatus) => {
+                    console.log('pg:Inv:Item check item status', newStatus);
                     setStatus(newStatus);
                 });
         }
@@ -118,8 +119,28 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     };
 
     const renderItemButton = () => {
-        // console.log("Item: button? ", status, item.equip, item.unequip, item);
+        if (status === 'ethereal' && item.installLink)
+            return (
+                <Link to={item.installLink} trackingId="item-page-install-cta">
+                    <Button
+                        title="Install"
+                        style={[styles.activeItemStatusButton, styles.equipButton]}
+                    />
+                </Link>
+            );
 
+        if (status === 'ethereal' && item.installLink)
+            return (
+                <Link to={item.installLink} trackingId="item-page-install-cta">
+                    <Button
+                        title="Install"
+                        style={[styles.activeItemStatusButton, styles.equipButton]}
+                    />
+                </Link>
+            );
+
+        // dont render if oauth request going out already.
+        // TODO is that redundant if we set status to 'equipping' tho?
         if (status === 'unequipped' && item.equip && (!itemOauthConfig || request))
             return (
                 <Button
