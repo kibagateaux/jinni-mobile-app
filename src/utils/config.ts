@@ -7,7 +7,13 @@ import { merge, concat } from 'lodash/fp';
 import { isEmpty, memoize } from 'lodash';
 
 import { CurrentConnection } from 'types/SpiritWorld';
-import { HomeConfig, WidgetConfig, LogDataQueryProps } from 'types/UserConfig';
+import {
+    HomeConfig,
+    WidgetConfig,
+    LogDataQueryProps,
+    StorageKey,
+    StorageValue,
+} from 'types/UserConfig';
 import { UpdateWidgetConfigParams } from 'types/api';
 import { debug, track } from './logging';
 // import { qu } from './api';
@@ -30,10 +36,13 @@ export const ID_PKEY_SLOT = '_private_key_uwu_';
 export const ID_JINNI_SLOT = '_jinni_uuid';
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
 
-export const idStore = memoize((slot) => () => getStorage<string | Identity>(slot));
-export const getPlayerId = idStore(ID_PLAYER_SLOT);
-export const getJinniId = idStore(ID_JINNI_SLOT);
-export const getPk = idStore(ID_PKEY_SLOT);
+export const getCached = memoize(
+    <T>({ slot, secure }: StorageKey) => getStorage<StorageValue & T>(slot, secure),
+    JSON.stringify,
+);
+
+const updateCache = (key: StorageKey, val: StorageValue) =>
+    getCached.cache.set(JSON.stringify(key), val);
 
 type AppConfig = {
     NODE_ENV: 'development' | 'production' | 'test';
@@ -67,7 +76,7 @@ export const getAppConfig = (): AppConfig => ({
 });
 
 export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
-    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    const customConfig = await getCached<HomeConfig>({ slot: HOME_CONFIG_STORAGE_SLOT });
     // console.log("custom config ", customConfig)
     // can only login from app so all changes MUST be saved locally if they exist on db
     if (!isEmpty(customConfig)) return customConfig!;
@@ -232,22 +241,30 @@ export const parseNetworkState = (networkState: NetworkState) => {
     }
 };
 
-// TODO add memo wrappers for ID slots since we'll read those a lot
-export const getStorage: <T>(key: string, useMysticCrypt?: boolean) => Promise<T | null> = async (
-    key,
+export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<T | null> = async (
+    slot,
     useMysticCrypt,
 ) => {
     try {
-        // console.log('get storage val - ', useMysticCrypt, key, val);
+        const cached = await getCached.cache.get(JSON.stringify({ slot, secure: useMysticCrypt }));
+        console.log(
+            'get storage  1',
+            JSON.stringify({ slot, secure: useMysticCrypt }),
+            slot,
+            useMysticCrypt,
+            cached,
+        );
+        if (cached) return cached;
         const val = useMysticCrypt
-            ? await getItemAsync(key, { requireAuthentication: !__DEV__ })
-            : await AsyncStorage.getItem(key);
+            ? await getItemAsync(slot, { requireAuthentication: !__DEV__ })
+            : await AsyncStorage.getItem(slot);
+
+        console.log('get storage  2', slot, useMysticCrypt, val);
         return val ? JSON.parse(val) : null;
     } catch (e: unknown) {
         debug(e, {
-            user: { id: (await getStorage(ID_PLAYER_SLOT)) ?? '' },
             tags: { storage: true },
-            extra: { key },
+            extra: { slot },
         });
         return null;
     }
@@ -264,11 +281,11 @@ export const saveMysticCrypt = async (key: string, value: unknown): Promise<bool
     try {
         console.log('Store:MystCrypt: ', key, value);
         await setItemAsync(key, JSON.stringify(value));
+        updateCache({ slot: key, secure: true }, value);
         return true;
     } catch (e: unknown) {
         console.log('Store:MystCrypt:ERROR', key, e);
         debug(e, {
-            user: { id: (await getStorage(ID_PLAYER_SLOT)) ?? '' },
             tags: { storage: true },
             extra: { key },
         });
@@ -287,16 +304,18 @@ export const saveMysticCrypt = async (key: string, value: unknown): Promise<bool
  */
 export const saveStorage: <T>(
     key: string,
-    value: string | number | object,
+    value: StorageValue,
     shouldMerge?: boolean,
-    defaultVal?: string | number | object,
+    defaultVal?: StorageValue,
 ) => Promise<T | null> = async (key, value, shouldMerge = false, defaultVal) => {
     // console.log('save store', key, value, shouldMerge);
-    const existingVal = await getStorage<unknown>(key);
+    // eslint-ignore-next-line
+    const existingVal = await getStorage<StorageValue>(key);
 
     // do not merge if not requested or primitive types
     if (!shouldMerge || typeof value === 'string' || typeof value === 'number') {
         await AsyncStorage.setItem(key, JSON.stringify(value));
+        updateCache({ slot: key }, value);
         return value;
     }
 
@@ -318,6 +337,7 @@ export const saveStorage: <T>(
                     ? concat(existingVal, value)
                     : concat(defaultVal ?? [], value);
                 await AsyncStorage.setItem(key, JSON.stringify(newVal));
+                updateCache({ slot: key }, value);
                 return newVal;
             } else {
                 // assume its an object. technically could be a function but thats an object too
@@ -326,6 +346,7 @@ export const saveStorage: <T>(
                     : merge(defaultVal ?? {}, value);
 
                 await AsyncStorage.setItem(key, JSON.stringify(newVal));
+                updateCache({ slot: key }, value);
                 return newVal;
             }
         }
@@ -336,7 +357,6 @@ export const saveStorage: <T>(
 };
 
 export const logLastDataQuery = ({
-    playerId,
     itemId,
     activities,
     time,
@@ -355,7 +375,6 @@ export const logLastDataQuery = ({
         .catch((errs) =>
             errs.map(async (err: unknown) =>
                 debug(err, {
-                    user: { id: playerId },
                     tags: { analytics: true },
                 }),
             ),

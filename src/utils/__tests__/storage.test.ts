@@ -3,6 +3,7 @@ import * as mockMysticCrypt from 'expo-secure-store';
 import mockAsyncStorage from '@react-native-async-storage/async-storage';
 import {
     getHomeConfig,
+    getCached,
     getStorage,
     saveStorage,
     saveMysticCrypt,
@@ -20,6 +21,56 @@ const weirdHomeConfig = {
     widgets: [{ title: 'Fake Widgy', id: 'fake-widgy' }],
     tabs: [{ title: 'Fake Tab', id: 'fake-tab' }],
 };
+
+beforeEach(() => {
+    mockAsyncStorage.getItem.mockClear();
+    mockAsyncStorage.getItem.mockResolvedValue(null);
+    mockMysticCrypt.getItemAsync.mockClear();
+    mockMysticCrypt.getItemAsync.mockResolvedValue(null);
+    getCached.cache.set(JSON.stringify({ slot: 'test' }), null);
+    getCached.cache.set(JSON.stringify({ slot: 'test', secure: true }), null);
+    getCached.cache.set(JSON.stringify({ slot: 'test', secure: false }), null);
+});
+
+// failing tests are because of mcoking getStorage but it hits the cache
+// create test that mockStorage will cause cahce to be out of sync
+// + update tests to set cache instead of mock storage (acutally reduces external dependencies on native systems so good thing
+describe('Storage caching', () => {
+    it('updates cache on local storage save', async () => {
+        expect(await getCached({ slot: 'test' })).toBe(null);
+        await saveStorage('test', 'cacheVal');
+        expect(await getCached({ slot: 'test' })).toBe('cacheVal');
+    });
+
+    it('updates cache on secure storage save', async () => {
+        expect(await getCached({ slot: 'test', secure: true })).toBe(null);
+        await saveMysticCrypt('test', 'cacheVal');
+        expect(await getCached({ slot: 'test', secure: true })).toBe('cacheVal');
+    });
+
+    it('cache equals local storage', async () => {
+        expect(await getCached({ slot: 'test' })).toBe(null);
+        await saveStorage('test', 'cacheVal');
+        mockAsyncStorage.getItem.mockResolvedValueOnce('cacheVal');
+        expect(await getCached({ slot: 'test' })).toBe(await getStorage('test'));
+    });
+
+    it('cache equals secure storage', async () => {
+        expect(await getCached({ slot: 'test', secure: true })).toBe(null);
+        await saveMysticCrypt('test', 'cacheVal');
+        mockMysticCrypt.getItemAsync.mockResolvedValueOnce('cacheVal');
+        expect(await getCached({ slot: 'test', secure: true })).toBe(
+            await getStorage('test', true),
+        );
+    });
+
+    it('false/undefined secure are different cache keys', async () => {
+        expect(await getCached({ slot: 'test' })).toBe(null);
+        await saveStorage('test', 'cacheVal');
+        expect(await getCached({ slot: 'test' })).toBe('cacheVal');
+        expect(await getCached({ slot: 'test', secure: false })).toBe(null);
+    });
+});
 
 describe('Offline first functionality', () => {
     describe('Retrieving player config', () => {
@@ -99,13 +150,10 @@ describe('Offline first functionality', () => {
 
     describe('Local storage utility functions', () => {
         describe('get storage', () => {
-            beforeEach(async () => {
-                await saveStorage('test', '');
-            });
-
             it('allows retrieving any key from storage', async () => {
-                expect(await getStorage('test')).toEqual('');
+                expect(await getStorage('test')).toEqual(null);
                 expect(await saveStorage('test2', 'test2')).toEqual('test2');
+                expect(await getStorage('test2')).toEqual('test2');
             });
 
             it('parses json from storage automatically', async () => {
@@ -120,12 +168,12 @@ describe('Offline first functionality', () => {
             });
 
             it('stringifies objects and arrays to storage', async () => {
-                expect(await getStorage('test')).toEqual('');
+                expect(await getStorage('test')).toEqual(null);
                 expect(await saveStorage('test', 'test')).toEqual('test');
             });
 
             it('saves to local storage', async () => {
-                expect(await getStorage('test')).toEqual('');
+                expect(await getStorage('test')).toEqual(null);
                 expect(await saveStorage('test', 'test')).toEqual('test');
             });
 
@@ -210,41 +258,42 @@ describe('Offline first functionality', () => {
                 expect(await getStorage('test', true)).toEqual('test');
             });
         });
+    });
+});
 
-        describe('Saving to secure storage', () => {
-            it('returns success bool on save because no merging so deterministic value', async () => {
-                expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
-            });
+describe('Saving to secure storage', () => {
+    it('returns success bool on save because no merging so deterministic value', async () => {
+        expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
+    });
 
-            it('secure storage does not write to local storage', async () => {
-                expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
-                mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test']");
-                expect(await getStorage('test')).toEqual(null);
-            });
+    it('does not write to local storage', async () => {
+        mockAsyncStorage.getItem.mockResolvedValueOnce(null);
+        expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
+        mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test']");
+        expect(await getStorage('test')).toEqual(null);
+    });
 
-            it('using mystic crypt properly writes to secure storage', async () => {
-                expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
-                mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test']");
-                expect(await getStorage('test', true)).toEqual(['test']);
-            });
+    it('using mystic crypt properly writes to secure storage', async () => {
+        expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
+        mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test']");
+        expect(await getStorage('test', true)).toEqual(['test']);
+    });
 
-            it('cannot merge existing items on save', async () => {
-                expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
-                mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test']");
-                expect(await getStorage('test', true)).toEqual(['test']);
+    it('cannot merge existing items on save', async () => {
+        expect(await saveMysticCrypt('test', ['test'])).toEqual(true);
+        mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test']");
+        expect(await getStorage('test', true)).toEqual(['test']);
 
-                expect(await saveMysticCrypt('test', ['test2'])).toEqual(true);
-                mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test2']");
-                expect(await getStorage('test', true)).toEqual(['test2']);
-            });
+        expect(await saveMysticCrypt('test', ['test2'])).toEqual(true);
+        mockMysticCrypt.getItemAsync.mockResolvedValueOnce("['test2']");
+        expect(await getStorage('test', true)).toEqual(['test2']);
+    });
 
-            it('can save different values on same key to secure storage and local storage', async () => {
-                expect(await saveStorage('test', ['test'])).toEqual(['test']);
-                expect(await saveMysticCrypt('test', 'test2')).toEqual(true);
-                expect(await getStorage('test')).toEqual(['test']);
-                mockMysticCrypt.getItemAsync.mockResolvedValueOnce('test2');
-                expect(await getStorage('test', true)).toEqual('test2');
-            });
-        });
+    it('can save different values on same key to secure storage and local storage', async () => {
+        expect(await saveStorage('test', ['test'])).toEqual(['test']);
+        expect(await saveMysticCrypt('test', 'test2')).toEqual(true);
+        expect(await getStorage('test')).toEqual(['test']);
+        mockMysticCrypt.getItemAsync.mockResolvedValueOnce('test2');
+        expect(await getStorage('test', true)).toEqual('test2');
     });
 });

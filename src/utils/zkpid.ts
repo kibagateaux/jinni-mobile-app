@@ -4,8 +4,7 @@ import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
 import {
     getAppConfig,
-    getPk,
-    idStore,
+    getCached,
     saveStorage,
     ID_PLAYER_SLOT,
     ID_PKEY_SLOT,
@@ -14,6 +13,7 @@ import {
 } from './config';
 import { ethers, Wallet, providers } from 'ethers';
 import { memoize } from 'lodash';
+import { debug } from './logging';
 
 const defaultProvider = (): providers.Provider =>
     new ethers.providers.AlchemyProvider(
@@ -25,11 +25,8 @@ const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvid
 
 let spellbook: Wallet;
 export const getSpellBook = memoize(async (): Promise<Wallet> => {
-    console.log('GET spellbook lookup');
-    // TODO used memoized functions
-    // if (spellbook) return spellbook;
-    const pk = await getPk();
-    console.log('spellbook lookup', pk);
+    if (spellbook) return spellbook;
+    const pk = await getCached({ slot: ID_PKEY_SLOT });
     if (!pk) {
         // no spellbook yet. generate random seed and save to storage
         const newSpellbook = ethers.Wallet.createRandom();
@@ -43,7 +40,7 @@ export const getSpellBook = memoize(async (): Promise<Wallet> => {
         return spellbook;
     } else {
         // retrieved seedphrase from storage and recreating spellbook
-        const newSpellbook: Wallet = ethers.Wallet.fromMnemonic(pk.phrase, pk.path);
+        const newSpellbook: Wallet = ethers.Wallet.fromMnemonic(pk as string);
         console.log('spellbook from pk', newSpellbook);
         console.log('spellbook signer', connectProvider(newSpellbook));
         spellbook = connectProvider(newSpellbook);
@@ -56,12 +53,19 @@ export const generateIdentityWithSecret = (secret: string): Identity => new Iden
 
 export const saveId = async (idType: string, id: Identity): Promise<void> => {
     try {
-        const value = await idStore(idType)();
+        console.log(
+            'saveId cached val 1',
+            await getCached(idType),
+            typeof (await getCached(idType)),
+        );
+        const value = await getCached({ slot: idType });
+
+        console.log('saveId cached val 2', idType, value);
         // console.log("save id existing value?", value, !value, id)
 
         // @dev INVARIANT: MUST NOT OVERWRITE OR DELTE ZK IDs
         if (!value) {
-            // console.log("SAVE ID TO STORAGE", toObject(id))
+            console.log('SAVE ID TO STORAGE', toObject(id));
             await saveStorage(idType, toObject(id));
             // console.log("anon id saved to storage!", idType, id)
         }
@@ -71,7 +75,8 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
 };
 
 export const getId = memoize(
-    async (idType: string): Promise<Identity | null> => await idStore(idType)(),
+    async (idType: string): Promise<Identity | null> =>
+        (await getCached({ slot: idType })) as Identity,
 );
 
 export const _delete_id = async (idType: string): Promise<void> => {
@@ -113,6 +118,7 @@ export const signWithId = async (id: string | Identity): Promise<object | null> 
         return !result ? null : result;
     } catch (err) {
         console.warn('ZK:HaLo: signing error', err);
+        debug(err, { tags: { hardware: true } });
         return null;
     } finally {
         // stop the nfc scanning

@@ -12,7 +12,8 @@ import {
     SdkAvailabilityStatus,
 } from 'react-native-health-connect';
 import { Permission } from 'react-native-health-connect/types';
-import { debug, track, TRACK_PERMS_REQUESTED, TRACK_DATA_QUERIED } from 'utils/logging';
+import { debug, track } from 'utils/logging';
+import { TRACK_PERMS_REQUESTED, TRACK_DATA_QUERIED } from 'utils/config';
 
 import {
     InventoryIntegration,
@@ -30,6 +31,7 @@ import {
     QueryAndroidHealthDataProps,
 } from 'types/HealthData';
 import { JsonMap } from '@segment/analytics-react-native';
+import { Platform } from 'react-native';
 
 const ITEM_ID = 'AndroidHealthConnect';
 const PERMISSIONS = [
@@ -53,7 +55,8 @@ const PERMISSIONS = [
 
 const checkEligibility = async (): Promise<boolean> => {
     // cant test anything in file if we run this.
-    // if (Platform.OS !== 'android') return false;
+    if (!__DEV__ && Platform.OS !== 'android') return false;
+    if ((Platform.Version as number) >= 14) return false; // android Version always returns a numbe
 
     const status = await getSdkStatus();
     console.log(
@@ -119,6 +122,7 @@ const equip: HoF = async () => {
     // Why? More functional and helps with testing
     // return 0, 1, 2, on checkEligibility for 0. cant install, 1. installable, 2. installed
     // call await initialize() manually on get/initPermissions and queryData
+
     console.log('equip eligible', await checkEligibility());
     if (!(await checkEligibility())) return false;
 

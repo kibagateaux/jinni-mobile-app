@@ -52,3 +52,9 @@ describe('Anonymous Authentication and Zero-Knowledge Proofs', () => {
         });
     });
 });
+
+// TODO test getSpellbook
+// if playerId exists then private key must exists too
+// does not generate new wallet if playerId already exists
+// only called one time bc of memoize
+//

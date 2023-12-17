@@ -19,7 +19,8 @@ import { useInventory } from 'hooks/useInventory';
 import { useGameContent } from 'contexts/GameContentContext';
 
 import { Link, Pill, WidgetIcon } from 'components';
-import { ItemEquipWizardModal } from 'components/modals';
+import ModalRenderer from 'components/modals';
+import { useAuth } from 'contexts/AuthContext';
 
 interface ItemPageProps {
     item: InventoryItem;
@@ -28,6 +29,7 @@ interface ItemPageProps {
 const ItemPage: React.FC<ItemPageProps> = () => {
     const { item: id } = useLocalSearchParams();
     const { inventory, loading } = useInventory();
+    const { player, getSpellBook } = useAuth();
 
     const [item, setItem] = useState<InventoryItem | null>(null);
     const [status, setStatus] = useState<ItemStatus | null>('unequipped');
@@ -80,9 +82,12 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         if (item.equip) {
             // console.log('modal to render', ItemEquipWizardModal, Modals);
             // TODO check if player.id first.
-            // if not the setStatus('activating') ?? not item specific maybe 'imbuing'?
-            // setActiveModal('imbuing-spellbook)
-            // await getSpellBook();
+            if (!player?.id) {
+                setActiveModal('create-spellbook');
+                // await Promise.resolve((r: () => void) => setTimeout(r, 10000))
+                await getSpellBook();
+                setActiveModal(null);
+            }
             // continue
             setStatus('equipping');
             setActiveModal('equip-wizard');
@@ -149,19 +154,17 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         const onClose = () => {
             setActiveModal(null);
         };
-        switch (activeModal) {
-            case 'equip-wizard':
-                return (
-                    <ItemEquipWizardModal
-                        size="mid"
-                        item={item}
-                        status={status}
-                        onClose={onClose}
-                    />
-                );
-            default:
-                return null;
-        }
+        // const dialogueData =
+        return activeModal ? (
+            <ModalRenderer
+                modalName={activeModal}
+                dialogueData={{}}
+                size="mid"
+                item={item}
+                status={status}
+                onClose={onClose}
+            />
+        ) : null;
     };
 
     const renderDefaultItemInfo = () => (

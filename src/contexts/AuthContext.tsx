@@ -5,7 +5,7 @@ import { generateIdentity, getId, getSpellBook as getSpells, saveId } from 'util
 import { Identity } from '@semaphore-protocol/identity';
 import { useExternalServices } from './ExternalServicesContext';
 import { Wallet } from 'ethers';
-import { ID_ANON_SLOT, getPlayerId } from 'utils/config';
+import { ID_ANON_SLOT, ID_PLAYER_SLOT, getCached } from 'utils/config';
 
 interface AuthConsumables {
     player: Avatar | null;
@@ -40,15 +40,16 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
             setPlayer({ id });
             sentry?.setUser({ id });
             // merge anon sempahore id with spellbook id if delayedlogin
-            anonId ? segment?.alias(id) : segment?.identify(id);
+            segment?.identify(id);
         },
-        [anonId, sentry, segment],
+        [sentry, segment],
     );
 
     useMemo(() => {
         console.log('AuthContext: set player id', player?.id);
         if (!player?.id) {
-            getPlayerId().then((id) => id && login(id));
+            getCached({ slot: ID_PLAYER_SLOT }).then((id) => id && login(id));
+            // magicRug();
         } else {
             //  hydrate spellbook manually once required to prevent slow app start
         }
@@ -69,14 +70,12 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
                     // console.log("anon id save", _anon_);
                     setAnonId(_anon_);
                     saveId(ID_ANON_SLOT, _anon_);
-                    // start tracking anon analytics for user if not logged in
-                    segment?.identify(_anon_._commitment.toString());
                 } else {
                     setAnonId(id as Identity);
                 }
             });
         }
-    }, [anonId, segment]);
+    }, [anonId]);
 
     /**
      * @desc Generate an anonymous Ethereum identity for the player if they dont already have one

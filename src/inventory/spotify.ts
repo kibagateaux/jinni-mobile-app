@@ -12,7 +12,7 @@ import {
     HoF,
     Resource,
 } from 'types/GameMechanics';
-import { SHARE_CONTENT, getPlayerId } from 'utils/config';
+import { ID_PLAYER_SLOT, SHARE_CONTENT, getCached } from 'utils/config';
 import { debug, track } from 'utils/logging';
 
 const ABILITY_SHARE_PROFILE = 'spotify-share-profile';
@@ -73,7 +73,7 @@ const item: InventoryItem = {
             description: 'Share a playlist on Spotify with another player',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
             do: async () => {
-                const pid = await getPlayerId();
+                const pid = await getCached({ slot: ID_PLAYER_SLOT });
                 if (!pid) return async () => false;
 
                 qu<Resource[]>({
@@ -114,7 +114,7 @@ const item: InventoryItem = {
                     ability: ABILITY_SHARE_PROFILE,
                     activityType: 'initiated',
                 });
-                const pid = await getPlayerId();
+                const pid = await getCached({ slot: ID_PLAYER_SLOT });
                 console.log('Spotify:Ability:ShareProfile:pid', pid);
                 if (!pid) return async () => false;
                 try {

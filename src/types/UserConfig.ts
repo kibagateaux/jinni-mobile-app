@@ -1,8 +1,16 @@
+import { Identity } from '@semaphore-protocol/identity';
 import { RenderItemParams } from 'react-native-draggable-flatlist';
 
 export interface UserSettings {
     defaultTheme: 'light' | 'dark';
 }
+
+export interface StorageKey {
+    slot: string;
+    secure?: boolean;
+}
+
+export type StorageValue = string | number | object | Identity | undefined | null;
 export interface HomeConfig {
     jinniImage: string;
     widgets: WidgetConfig[];

@@ -11,6 +11,10 @@ export const getIconForWidget = (widgetId: string): string | React.FC | undefine
         );
 
     switch (widgi) {
+        case 'home':
+            return '🧞‍♂️';
+        case 'inventory':
+            return '📚';
         case 'zuzalu':
             return ZuzaluIcon;
         default:

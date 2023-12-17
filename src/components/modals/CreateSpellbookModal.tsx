@@ -4,30 +4,22 @@ import { Text, ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useGameContent } from 'contexts/GameContentContext';
 
 import BaseModal from './BaseModal';
-import { InventoryItem, ItemStatus } from 'types/GameMechanics';
 
-export interface ItemEquipWizardModalProps {
-    item: InventoryItem;
+export interface CreateSpellbookModalProps {
     dialogueData: object; // params for modal text
-    status: ItemStatus;
 }
 
-const ItemEquipWizardModal = ({ item, dialogueData = {}, status }: ItemEquipWizardModalProps) => {
-    // console.log('get equip item modal content', status, dialogueData, item);
-    // console.log('game item content', useGameContent(), useGameContent().inventory);
-    const content = useGameContent().inventory[item.id];
-    // console.log('game item content', content);
+const CreateSpellbookModal = ({ dialogueData = {} }: CreateSpellbookModalProps) => {
+    const content = useGameContent().onboarding.modals['create-spellbook'];
+    console.log('game item content', content);
     if (!content) return null;
-    if (!content[status]) return null;
-    // console.log('game item content', content[status]);
 
-    const titleTemplate = content[status].modal.title;
-    const dialogueTemplate = content[status].modal.text;
+    const titleTemplate = content.title;
+    const dialogueTemplate = content.text;
     const title = typeof titleTemplate === 'function' ? titleTemplate(dialogueData) : titleTemplate;
     const dialogue =
         typeof dialogueTemplate === 'function' ? dialogueTemplate(dialogueData) : dialogueTemplate;
 
-    // return null;
     return (
         <BaseModal size="md">
             <View>
@@ -45,4 +37,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ItemEquipWizardModal;
+export default CreateSpellbookModal;

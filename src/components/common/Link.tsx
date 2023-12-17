@@ -1,9 +1,9 @@
 import React from 'react';
-import { useExternalServices } from 'contexts/ExternalServicesContext';
 import { Link } from 'expo-router';
 
 import { Linking, TouchableOpacity } from 'react-native';
 // import { useNavigation } from '@react-navigation/native';
+import { track } from 'utils/logging';
 
 interface LinkProps {
     children: React.ReactNode;
@@ -13,7 +13,6 @@ interface LinkProps {
 }
 
 const LinkButton = ({ children, to, trackingId, styleOverride }: LinkProps) => {
-    const { segment } = useExternalServices();
     // const navigation = useNavigation();
     const isInternal = !to.startsWith('http');
 
@@ -26,7 +25,7 @@ const LinkButton = ({ children, to, trackingId, styleOverride }: LinkProps) => {
 
     const trackNavigation = () => {
         console.log('trackNavigation', to);
-        segment.track('Link Clicked', {
+        track('Link Clicked', {
             path: to,
             trackingId,
         });
