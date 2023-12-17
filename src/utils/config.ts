@@ -148,13 +148,15 @@ const defaultWidgetConfig: WidgetConfig[] = [
 
 const defaultTabConfig: WidgetConfig[] = [
     {
-        title: 'index',
-        id: 'home',
+        id: 'page-home',
+        routeName: 'index',
+        title: 'Home',
         path: '/',
     },
     {
+        id: 'page-inventory',
+        routeName: 'inventory',
         title: 'inventory',
-        id: 'inventory',
         path: '/inventory',
     },
     // {

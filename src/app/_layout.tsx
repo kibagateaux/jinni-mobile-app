@@ -11,6 +11,7 @@ import { useHomeConfig } from 'hooks';
 import { ContextProvider } from 'contexts';
 
 import { WidgetConfig } from 'types/UserConfig';
+import { getIconForWidget } from 'utils/rendering';
 
 export default function HomeLayout() {
     const homeConfig = useHomeConfig();
@@ -29,8 +30,12 @@ export default function HomeLayout() {
                 {tabConfig.map((tab) => (
                     <Tabs.Screen
                         key={tab.title}
-                        name={tab.title}
-                        options={{ title: tab.id.toUpperCase(), href: tab.path }}
+                        name={tab.routeName}
+                        options={{
+                            title: tab.title.toUpperCase(),
+                            href: tab.path,
+                            tabBarIcon: () => getIconForWidget(tab.id),
+                        }}
                     />
                 ))}
             </Tabs>

@@ -131,9 +131,9 @@ const item: InventoryItem = {
                     const { action, activityType } = await Share.share({
                         title: 'Tell your 🧞‍♂️ who to share your Spotify profile with ',
                         ...Platform.select({
-                            ios: { message: 'My Spotify profile via Jinni', url: profileUrl },
-                            android: { message: `My Spotify profile via Jinni - ${profileUrl}` },
-                            default: { message: `My Spotify profile via Jinni - ${profileUrl}` },
+                            ios: { message: 'My Spotify profile via Jinni 🧞‍♂️', url: profileUrl },
+                            android: { message: `My Spotify profile via Jinni 🧞‍♂️ - ${profileUrl}` },
+                            default: { message: `My Spotify profile via Jinni 🧞‍♂️ - ${profileUrl}` },
                         }),
                     });
 

@@ -19,8 +19,9 @@ export interface HomeConfig {
 
 export interface WidgetConfig {
     id: WidgetIds;
+    routeName: string; // Expo route navigation name
     title: string;
-    path: string;
+    path: string; // how to access via deep linking / weburl
 }
 
 export type RenovatingWidgetConfig = RenderItemParams<WidgetConfig>;
@@ -60,7 +61,7 @@ export type ItemWidgetIds =
     | 'jubjub-talk'
     | 'jubjub-display';
 
-export type WidgetIds = TabIds & GameWidgetIds & ItemWidgetIds;
+export type WidgetIds = TabIds | GameWidgetIds | ItemWidgetIds;
 export interface LogDataQueryProps {
     playerId: string;
     itemId: string; // just for analytics not used in app so dont need exact type

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet, Button } from 'react-native';
 import { saveHomeConfig } from 'utils/config';
 
@@ -11,29 +11,28 @@ import { AvatarViewer, WidgetIcon } from 'components/index';
 import DefaultAvatar from 'assets/avatars/happy-ghost';
 import WidgetContainer from 'components/home/WidgetContainer';
 import { getActivityData } from 'inventory/android-health-connect';
+import { isEmpty } from 'lodash/fp';
 
 const HomeScreen = () => {
     const { player } = useAuth();
     const homeConfig = useHomeConfig();
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
 
-    useEffect(() => {
-        if (homeConfig && homeConfig.widgets !== widgetConfig) {
+    useMemo(() => {
+        if (isEmpty(widgetConfig) && homeConfig?.widgets) {
             setWidgetConfig(homeConfig.widgets);
         }
     }, [homeConfig, widgetConfig]);
 
     // console.log('Home:widgi', widgetConfig);
 
-    const saveWidgets = (widgets: WidgetConfig[]) => {
-        console.log(
-            'changing config',
-            widgets.map(({ id }) => id),
-            widgetConfig.map(({ id }) => id),
-        );
+    const saveWidgets = useCallback(
+        (widgets: WidgetConfig[]) => {
+            setWidgetConfig(widgets);
+        },
+        [setWidgetConfig],
+    );
 
-        setWidgetConfig(widgets);
-    };
     const finalizeRenovation = () =>
         saveHomeConfig({
             username: player?.name || 'sampleusername',
