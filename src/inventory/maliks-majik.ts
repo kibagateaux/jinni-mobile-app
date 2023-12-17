@@ -37,6 +37,7 @@ const equip: HoF = async () => {
             await saveStorage(PROOF_MALIKS_MAJIK_SLOT, result.signature);
             return true;
         } else {
+            throw Error('Enchanter is not a Master Djinn');
             // TODO return error message. "Wrong maji for ritual"
             return false;
         }
@@ -99,15 +100,16 @@ const item: InventoryItem = {
                             'You must to meet the Master Djinn before you can activate your jinni',
                         );
                     const m = MU_ACTIVATE_JINNI;
-                    console.log('my jinni activation mutation', m);
-                    console.log('my jinni activation ID', myId, myProof.ether);
+                    console.log('Mani:Jinni:ActivateJinn:proof', myProof);
+                    console.log('Mani:Jinni:ActivateJinn:ID', myId);
 
                     const uuid = await qu<string>({ mutation: m })({
-                        majik_msg: myProof,
+                        majik_msg: myProof.ether,
                         player_id: myId,
                     });
                     // server shouldnt allow multiple jinnis yet. Just in case dont overwrite existing uuid
                     const result = await saveStorage<string>(ID_JINNI_SLOT, uuid, false);
+                    console.log('Mani:Jinni:ActivateJinn:RES', result);
                     return async () => (result === uuid ? true : false);
                 } catch (e) {
                     console.error('Mani:Jinni:ActivateJinn:ERROR - ', e);

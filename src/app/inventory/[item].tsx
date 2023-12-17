@@ -81,6 +81,8 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     const onItemEquipPress = async () => {
         if (item.equip) {
+            setStatus('equipping'); // hide equip button
+
             // console.log('modal to render', ItemEquipWizardModal, Modals);
             // TODO check if player.id first.
             if (!player?.id) {
@@ -89,8 +91,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 await getSpellBook();
                 setActiveModal(null);
             }
-            // continue
-            setStatus('equipping');
+
             setActiveModal('equip-wizard');
             try {
                 // TODO should we add tags to items for different callback types and UI filtering?
@@ -102,6 +103,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 if (result) {
                     setStatus('post-equip');
                     // TODO api request to add item to their avatar (:DataProvider or :Resource?)
+                    setStatus('equipped');
                 }
 
                 // assume failure

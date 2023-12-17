@@ -54,7 +54,7 @@ const WidgetContainer = ({
     //     saveWidgets && saveWidgets(filter(({ id }) => id !== widget.id)(widgets));
 
     const onRenovateEnd = ({ data }: { data: WidgetConfig[] }) => {
-        console.log('draggable resordered', data);
+        // console.log('draggable resordered', data);
         if (saveWidgets) {
             saveWidgets(data);
         }

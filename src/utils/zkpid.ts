@@ -23,7 +23,7 @@ const defaultProvider = (): providers.Provider =>
 
 const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvider());
 
-let spellbook: Wallet;
+let spellbook: Wallet | undefined;
 export const getSpellBook = memoize(async (): Promise<Wallet> => {
     if (spellbook) return spellbook;
     const pk = await getCached({ slot: ID_PKEY_SLOT });
@@ -40,7 +40,8 @@ export const getSpellBook = memoize(async (): Promise<Wallet> => {
         return spellbook;
     } else {
         // retrieved seedphrase from storage and recreating spellbook
-        const newSpellbook: Wallet = ethers.Wallet.fromMnemonic(pk as string);
+        console.log('hydrate spellbook from pk', pk);
+        const newSpellbook: Wallet = ethers.Wallet.fromMnemonic(pk.phrase, pk.path);
         console.log('spellbook from pk', newSpellbook);
         console.log('spellbook signer', connectProvider(newSpellbook));
         spellbook = connectProvider(newSpellbook);
@@ -55,8 +56,8 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
     try {
         console.log(
             'saveId cached val 1',
-            await getCached(idType),
-            typeof (await getCached(idType)),
+            await getCached({ slot: idType }),
+            typeof (await getCached({ slot: idType })),
         );
         const value = await getCached({ slot: idType });
 

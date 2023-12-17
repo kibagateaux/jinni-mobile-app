@@ -37,9 +37,10 @@ export const qu =
         if (!query && !mutation) throw Error('No query provided');
         const spellbook = await getSpellBook();
         if (!spellbook) throw Error('No spellbok to cast spells'); // @DEV shouldnt be possible but incase
+        console.log('api:qu:PlayerId ', spellbook.address);
 
         const cleaned = query ? cleanGql(query) : cleanGql(mutation!);
-        console.log('api:qu: ', spellbook.address);
+        console.log('api:qu:cleaned', cleaned);
         return getGqlClient().query({
             ...(query
                 ? {

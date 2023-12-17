@@ -248,6 +248,7 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
     useMysticCrypt,
 ) => {
     try {
+        if (!slot) return null;
         const cached = await getCached.cache.get(JSON.stringify({ slot, secure: useMysticCrypt }));
         console.log(
             'get storage  1',
@@ -279,10 +280,10 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
  *      if you write, ensure that what you write is what will be stored
  * @retuns bool if value saved or not
  */
-export const saveMysticCrypt = async (key: string, value: unknown): Promise<boolean> => {
+export const saveMysticCrypt = async (key: string, value: StorageValue): Promise<boolean> => {
     try {
         console.log('Store:MystCrypt: ', key, value);
-        await setItemAsync(key, JSON.stringify(value));
+        await setItemAsync(key, JSON.stringify(value), { requireAuthentication: true });
         updateCache({ slot: key, secure: true }, value);
         return true;
     } catch (e: unknown) {
