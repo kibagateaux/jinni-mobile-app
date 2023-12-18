@@ -40,19 +40,7 @@ export const qu =
         console.log('api:qu:PlayerId ', spellbook.address);
 
         const cleaned = query ? cleanGql(query) : cleanGql(mutation!);
-        console.log('api:qu:cleaned', cleaned);
-        return getGqlClient().query({
-            ...(query
-                ? {
-                      query: gql`
-                          ${cleaned}
-                      `,
-                  }
-                : {
-                      mutation: gql`
-                          ${cleaned}
-                      `,
-                  }),
+        const baseRequest = {
             variables: {
                 ...variables,
                 verification: {
@@ -62,7 +50,21 @@ export const qu =
             },
             fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
             optimisticResponse: true,
-        });
+        };
+        console.log('api:qu:cleaned', cleaned);
+        return query
+            ? getGqlClient().query({
+                  ...baseRequest,
+                  query: gql`
+                      ${cleaned}
+                  `,
+              })
+            : getGqlClient().mutation({
+                  ...baseRequest,
+                  mutation: gql`
+                      ${cleaned}
+                  `,
+              });
     };
 
 export const QU_PROVIDER_ID = `

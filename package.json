@@ -7,8 +7,8 @@
     "test": "jest",
     "test:ci": "jest --ci --colors",
     "postinstall": "patch-package && rn-nodeify --install all --hack",
-    "android": "export EXPO_PUBLIC_APP_VARIANT=development; expo run:android",
-    "build:android": "eas build --local --platform android",
+    "android": "expo run:android --profile development",
+    "build:android": "source .env; eas build --local --platform android -e development",
     "deploy:android": "eas build --platform android",
     "deploy:secrets": "eas secret:push --scope jinni-health --env-file ./.env",
     "ios": "expo run:ios",
@@ -66,7 +66,8 @@
     "readable-stream": "^1.0.33",
     "sentry-expo": "~7.0.0",
     "stream-browserify": "^1.0.0",
-    "util": "^0.10.4"
+    "util": "^0.10.4",
+    "expo-dev-client": "~2.4.12"
   },
   "peerDependencies": {
     "ethers": "5.7.0"

@@ -1,5 +1,6 @@
-//eslint-ginore-next-line no-undef
+// eslint-ignore-next-line no-undef
 const VARIANT = process.env.EXPO_PUBLIC_APP_VARIANT;
+// console.log('GENERATING APP CONFIG FOR VARIANT:', VARIANT);
 const isProd = VARIANT === 'production';
 const packageName = isProd ? 'com.jinnihealth' : `com.jinnihealth.${VARIANT}`;
 const appName = isProd ? 'Jinni Health' : `(${VARIANT}) Jinni Health`;
@@ -14,8 +15,8 @@ export default {
         userInterfaceStyle: 'light',
         splash: {
             image: './public/splash.png',
-            resizeMode: 'contain',
-            backgroundColor: '#ffffff',
+            resizeMode: 'fill',
+            backgroundColor: '#FFC1CB',
         },
         assetBundlePatterns: ['**/*'],
         scheme: 'jinni-health',
@@ -56,13 +57,15 @@ export default {
         ],
         hooks: {
             postPublish: [
-                {
-                    file: 'sentry-expo/upload-sourcemaps',
-                    config: {
-                        organization: '${EXPO_PUBLIC_SENTRY_ORG}',
-                        project: '${EXPO_PUBLIC_SENTRY_PROJECT}',
-                    },
-                },
+                VARIANT === 'development'
+                    ? {}
+                    : {
+                          file: 'sentry-expo/upload-sourcemaps',
+                          config: {
+                              organization: '${EXPO_PUBLIC_SENTRY_ORG}',
+                              project: '${EXPO_PUBLIC_SENTRY_PROJECT}',
+                          },
+                      },
             ],
         },
         ios: {
