@@ -12,6 +12,7 @@ web-build/
 android/
 ios/
 *.apk
+*.aab
 *.orig.*
 *.jks
 *.p8

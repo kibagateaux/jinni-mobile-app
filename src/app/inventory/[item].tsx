@@ -94,6 +94,8 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
             setActiveModal('equip-wizard');
             try {
+                console.log('pg:Inv:Item:equip:oauth', request?.redirectUri, request?.scopes);
+
                 // TODO should we add tags to items for different callback types and UI filtering?
                 // or just a single, optional callback func that handles everything for equip?
                 const result = itemOauthConfig.authorizationEndpoint

@@ -11,7 +11,7 @@ export const getGqlClient = () =>
     client
         ? client
         : (client = new ApolloClient({
-              uri: getAppConfig().API_URL ?? 'localhost:8888/graphql',
+              uri: `${getAppConfig().API_URL}/graphql` ?? 'localhost:8888/graphql',
               cache: new InMemoryCache(),
 
               // optional metadata
@@ -29,7 +29,7 @@ interface Mutation {
 }
 type GqlReq = Query | Mutation;
 // server has issues converting \n + \t to bytes and fucks with ecrecover verification
-const cleanGql = (q: string) => q.replace(/[\n\t]/g, ' ');
+const cleanGql = (q: string) => q.replace(/[\n\t]/g, ' ').replace(/[\s]{2,}/g, ' ');
 export const qu =
     <T>({ query, mutation }: GqlReq) =>
     async (variables: object): Promise<T> => {
@@ -40,35 +40,37 @@ export const qu =
         console.log('api:qu:PlayerId ', spellbook.address);
 
         const cleaned = query ? cleanGql(query) : cleanGql(mutation!);
+        const majikMsg = await spellbook.signMessage(cleaned);
         const baseRequest = {
             variables: {
                 ...variables,
                 verification: {
                     _raw_query: cleaned,
-                    signature: spellbook.signMessage(cleaned),
+                    signature: majikMsg,
                 },
             },
-            fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
-            optimisticResponse: true,
         };
-        console.log('api:qu:cleaned', cleaned);
+        console.log('api:qu:(player, vars)', spellbook.address, variables);
+        console.log("api:qu:verification '", cleaned, "'", majikMsg);
         return query
             ? getGqlClient().query({
                   ...baseRequest,
+                  fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
                   query: gql`
                       ${cleaned}
                   `,
               })
-            : getGqlClient().mutation({
+            : getGqlClient().mutate({
                   ...baseRequest,
+                  optimisticResponse: true,
                   mutation: gql`
                       ${cleaned}
                   `,
               });
     };
 
-export const QU_PROVIDER_ID = `
-    mutation provider_id(
+export const QU_PROVIDER_ID = cleanGql(`
+    query(
         $verification: SignedRequest!,
         $provider: String!,
         $playerId: String!
@@ -81,10 +83,10 @@ export const QU_PROVIDER_ID = `
             provider_id
         }
     }
-`;
+`);
 
 export const MU_ACTIVATE_JINNI = `
-    mutation activate_jinni(
+    mutation(
         $verification: SignedRequest!,
         $majik_msg: String!,
         $player_id: String!
@@ -93,14 +95,12 @@ export const MU_ACTIVATE_JINNI = `
             verification: $verification, 
             majik_msg: $majik_msg, 
             player_id: $player_id
-        ) {
-            ID
-        }
+        )
     }
 `;
 
 export const MU_SUBMIT_DATA = `
-    mutation submit_data(
+    mutation(
         $verification: SignedRequest!,
         $data_provider: DataProvider!,
         $data: [RawInputData]!,
@@ -111,9 +111,7 @@ export const MU_SUBMIT_DATA = `
             data_provider: $data_provider,
             data: $data,
             name: $name
-        ) {
-            ID
-        }
+        )
     }
 `;
 

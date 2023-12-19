@@ -11,6 +11,7 @@ import * as WebBrowser from 'expo-web-browser';
 const SCHEME = Constants.expoConfig?.scheme ?? 'jinni-health';
 // const useProxy = Constants.appOwnership === 'expo' && Platform.OS !== 'web';
 import { OAuthProvider } from 'types/GameMechanics';
+import { getAppConfig } from './config';
 
 // allows the web browser to close correctly when using universal login on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -70,10 +71,10 @@ export const createOauthRedirectURI = memoize(() => {
     if (Platform.OS !== 'web') {
         return makeRedirectUri({
             native: Platform.select({
-                android: `https://dd2b-45-164-150-39.ngrok.io/oauth/callback`,
-                ios: `https://dd2b-45-164-150-39.ngrok.io/oauth/callback`,
-                // android: `${getAppConfig().API_URL}://auth/oauth-callback`,
-                // ios: `${getAppConfig().API_URL}://auth/oauth-callback`,
+                // android: `https://3e4b-45-164-150-39.ngrok-free.app/oauth/callback`,
+                // ios: `https://3e4b-45-164-150-39.ngrok-free.app/oauth/callback`,
+                android: `${getAppConfig().API_URL}/oauth/callback`,
+                ios: `${getAppConfig().API_URL}/oauth/callback`,
             }),
         });
     } else {

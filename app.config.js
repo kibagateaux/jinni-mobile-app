@@ -16,7 +16,7 @@ export default {
         splash: {
             image: './public/splash.png',
             resizeMode: 'fill',
-            backgroundColor: '#FFC1CB',
+            backgroundColor: '#ffc1cb',
         },
         assetBundlePatterns: ['**/*'],
         scheme: 'jinni-health',

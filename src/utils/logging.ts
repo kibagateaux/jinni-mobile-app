@@ -1,8 +1,15 @@
 import { Platform } from 'react-native';
+import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
 import * as Sentry from 'sentry-expo';
 import { JsonMap, SegmentClient as Segment, createClient } from '@segment/analytics-react-native';
 import Constants from 'expo-constants';
 import { ScopeContext } from '@sentry/types';
+
+if (__DEV__) {
+    // Adds messages only in a dev environment
+    loadDevMessages();
+    loadErrorMessages();
+}
 
 const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
 
