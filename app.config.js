@@ -3,7 +3,7 @@ const VARIANT = process.env.EXPO_PUBLIC_APP_VARIANT;
 // console.log('GENERATING APP CONFIG FOR VARIANT:', VARIANT);
 const isProd = VARIANT === 'production';
 const packageName = isProd ? 'com.jinnihealth' : `com.jinnihealth.${VARIANT}`;
-const appName = isProd ? 'Jinni Health' : `(${VARIANT}) Jinni Health`;
+const appName = isProd ? 'Jinni Health' : `Jinni (${VARIANT}) `;
 
 export default {
     expo: {
@@ -80,6 +80,7 @@ export default {
             },
         },
         android: {
+            package: packageName,
             adaptiveIcon: {
                 foregroundImage: './public/adaptive-icon.png',
                 backgroundColor: '#ffffff',

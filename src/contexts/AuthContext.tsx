@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
             setPlayer({ id });
             sentry?.setUser({ id });
             // merge anon sempahore id with spellbook id if delayedlogin
-            segment?.identify(id);
+            if (!__DEV__) segment?.identify(id);
         },
         [sentry, segment],
     );

@@ -1,4 +1,4 @@
-import { memoize } from 'lodash/fp';
+import { memoize } from 'lodash';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
@@ -11,7 +11,8 @@ import * as WebBrowser from 'expo-web-browser';
 const SCHEME = Constants.expoConfig?.scheme ?? 'jinni-health';
 // const useProxy = Constants.appOwnership === 'expo' && Platform.OS !== 'web';
 import { OAuthProvider } from 'types/GameMechanics';
-import { getAppConfig } from './config';
+import { ID_PROVIDER_TEMPLATE_SLOT, getAppConfig, saveStorage } from './config';
+import { cleanGql, qu } from './api';
 
 // allows the web browser to close correctly when using universal login on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -77,8 +78,37 @@ export const createOauthRedirectURI = memoize(() => {
                 ios: `${getAppConfig().API_URL}/oauth/callback`,
             }),
         });
-    } else {
-        WebBrowser.maybeCompleteAuthSession();
-        return makeRedirectUri({ scheme: SCHEME });
     }
+    return null;
 });
+
+export const QU_PROVIDER_ID = cleanGql(`
+    query(
+        $verification: SignedRequest!,
+        $provider: String!,
+        $playerId: String!
+    ) {
+        provider_id(
+            verification: $verification, 
+            provider: $provider,
+            player_id: $playerId
+        ) {
+            provider_id
+        }
+    }
+`);
+
+// frequent helper functions + extra caching
+/**
+ * @description fetches the players id on integrations platform to use in abilities and widgets
+ * @dev custom resolver func so cache based on values not object identity
+ * @param playerId
+ * @param provider
+ * @returns id on provider or null
+ */
+export const getProviderId = memoize(async ({ playerId, provider }) => {
+    const response = await qu<string | null>({ query: QU_PROVIDER_ID })({ playerId, provider });
+    const id = response?.data ? response.data.provider_id : null;
+    console.log('util:oauth:getProviderId', response, id);
+    id && (await saveStorage(ID_PROVIDER_TEMPLATE_SLOT + provider, id, false));
+}, JSON.stringify);

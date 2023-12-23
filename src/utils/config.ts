@@ -20,6 +20,7 @@ import { debug, track } from './logging';
 
 // Storage slots for different config items
 export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
+export const ID_PROVIDER_TEMPLATE_SLOT = 'provider.';
 
 export const MALIKS_MAJIK_CARD = '0x46C79830a421038E75853eD0b476Ae17bFeC289A';
 export const MAJIK_CARDS = [MALIKS_MAJIK_CARD];
@@ -125,23 +126,27 @@ export const saveHomeConfig = async ({
 
 const defaultWidgetConfig: WidgetConfig[] = [
     {
-        title: 'Strength',
         id: 'stat-strength',
+        title: 'Strength',
+        routeName: '/stats/strength',
         path: '/stats/strength',
     },
     {
-        title: 'Intelligence',
         id: 'stat-intelligence',
+        title: 'Intelligence',
+        routeName: '/stats/intelligence',
         path: '/stats/intelligence',
     },
     {
-        title: 'Stamina',
         id: 'stat-stamina',
+        title: 'Stamina',
+        routeName: '/stats/stamina',
         path: '/stats/stamina',
     },
     {
-        title: 'Spirit',
         id: 'stat-spirit',
+        title: 'Spirit',
+        routeName: '/stats/spirit',
         path: '/stats/spirit',
     },
 ];
@@ -251,10 +256,8 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
         if (!slot) return null;
         const cached = await getCached.cache.get(JSON.stringify({ slot, secure: useMysticCrypt }));
         console.log(
-            'get storage  1',
+            'get storage 1 - {slot, useCrypt} + cached',
             JSON.stringify({ slot, secure: useMysticCrypt }),
-            slot,
-            useMysticCrypt,
             cached,
         );
         if (cached) return cached;
@@ -262,7 +265,7 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
             ? await getItemAsync(slot, { requireAuthentication: !__DEV__ })
             : await AsyncStorage.getItem(slot);
 
-        console.log('get storage  2', slot, useMysticCrypt, val);
+        console.log('get storage 2 - slot + val', slot, val);
         return val ? JSON.parse(val) : null;
     } catch (e: unknown) {
         debug(e, {

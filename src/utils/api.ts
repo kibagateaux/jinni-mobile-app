@@ -1,7 +1,6 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import { getAppConfig } from 'utils/config';
 import { getSpellBook } from 'utils/zkpid';
-import { memoize } from 'lodash';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
 // https://www.apollographql.com/docs/react/caching/advanced-topics#persisting-the-cache
@@ -29,7 +28,7 @@ interface Mutation {
 }
 type GqlReq = Query | Mutation;
 // server has issues converting \n + \t to bytes and fucks with ecrecover verification
-const cleanGql = (q: string) => q.replace(/[\n\t]/g, ' ').replace(/[\s]{2,}/g, ' ');
+export const cleanGql = (q: string) => q.replace(/[\n\t]/g, ' ').replace(/[\s]{2,}/g, ' ');
 export const qu =
     <T>({ query, mutation }: GqlReq) =>
     async (variables: object): Promise<T> => {
@@ -69,22 +68,6 @@ export const qu =
               });
     };
 
-export const QU_PROVIDER_ID = cleanGql(`
-    query(
-        $verification: SignedRequest!,
-        $provider: String!,
-        $playerId: String!
-    ) {
-        provider_id(
-            verification: $verification, 
-            provider: $provider,
-            player_id: $playerId
-        ) {
-            provider_id
-        }
-    }
-`);
-
 export const MU_ACTIVATE_JINNI = `
     mutation(
         $verification: SignedRequest!,
@@ -114,14 +97,3 @@ export const MU_SUBMIT_DATA = `
         )
     }
 `;
-
-// frequent helper functions + extra caching
-/**
- * @description fetches the players id on integrations platform to use in abilities and widgets
- * @dev custom resolver func so cache based on values not object identity
- * @param playerId
- * @param provider
- * @returns id on provider or null
- */
-export const getProviderId = (playerId: string) => (provider: string) =>
-    memoize(qu<string | null>({ query: QU_PROVIDER_ID }), JSON.stringify)({ playerId, provider });
