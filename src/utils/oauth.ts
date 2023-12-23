@@ -67,7 +67,7 @@ export const oauthConfigs: { [key: string]: OAuthProvider } = {
 };
 
 export const createOauthRedirectURI = memoize(() => {
-    console.log('Expo deep link scheme', SCHEME);
+    console.log('util:oauth:DeepLinkScheme', SCHEME);
 
     if (Platform.OS !== 'web') {
         return makeRedirectUri({

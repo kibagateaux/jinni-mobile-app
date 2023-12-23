@@ -119,6 +119,8 @@ export type ItemStatus =
 
 export type ItemTags = 'physical' | 'digital' | 'exercise' | 'social' | 'music' | 'productivity';
 
+export type AbilityStatus = 'unequipped' | 'notdoable' | 'doable' | 'complete';
+
 // TODO return null if successful or error string if failure instead of boolean
 // so we can give contextual UI updates based on error path.
 export type HoF = <T, R>(func?: (data?: T) => R) => Promise<boolean>;
@@ -154,8 +156,8 @@ export interface ItemAbility {
     name: string;
     symbol: string;
     description: string;
-    isDoable?: boolean; // if undefined, call canDo() to get value and store to local object
-    canDo: (status: ItemStatus) => Promise<boolean>; // checks if action can be done right now with current item status
+    status?: AbilityStatus; // if undefined, call canDo() to get value and store to local object
+    canDo: (status: ItemStatus) => Promise<AbilityStatus>; // checks if action can be done right now with current item status
     do: () => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
 }
 

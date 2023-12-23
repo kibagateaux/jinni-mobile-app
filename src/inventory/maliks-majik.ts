@@ -85,9 +85,9 @@ const item: InventoryItem = {
             description: 'Get access to the full game',
             canDo: async (status: ItemStatus) => {
                 const isBonded = await getCached({ slot: ID_JINNI_SLOT });
-                if (isBonded) return false;
-                if (status === 'equipped') return true;
-                return false; // if not curated then cant save
+                if (isBonded) return 'complete';
+                if (status === 'equipped') return 'doable';
+                return 'unequipped'; // if not curated then cant save
             },
             do: async () => {
                 const myProof = await getCached({ slot: PROOF_MALIKS_MAJIK_SLOT });
@@ -103,14 +103,15 @@ const item: InventoryItem = {
                     console.log('Mani:Jinni:ActivateJinn:proof', myProof);
                     console.log('Mani:Jinni:ActivateJinn:ID', myId);
 
-                    const uuid = await qu<string>({ mutation: m })({
+                    const response = await qu({ mutation: m })({
                         majik_msg: myProof.ether,
                         player_id: myId,
                     });
+                    const uuid = response?.data ? response.data.activate_jinni : null;
                     // server shouldnt allow multiple jinnis yet. Just in case dont overwrite existing uuid
-                    const result = await saveStorage<string>(ID_JINNI_SLOT, uuid, false);
+                    const result = uuid && (await saveStorage<string>(ID_JINNI_SLOT, uuid, false));
                     console.log('Mani:Jinni:ActivateJinn:RES', result);
-                    return async () => (result === uuid ? true : false);
+                    return async () => (uuid ? true : false);
                 } catch (e) {
                     console.error('Mani:Jinni:ActivateJinn:ERROR - ', e);
                     debug(e, {
@@ -129,9 +130,9 @@ const item: InventoryItem = {
                 "Save game progress to your phone'scloud storage to restore account if you lose your phone",
             canDo: async (status: ItemStatus) => {
                 const pk = await getCached({ slot: ID_PKEY_SLOT });
-                if (!pk) return false;
-                if (status === 'equipped') return true;
-                return false; // if not curated then cant save
+                if (!pk) return 'unequipped';
+                if (status === 'equipped') return 'doable';
+                return 'notdoable';
             },
             do: async () => {
                 try {

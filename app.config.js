@@ -106,7 +106,6 @@ export default {
                 'android.permission.health.READ_WEIGHT',
                 'android.permission.FOREGROUND_SERVICE',
             ],
-            package: packageName,
         },
         experiments: {
             typedRoutes: true,

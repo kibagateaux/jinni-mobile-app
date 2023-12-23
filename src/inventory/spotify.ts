@@ -12,9 +12,10 @@ import {
     HoF,
     Resource,
 } from 'types/GameMechanics';
-import { ID_PLAYER_SLOT, SHARE_CONTENT, getCached } from 'utils/config';
+import { ID_PLAYER_SLOT, ID_PROVIDER_TEMPLATE_SLOT, SHARE_CONTENT, getCached } from 'utils/config';
 import { debug, track } from 'utils/logging';
 
+const ITEM_ID = 'Spotify';
 const ABILITY_SHARE_PROFILE = 'spotify-share-profile';
 const ABILITY_SHARE_PLAYLIST = 'spotify-share-playlist';
 const WIDGET_PIN_PLAYLIST = 'spotify-pin-playlist';
@@ -25,7 +26,8 @@ const equip: HoF = async (promptAsync) => {
         // expo-auth-session only exposes API via hooks which we cant embed in this since its a conditional call
         // should we roll our own OAuth lib or just keep this callback method?
         // Slightly complicates equip() vs no params but also enables a ton of functionality for any item
-        promptAsync!();
+        await promptAsync!();
+
         // TODO send mu(syncProvideId). If call fails then login unsuccessful
         return true;
     } catch (e) {
@@ -46,9 +48,9 @@ const unequip: HoF = async () => {
 };
 
 const item: InventoryItem = {
-    id: 'Spotify',
+    id: ITEM_ID,
     name: "Horn o' Vibranium",
-    dataProvider: 'Spotify',
+    dataProvider: ITEM_ID,
     image: 'https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png',
     tags: ['digital', 'music', 'social'],
     installLink: 'https://www.spotify.com/us/download/',
@@ -59,8 +61,12 @@ const item: InventoryItem = {
         { ...IntelligenceStat, value: 5 },
     ],
     checkStatus: async () => {
-        // TODO api request to see if access_token exist on API
-        return 'unequipped';
+        const cached = await getCached({ slot: ID_PROVIDER_TEMPLATE_SLOT + ITEM_ID });
+        console.log('Inv:Spotify:checkStatus', cached);
+
+        // TODO could make api request to see if access_token exist on API but ID should be saved on equip
+        // only irrelevant if logging in old account to new device.
+        return cached ? 'equipped' : 'unequipped';
     },
     canEquip: async () => true,
     equip,
@@ -71,7 +77,7 @@ const item: InventoryItem = {
             name: 'Share Playlist',
             symbol: '🎶',
             description: 'Share a playlist on Spotify with another player',
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 const pid = await getCached({ slot: ID_PLAYER_SLOT });
                 if (!pid) return async () => false;
@@ -107,7 +113,7 @@ const item: InventoryItem = {
             name: 'Share Profile',
             symbol: '🦹‍♂️',
             description: 'Share your Spotfiy profile with another player',
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
                 track(SHARE_CONTENT, {
@@ -175,7 +181,7 @@ const item: InventoryItem = {
             name: 'Silent Disco',
             symbol: '🪩',
             description: 'Create an IRL rave right now!',
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 // @DEV: Only Premium users can start Jams!
                 // get players playlists with name, id
@@ -194,7 +200,7 @@ const item: InventoryItem = {
             symbol: '💃',
             description:
                 'Add a playlist to your homepage that will autoplay when people visit your profile',
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? true : false),
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'notdoable'),
             do: async () => {
                 // fetch their playlists from spotify
                 // open modal

@@ -12,7 +12,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuthRequest } from 'expo-auth-session';
 
-import { InventoryItem, ItemStatus, OAuthProvider, StatsAttribute } from 'types/GameMechanics';
+import {
+    InventoryItem,
+    ItemAbility,
+    ItemStatus,
+    OAuthProvider,
+    StatsAttribute,
+} from 'types/GameMechanics';
 
 import { createOauthRedirectURI, oauthConfigs } from 'utils/oauth';
 import { useInventory } from 'hooks/useInventory';
@@ -37,6 +43,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const { inventory: content } = useGameContent();
     // hooks for items that require 3rd party authentication
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
+    const [activeAbilities, setActiveAbilities] = useState<ItemAbility[]>([]);
 
     const [request, , promptAsync] = useAuthRequest(
         {
@@ -59,6 +66,14 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 item!.checkStatus().then((newStatus: ItemStatus) => {
                     console.log('pg:Inv:Item check item status', newStatus);
                     setStatus(newStatus);
+                    Promise.all(
+                        item.abilities?.filter(async (ability) => {
+                            (await ability.canDo(newStatus)) === 'doable';
+                        }) ?? [],
+                    ).then((active) => {
+                        console.log('pb:Inv:Item post item status abilitiy check', active);
+                        setActiveAbilities(active);
+                    });
                 });
         }
     }, [item, status]);
@@ -217,28 +232,51 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         </View>
     );
 
-    const renderItemAbilities = () => (
+    const onAbilityPress = async (ability: ItemAbility) => {
+        setActiveModal('ability-check');
+        await ability.canDo(item.status!);
+        setActiveModal('ability-activate');
+        await ability.do();
+        setActiveModal('ability-complete');
+    };
+    const renderActiveItemAbilities = () => (
         <View>
             <Text style={styles.sectionTitle}>Abilities</Text>
+            {activeAbilities.length ? (
+                <ScrollView horizontal style={{ flex: 1 }}>
+                    {activeAbilities.map((ability) => (
+                        // TODO check if canDo. yes? do(), no? checkStatus == equipped yes? nothin, no? pop up modal to equip.
+                        // TODO return null if canDo === false but its async function
+                        // need component for install (maybe rename current 'equipwizard' and copy for modal)
+                        <TouchableOpacity key={ability.id} onPress={() => onAbilityPress(ability)}>
+                            <View style={{ marginRight: 24, alignItems: 'center' }}>
+                                <Text style={styles.sectionTitle}>{ability.symbol}</Text>
+                                <Text style={styles.sectionBody}>{ability.name}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            ) : (
+                <Link to="https://nootype.substack.com/subscribe">
+                    <Text>
+                        No Actions Available For This Item Yet. Stay Tuned For Game Updates!!
+                    </Text>
+                </Link>
+            )}
+        </View>
+    );
+
+    const renderAllItemAbilities = () => (
+        <View>
+            <Text style={styles.sectionTitle}>All Abilities</Text>
             {item?.abilities?.length ? (
                 <ScrollView horizontal style={{ flex: 1 }}>
-                    {item?.abilities.map(
-                        (
-                            ability, // TODO return null if canDo === false but its async function
-                        ) => (
-                            // TODO check if canDo. yes? do(), no? checkStatus == equipped yes? nothin, no? pop up modal to equip.
-                            // need component for install (maybe rename current 'equipwizard' and copy for modal)
-                            <TouchableOpacity key={ability.id} onPress={() => ability.do()}>
-                                <View
-                                    key={ability.id}
-                                    style={{ marginRight: 24, alignItems: 'center' }}
-                                >
-                                    <Text style={styles.sectionTitle}>{ability.symbol}</Text>
-                                    <Text style={styles.sectionBody}>{ability.name}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ),
-                    )}
+                    {item?.abilities.map((ability) => (
+                        <View key={ability.id} style={{ marginRight: 24, alignItems: 'center' }}>
+                            <Text style={styles.sectionTitle}>{ability.symbol}</Text>
+                            <Text style={styles.sectionBody}>{ability.name}</Text>
+                        </View>
+                    ))}
                 </ScrollView>
             ) : (
                 <Link to="https://nootype.substack.com/subscribe">
@@ -291,9 +329,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             case 'equipped':
                 return (
                     <View>
-                        {renderItemAbilities()}
+                        {renderActiveItemAbilities()}
                         {renderItemWidgets()}
                         {renderItemContent()}
+                        {renderAllItemAbilities()}
                     </View>
                 );
             case 'unequipped':
@@ -301,7 +340,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 return (
                     <View>
                         {renderItemContent()}
-                        {renderItemAbilities()}
+                        {renderAllItemAbilities()}
                         {renderItemWidgets()}
                     </View>
                 );

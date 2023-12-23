@@ -22,6 +22,7 @@ export const useExternalServices = (): ExternalServicesConsumables => {
 type Props = {
     children?: React.ReactNode;
 };
+
 export const ExternalServicesProvider: React.FC<Props> = ({ children }) => {
     const [sentry, setSentry] = useState<SentryClient>(null);
     const [segment, setSegment] = useState<SegmentClient>(null);
