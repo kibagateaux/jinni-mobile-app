@@ -19,7 +19,7 @@ ios/
 *.p12
 *.key
 *.mobileprovision
-
+ 
 # Metro
 .metro-health-check*
 
@@ -27,6 +27,7 @@ ios/
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+.hypothesis
 
 # macOS
 .DS_Store

@@ -9,7 +9,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useAuthRequest } from 'expo-auth-session';
 
 import {
@@ -45,6 +45,8 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
     const [activeAbilities, setActiveAbilities] = useState<ItemAbility[]>([]);
 
+    console.log('pg:inventory:item:Load', id, item?.tags);
+
     const [request, , promptAsync] = useAuthRequest(
         {
             clientId: itemOauthConfig.clientId,
@@ -66,15 +68,20 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 item!.checkStatus().then((newStatus: ItemStatus) => {
                     console.log('pg:Inv:Item check item status', newStatus);
                     setStatus(newStatus);
-                    Promise.all(
-                        item.abilities?.filter(async (ability) => {
-                            (await ability.canDo(newStatus)) === 'doable';
-                        }) ?? [],
-                    ).then((active) => {
-                        console.log('pb:Inv:Item post item status abilitiy check', active);
-                        setActiveAbilities(active);
-                    });
                 });
+        }
+    }, [item, status]);
+
+    useMemo(() => {
+        if (item?.abilities?.length && status) {
+            Promise.all(
+                item.abilities?.filter(async (ability) => {
+                    (await ability.canDo(status!)) === 'doable';
+                }) ?? [],
+            ).then((active) => {
+                console.log('pb:Inv:Item post item status abilitiy check', active);
+                setActiveAbilities(active);
+            });
         }
     }, [item, status]);
 
@@ -118,13 +125,13 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                     : await item.equip();
                 // if result.error = "transceive fail" try majik ritual again
                 if (result) {
-                    setStatus('post-equip');
+                    // setStatus('post-equip');
                     // TODO api request to add item to their avatar (:DataProvider or :Resource?)
                     setStatus('equipped');
+                } else {
+                    // assume failure
+                    setStatus('unequipped');
                 }
-
-                // assume failure
-                setStatus('unequipped');
             } catch (e) {
                 console.log('Error Equipping:', e);
                 setStatus('unequipped');
@@ -241,7 +248,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     };
     const renderActiveItemAbilities = () => (
         <View>
-            <Text style={styles.sectionTitle}>Abilities</Text>
+            <Text style={styles.sectionTitle}>Active Abilities</Text>
             {activeAbilities.length ? (
                 <ScrollView horizontal style={{ flex: 1 }}>
                     {activeAbilities.map((ability) => (
@@ -349,11 +356,11 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     return (
         <View style={styles.container}>
-            {/* <Stack.Screen
+            <Stack.Screen
                 options={{
-                title: item.name,
+                    title: item.name,
                 }}
-            /> */}
+            />
             <View style={styles.topContainer}>
                 <View style={styles.itemImageContainer}>
                     <Image source={{ uri: item.image }} style={styles.itemImage} />

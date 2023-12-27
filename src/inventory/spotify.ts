@@ -1,5 +1,6 @@
 import { Platform, Share } from 'react-native';
-import { getProviderId, qu } from 'utils/api';
+import { qu } from 'utils/api';
+import { getProviderId } from 'utils/oauth';
 
 import {
     InventoryIntegration,
@@ -122,16 +123,25 @@ const item: InventoryItem = {
                 });
                 const pid = await getCached({ slot: ID_PLAYER_SLOT });
                 console.log('Spotify:Ability:ShareProfile:pid', pid);
-                if (!pid) return async () => false;
+                if (!pid) {
+                    track(SHARE_CONTENT, {
+                        ability: ABILITY_SHARE_PROFILE,
+                        activityType: 'unauthenticated',
+                        success: false,
+                    });
+                    return async () => false;
+                }
                 try {
-                    const providerId = await getProviderId(pid)('Spotify');
+                    const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
                     console.log('Spotify:Ability:ShareProfile:pid', providerId);
                     if (!providerId) {
                         track(SHARE_CONTENT, {
                             ability: ABILITY_SHARE_PROFILE,
                             activityType: 'unequipped',
                             providerId,
+                            success: false,
                         });
+                        return async () => false;
                     }
                     const profileUrl = `https://open.spotify.com/user/${providerId}`;
                     const { action, activityType } = await Share.share({
@@ -149,6 +159,7 @@ const item: InventoryItem = {
                             ability: ABILITY_SHARE_PROFILE,
                             activityType: activityType ?? 'shared',
                             providerId,
+                            success: true,
                         });
                         return async () => true;
                     }
@@ -165,6 +176,7 @@ const item: InventoryItem = {
                     track(SHARE_CONTENT, {
                         ability: ABILITY_SHARE_PROFILE,
                         activityType: 'failed',
+                        success: false,
                     });
                     debug({
                         extra: { ability: ABILITY_SHARE_PROFILE },

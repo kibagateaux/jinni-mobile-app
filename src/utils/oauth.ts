@@ -106,9 +106,10 @@ export const QU_PROVIDER_ID = cleanGql(`
  * @param provider
  * @returns id on provider or null
  */
-export const getProviderId = memoize(async ({ playerId, provider }) => {
+export const getProviderId = memoize(async ({ playerId, provider }): Promise<string | null> => {
     const response = await qu<string | null>({ query: QU_PROVIDER_ID })({ playerId, provider });
     const id = response?.data ? response.data.provider_id : null;
     console.log('util:oauth:getProviderId', response, id);
     id && (await saveStorage(ID_PROVIDER_TEMPLATE_SLOT + provider, id, false));
+    return id;
 }, JSON.stringify);

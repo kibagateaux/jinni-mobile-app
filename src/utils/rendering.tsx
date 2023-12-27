@@ -17,8 +17,7 @@ export const getIconForWidget = (widgetId: string, iconOptions: WidgetIconProps)
                 ?.symbol ?? '¿'
         );
 
-    const { color } = iconOptions ?? { focused: true, color: 'black', size: 1 };
-    const svgProps = { color };
+    const svgProps = iconOptions ?? { focused: true, color: 'black', size: 1 };
     switch (widgi) {
         case 'page-home':
             return <Text> 🧞‍♂️ </Text>;

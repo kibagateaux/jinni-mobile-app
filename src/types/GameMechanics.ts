@@ -8,11 +8,38 @@ export interface Avatar {
  * @notice - all text content for guiding users through the game
  * @TODO - integrate i18n
  */
+export type ModalContentProps = {
+    // key = ItemIds
+    modal: {
+        title: string | ((dialogueData: object) => string);
+        text: string | ((dialogueData: object) => string);
+    };
+};
 export type GameContent = {
     inventory: {
         [key: string]: {
             // key = ItemIds
-            [key: string]: string; // key = ItemStatus
+            [key: string]:
+                | {
+                      // key = meta
+                      description: string;
+                      perks: string;
+                  }
+                | ModalContentProps; // key = ItemStatus
+        };
+    };
+    onboarding: {
+        modals: {
+            [key: string]: {
+                // key = OnboardinFlowId
+                [key: string]: string; // key = ModalId
+            };
+        };
+    };
+    modals: {
+        [key: string]: {
+            // key = ModalId
+            [key: string]: ModalContentProps;
         };
     };
 };

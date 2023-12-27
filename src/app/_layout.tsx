@@ -14,6 +14,8 @@ import { WidgetConfig } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
 export default function HomeLayout() {
+    // has to be in nested _layout https://docs.expo.dev/router/reference/authentication/#after
+    // useDeepLinks();
     const homeConfig = useHomeConfig();
     const [tabConfig, setTabConfig] = useState<WidgetConfig[]>([]);
 
@@ -23,10 +25,14 @@ export default function HomeLayout() {
         }
     }, [homeConfig, tabConfig]);
 
-    // console.log("Home:tabs", tabConfig)
+    console.log('pg:home:layout: no deep links');
     return (
         <ContextProvider>
-            <Tabs>
+            <Tabs
+                screenOptions={{
+                    headerShown: false,
+                }}
+            >
                 {tabConfig.map((tab) => (
                     <Tabs.Screen
                         key={tab.title}

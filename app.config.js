@@ -1,6 +1,6 @@
 // eslint-ignore-next-line no-undef
-const VARIANT = process.env.EXPO_PUBLIC_APP_VARIANT;
-// console.log('GENERATING APP CONFIG FOR VARIANT:', VARIANT);
+const VARIANT = process.env.APP_VARIANT || 'development';
+// console.log("GENERATING APP CONFIG FOR VARIANT:", VARIANT);
 const isProd = VARIANT === 'production';
 const packageName = isProd ? 'com.jinnihealth' : `com.jinnihealth.${VARIANT}`;
 const appName = isProd ? 'Jinni Health' : `Jinni (${VARIANT}) `;
@@ -57,7 +57,7 @@ export default {
         ],
         hooks: {
             postPublish: [
-                VARIANT === 'development'
+                !isProd
                     ? {}
                     : {
                           file: 'sentry-expo/upload-sourcemaps',

@@ -7,28 +7,28 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_APP_VARIANT": "development",
-        "EXPO_PUBLIC_API_URL": "apprentice.scryer.jinni.health"
+        "APP_VARIANT": "development",
+        "EXPO_PUBLIC_API_URL": "apprentice-scryer.jinni.health"
       },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
       }
     },
-    "testing": {
+    "staging": {
       "env": {
-        "EXPO_PUBLIC_APP_VARIANT": "testing",
-        "EXPO_PUBLIC_API_URL": "apprentice.scryer.jinni.health"
+        "APP_VARIANT": "staging",
+        "EXPO_PUBLIC_API_URL": "apprentice-scryer.jinni.health"
       },
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug"
+        "gradleCommand": ":app:assembleRelease"
       }
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_APP_VARIANT": "production",
-        "EXPO_PUBLIC_API_URL": "master.scryer.jinni.health"
+        "APP_VARIANT": "production",
+        "EXPO_PUBLIC_API_URL": "master-scryer.jinni.health"
       },
       "android": {
         "buildType": "app-bundle",

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Text, StyleSheet, SectionList, ActivityIndicator, View } from 'react-native';
+// import { Stack } from 'expo-router';
 import { groupBy, entries, map } from 'lodash/fp';
 
 import { useInventory } from 'hooks';
@@ -53,10 +54,8 @@ const InventoryScreen: React.FC = () => {
     return loading ? (
         <ActivityIndicator animating size="large" />
     ) : (
-        // TODO https://reactnative.dev/docs/optimizing-flatlist-configuration
         <SectionList
             style={styles.container}
-            // contentContainerStyle={styles.itemList}
             sections={categorizedInventory}
             ItemSeparatorComponent={() => <View style={styles.itemSeperator} />}
             renderSectionHeader={renderCategoryHeader}

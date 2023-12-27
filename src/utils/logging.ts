@@ -19,7 +19,7 @@ export const getSentry = (): SentryClient => {
     if (!sentryClient && process.env.EXPO_PUBLIC_SENTRY_DSN) {
         Sentry.init({
             dsn: process.env.EXPO_PUBLIC_SENTRY_DSN!,
-            environment: process.env.EXPO_PUBLIC_APP_VARIANT,
+            environment: process.env.NODE_ENV,
             //   release: 'my release name',
             //   dist: 'my dist',
             tracesSampleRate: 1.0,
@@ -84,6 +84,6 @@ export const track = (eventName: string, data: JsonMap) =>
     !__DEV__ &&
     getSegment()?.track(eventName, {
         ...data,
-        environment: process.env.EXPO_PUBLIC_APP_VARIANT,
+        environment: process.env.NODE_ENV,
         platform: Platform.OS,
     });

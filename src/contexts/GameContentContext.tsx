@@ -1,6 +1,6 @@
 //theme.tsx
 import React, { createContext } from 'react';
-import { GameContent } from 'types';
+import { GameContent } from 'types/GameMechanics';
 import content from 'assets/game-content';
 
 const GameContentContext = createContext<GameContent>(content);

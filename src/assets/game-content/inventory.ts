@@ -81,4 +81,32 @@ export default {
             },
         },
     },
+    Github: {
+        meta: {
+            description:
+                'Login to Github so your Jinni learn from your dev skills and automagically evolve',
+            perks: `1. Train your Jinni on how you think
+2. Track your daily work routines
+3. Expand your network effect with other devs
+            `,
+        },
+        equipping: {
+            modal: {
+                title: 'You are equipping an item',
+                text: `Suctioning 🐙 on to your giga🧠`,
+            },
+        },
+        equipped: {
+            modal: {
+                title: 'You have sucessfully equipped your item!',
+                text: `Your Jinni is succing on your sweet brain juice`,
+            },
+        },
+        'post-equip': {
+            modal: {
+                title: 'Congrats on acquiring your new item!',
+                text: ``,
+            },
+        },
+    },
 };

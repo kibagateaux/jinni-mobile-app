@@ -11,7 +11,6 @@ export interface CreateSpellbookModalProps {
 
 const CreateSpellbookModal = ({ dialogueData = {} }: CreateSpellbookModalProps) => {
     const content = useGameContent().onboarding.modals['create-spellbook'];
-    console.log('game item content', content);
     if (!content) return null;
 
     const titleTemplate = content.title;
