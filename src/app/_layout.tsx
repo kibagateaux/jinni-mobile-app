@@ -14,8 +14,6 @@ import { WidgetConfig } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
 export default function HomeLayout() {
-    // has to be in nested _layout https://docs.expo.dev/router/reference/authentication/#after
-    // useDeepLinks();
     const homeConfig = useHomeConfig();
     const [tabConfig, setTabConfig] = useState<WidgetConfig[]>([]);
 

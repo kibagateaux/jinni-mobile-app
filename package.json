@@ -8,8 +8,7 @@
     "test:ci": "jest --ci --colors",
     "postinstall": "patch-package && rn-nodeify --install all --hack",
     "android": "APP_VARIANT=development npx expo run:android -d --variant developmentDebug",
-    "install:android": "source .env; APP_VARIANT=production npx eas build --local --platform android -e staging --output app.apk; adb install ./app.apk",
-    "deploy:secrets": "eas secret:push --scope jinni-health --env-file ./.env",
+    "install:android": "source .env && npx eas build --local --platform android -e $APP_VARIANT --output app.apk; adb install ./app.apk",
     "ios": "expo run:ios",
     "lint:dry": "eslint ./src/ .eslintrc.js --ext .ts,.tsx && prettier ./src/ --config .prettierrc --check",
     "lint:fix": "eslint ./src/ --fix .eslintrc.js --ext .ts,.tsx && prettier ./src/ --config .prettierrc --write --ignore-unknown"

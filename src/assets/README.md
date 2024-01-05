@@ -3,6 +3,7 @@
 https://docs.expo.dev/versions/latest/sdk/svg/
 
 ### Convert PNG -> SVGs -> RN Component
+
 https://svgtrace.com/png-to-svg
 https://react-svgr.com/playground/?native=true&typescript=true
 
