@@ -9,7 +9,7 @@ export default {
     expo: {
         name: appName,
         slug: 'jinni-health',
-        version: '0.0.1',
+        version: '1.0.0',
         orientation: 'portrait',
         icon: './public/icon.png',
         userInterfaceStyle: 'light',
@@ -81,6 +81,7 @@ export default {
         },
         android: {
             package: packageName,
+            versionCode: 2,
             adaptiveIcon: {
                 foregroundImage: './public/adaptive-icon.png',
                 backgroundColor: '#ffffff',
