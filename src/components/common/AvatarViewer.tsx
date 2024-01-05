@@ -1,8 +1,6 @@
 import React from 'react';
-import { Dimensions, View, PanResponder, Text } from 'react-native';
+import { View, PanResponder, Text } from 'react-native';
 // import { GLView } from 'expo-gl';
-
-const { width, height } = Dimensions.get('window');
 
 interface AvatarViewerProps {
     uri?: string;
@@ -30,8 +28,11 @@ const AvatarViewer = ({ SVG, uri, is3d }: AvatarViewerProps) => {
         <View
             {...panResponder.panHandlers}
             style={{
-                width: width * 0.5,
-                height: height * 0.75,
+                // TODO unhardcode this and egg/avatar SVG height/width with Dimension.get('window')
+                width: 150,
+                height: 200,
+                // width: width * 0.5,
+                // height: height * 0.75,
                 transform: [{ rotateZ: `${rotation}deg` }],
             }}
         >

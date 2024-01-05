@@ -2,8 +2,8 @@
 
 https://docs.expo.dev/versions/latest/sdk/svg/
 
-### Convert SVGs -> RN Component
-
+### Convert PNG -> SVGs -> RN Component
+https://svgtrace.com/png-to-svg
 https://react-svgr.com/playground/?native=true&typescript=true
 
 ## Game Content
