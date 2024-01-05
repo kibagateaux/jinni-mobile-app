@@ -25,14 +25,8 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
         onClose && onClose();
     };
 
-    const backgroundStyles = {
-        backgroundColor: 'white',
-        borderColor: 'pink',
-        shadowColor: 'pink',
-    };
     const textStyles = {
         color: theme.primaryTextColor,
-        textShadowColor: 'pink',
     };
 
     return !visible ? null : (
@@ -42,7 +36,6 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
             visible={visible}
             onRequestClose={closeModal}
         >
-            <View style={[styles.modalSize, styles.overlay, backgroundStyles]} />
             <View style={[styles.contentContainer, styles.modalSize]}>
                 {children}
                 <View>
@@ -69,7 +62,7 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
                             </TouchableOpacity>
                         )}
                     </View>
-                    <Button title="Close" color="red" onPress={closeModal} />
+                    <Button title="Close" color="purple" onPress={closeModal} />
                 </View>
             </View>
         </Modal>
@@ -78,28 +71,23 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
 
 const styles = StyleSheet.create({
     modalSize: {
-        top: '25%',
-        left: '5%',
-        right: '5%',
-        bottom: '25%',
-    },
-    overlay: {
-        // position: 'absolute',
-        top: 0,
-        left: 0,
-        opacity: 1,
+        top: '15%',
+        left: '10%',
+        right: '10%',
+        bottom: '15%',
+        // shadowColor: '#FFC1CB',
+        // shadowOffset: { width: 5, height: 10 },
+        // shadowOpacity: 1,
+        // shadowRadius: 10,
     },
     contentContainer: {
+        backgroundColor: 'white',
         position: 'absolute',
-        borderRadius: 10,
-        padding: 25,
-        borderWidth: 2,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.8,
-        shadowRadius: 10,
-        elevation: 10,
         flexDirection: 'column',
         justifyContent: 'space-between',
+        padding: 25,
+        borderWidth: 2,
+        borderRadius: 10,
     },
     text: {
         fontSize: 24,
@@ -121,64 +109,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginTop: 20,
     },
-    loadingIndicator: {
-        position: 'absolute',
-        alignSelf: 'center',
-    },
-    // TODO background option. Giant white fluffy circle that fades into background. AI has been shit at making it
-    // modal: {
-    //     // position: 'relative',
-    //     height: '100%',
-    //     width: '100%',
-    // },
-    // overlay: {
-    //     opacity: 0.8,
-    //     position: 'absolute',
-    //     top: 0,
-    //     left: 0,
-    //     height: 500,
-    //     width: 500,
-    //     borderRadius: 200,
-    // },
-    // contentContainer: {
-    //     position: 'absolute',
-    //     top: '25%',
-    //     left: '5%',
-    //     right: '5%',
-    //     bottom: '25%',
-    //     // borderRadius: 50,
-    //     // borderWidth: 2,
-    //     // shadowOffset: { width: 0, height: 2 },
-    //     // shadowOpacity: 0.8,
-    //     // shadowRadius: 50,
-    //     elevation: 10,
-    //     justifyContent: 'center',
-    // },
-    // text: {
-    //     fontSize: 24,
-    //     fontWeight: 'bold',
-    //     textShadowOffset: { width: -1, height: 1 },
-    //     textShadowRadius: 10,
-    // },
-    // buttonContainer: {
-    //     flexDirection: 'row',
-    //     justifyContent: 'space-between',
-    //     marginTop: 20,
-    // },
-    // button: {
-    //     padding: 10,
-    //     borderRadius: 5,
-    //     marginHorizontal: 5,
-    // },
-    // closeButton: {
-    //     padding: 10,
-    //     borderRadius: 5,
-    //     marginTop: 20,
-    // },
-    // loadingIndicator: {
-    //     position: 'absolute',
-    //     alignSelf: 'center',
-    // },
 });
 
 export default BaseModal;
