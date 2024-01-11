@@ -13,8 +13,9 @@ import {
     HoF,
     Resource,
 } from 'types/GameMechanics';
-import { ID_PLAYER_SLOT, ID_PROVIDER_TEMPLATE_SLOT, SHARE_CONTENT, getCached } from 'utils/config';
+import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, SHARE_CONTENT, getCached } from 'utils/config';
 import { debug, track } from 'utils/logging';
+import { obj } from 'types/UserConfig';
 
 const ITEM_ID = 'Spotify';
 const ABILITY_SHARE_PROFILE = 'spotify-share-profile';
@@ -62,12 +63,19 @@ const item: InventoryItem = {
         { ...IntelligenceStat, value: 5 },
     ],
     checkStatus: async () => {
-        const cached = await getCached({ slot: ID_PROVIDER_TEMPLATE_SLOT + ITEM_ID });
+        console.log(
+            'Inv:Spotify:checkStatus',
+            await getCached({ slot: ID_PLAYER_SLOT }),
+            await getCached({ slot: ID_PROVIDER_IDS_SLOT }),
+            ITEM_ID,
+        );
+        const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[ITEM_ID];
         console.log('Inv:Spotify:checkStatus', cached);
 
         // TODO could make api request to see if access_token exist on API but ID should be saved on equip
         // only irrelevant if logging in old account to new device.
         return cached ? 'equipped' : 'unequipped';
+        // return 'equipped';
     },
     canEquip: async () => true,
     equip,
@@ -93,9 +101,9 @@ const item: InventoryItem = {
                             verification: $verification
                             target_player: $target_player
                         ) {
+                            id
                             name
                             href
-                            provider_id
                         }
                     }
                 `,
@@ -132,8 +140,9 @@ const item: InventoryItem = {
                     return async () => false;
                 }
                 try {
+                    console.log('Spotify:Ability:ShareProfile:get-id');
                     const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
-                    console.log('Spotify:Ability:ShareProfile:pid', providerId);
+                    console.log('Spotify:Ability:ShareProfile:id', providerId);
                     if (!providerId) {
                         track(SHARE_CONTENT, {
                             ability: ABILITY_SHARE_PROFILE,

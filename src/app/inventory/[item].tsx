@@ -17,10 +17,11 @@ import {
     ItemAbility,
     ItemStatus,
     OAuthProvider,
+    OAuthProviderIds,
     StatsAttribute,
 } from 'types/GameMechanics';
 
-import { createOauthRedirectURI, oauthConfigs } from 'utils/oauth';
+import { createOauthRedirectURI, oauthConfigs, generateRedirectState } from 'utils/oauth';
 import { useInventory } from 'hooks/useInventory';
 import { useGameContent } from 'contexts/GameContentContext';
 
@@ -47,22 +48,29 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     console.log('pg:inventory:item:Load', id, item?.tags);
 
-    const [request, , promptAsync] = useAuthRequest(
+    const [request, response, promptAsync] = useAuthRequest(
         {
             clientId: itemOauthConfig.clientId,
             scopes: itemOauthConfig.scopes,
-            redirectUri: `${createOauthRedirectURI()}?provider=${item?.id.toLowerCase()}`,
+            redirectUri: `${createOauthRedirectURI()}?provider=${item?.id}`,
+            state: itemOauthConfig.state,
             usePKCE: false,
         },
         itemOauthConfig,
     );
     // console.log('Item: oauth', itemOauthConfig, request, response);
 
-    useMemo(() => {
+    useMemo(async () => {
         if (item?.id) {
             // configure oauth if required for item equip/unequip
             const oauth = oauthConfigs[item.id];
-            if (oauth) setItemOauth(oauth);
+            console.log('page:inv:item:oauth', oauth);
+            if (oauth)
+                setItemOauth({
+                    ...oauth,
+                    state: await generateRedirectState(item.id as OAuthProviderIds),
+                });
+
             // we cant store item status in config so compute and store in store
             if (!status)
                 item!.checkStatus().then((newStatus: ItemStatus) => {
@@ -120,10 +128,13 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
                 // TODO should we add tags to items for different callback types and UI filtering?
                 // or just a single, optional callback func that handles everything for equip?
-                const result = itemOauthConfig.authorizationEndpoint
-                    ? await item.equip(promptAsync)
-                    : await item.equip();
+                const result =
+                    itemOauthConfig.authorizationEndpoint && request
+                        ? await item.equip(promptAsync)
+                        : await item.equip();
                 // if result.error = "transceive fail" try majik ritual again
+                console.log('Oauth request/response', request, response);
+
                 if (result) {
                     // setStatus('post-equip');
                     // TODO api request to add item to their avatar (:DataProvider or :Resource?)

@@ -10,9 +10,19 @@ import {
 import * as WebBrowser from 'expo-web-browser';
 const SCHEME = Constants.expoConfig?.scheme ?? 'jinni-health';
 // const useProxy = Constants.appOwnership === 'expo' && Platform.OS !== 'web';
-import { OAuthProvider } from 'types/GameMechanics';
-import { ID_PROVIDER_TEMPLATE_SLOT, getAppConfig, saveStorage } from './config';
+import { OAuthProvider, OAuthProviderIds } from 'types/GameMechanics';
+import {
+    ID_OAUTH_NONCE_SLOT,
+    ID_PLAYER_SLOT,
+    ID_PROVIDER_TEMPLATE_SLOT,
+    getAppConfig,
+    getCached,
+    saveStorage,
+} from './config';
 import { cleanGql, qu } from './api';
+import { getSpellBook } from './zkpid';
+import { obj } from 'types/UserConfig';
+import { randomUUID } from 'expo-crypto';
 
 // allows the web browser to close correctly when using universal login on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -67,33 +77,52 @@ export const oauthConfigs: { [key: string]: OAuthProvider } = {
 };
 
 export const createOauthRedirectURI = memoize(() => {
-    console.log('util:oauth:DeepLinkScheme', SCHEME);
+    console.log('util:oauth:DeepLinkScheme', SCHEME, getAppConfig().API_URL);
 
     if (Platform.OS !== 'web') {
         return makeRedirectUri({
             native: Platform.select({
-                // android: `https://3e4b-45-164-150-39.ngrok-free.app/oauth/callback`,
-                // ios: `https://3e4b-45-164-150-39.ngrok-free.app/oauth/callback`,
-                android: `${getAppConfig().API_URL}/oauth/callback`,
-                ios: `${getAppConfig().API_URL}/oauth/callback`,
+                android: `https://30d6-45-7-237-230.ngrok-free.app/oauth/callback`,
+                ios: `https://30d6-45-7-237-230.ngrok-free.app/oauth/callback`,
+                // android: `${getAppConfig().API_URL}/oauth/callback`,
+                // ios: `${getAppConfig().API_URL}/oauth/callback`,
             }),
         });
     }
     return null;
 });
 
+/**
+ * @desc
+ * @param provider - oauth provider that request is being sent to
+ * @returns state param for server + app to verify user + session is a valid oauth request
+ */
+export const generateRedirectState = async (provider: OAuthProviderIds): Promise<string> => {
+    const nonce = randomUUID();
+    const player = await getCached({ slot: ID_PLAYER_SLOT });
+    if (!player) return Promise.resolve(nonce);
+
+    const sig = await (await getSpellBook()).signMessage(`${player}.${provider}.${nonce}`);
+    console.log('gen oauth state', nonce, sig);
+    const state = `${player}.${nonce}.${sig}`;
+    saveStorage(ID_OAUTH_NONCE_SLOT, { [provider]: state }, true).then((store) => {
+        console.log('util:oauth:genState:nonce-saved', provider, store);
+    });
+    return state;
+};
+
 export const QU_PROVIDER_ID = cleanGql(`
-    query(
+    mutation(
         $verification: SignedRequest!,
         $provider: String!,
         $playerId: String!
     ) {
-        provider_id(
+        sync_provider_id(
             verification: $verification, 
             provider: $provider,
             player_id: $playerId
         ) {
-            provider_id
+            id
         }
     }
 `);
@@ -101,15 +130,21 @@ export const QU_PROVIDER_ID = cleanGql(`
 // frequent helper functions + extra caching
 /**
  * @description fetches the players id on integrations platform to use in abilities and widgets
- * @dev custom resolver func so cache based on values not object identity
- * @param playerId
- * @param provider
+ * @dev saves provider id
+ * @param playerId - player we want to get id for
+ * @param provider - provider that issues id
  * @returns id on provider or null
  */
-export const getProviderId = memoize(async ({ playerId, provider }): Promise<string | null> => {
-    const response = await qu<string | null>({ query: QU_PROVIDER_ID })({ playerId, provider });
-    const id = response?.data ? response.data.provider_id : null;
+export const getProviderId = async ({ playerId, provider }: obj): Promise<string | null> => {
+    const cached = (await getCached<obj>({ slot: ID_PROVIDER_TEMPLATE_SLOT }))?.[provider];
+    console.log('util:oauth:getProviderId:cached', cached);
+    if (cached) return cached;
+    const response = await qu({ mutation: QU_PROVIDER_ID })({ playerId, provider });
+    console.log('util:oauth:getProviderId:res', response);
+    const id = response?.data ? response.data.id : null;
     console.log('util:oauth:getProviderId', response, id);
-    id && (await saveStorage(ID_PROVIDER_TEMPLATE_SLOT + provider, id, false));
+    id &&
+        playerId === (await getCached<string>({ slot: ID_PLAYER_SLOT })) &&
+        (await saveStorage(ID_PROVIDER_TEMPLATE_SLOT, { [provider]: id }, true));
     return id;
-}, JSON.stringify);
+};

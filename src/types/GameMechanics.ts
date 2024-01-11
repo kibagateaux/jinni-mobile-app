@@ -9,6 +9,13 @@ export interface Avatar {
  * @TODO - integrate i18n
  */
 export type ModalContentProps = {
+    wizard: {
+        // key 0-indexed  order
+        [key: number]: {
+            title: string | ((dialogueData: object) => string);
+            text: string | ((dialogueData: object) => string);
+        };
+    };
     // key = ItemIds
     modal: {
         title: string | ((dialogueData: object) => string);
@@ -207,4 +214,5 @@ export interface OAuthProvider {
     revocationEndpoint?: string;
     clientId: string;
     scopes: string[];
+    state?: string; // signed nonce to verify to server + app that response is valid and from user
 }

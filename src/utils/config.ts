@@ -20,7 +20,6 @@ import { debug, track } from './logging';
 
 // Storage slots for different config items
 export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
-export const ID_PROVIDER_TEMPLATE_SLOT = 'provider.';
 
 export const MALIKS_MAJIK_CARD = '0x46C79830a421038E75853eD0b476Ae17bFeC289A';
 export const MAJIK_CARDS = [MALIKS_MAJIK_CARD];
@@ -35,6 +34,8 @@ export const ID_ANON_SLOT = '_anon_id';
 export const ID_PLAYER_SLOT = '_address_id';
 export const ID_PKEY_SLOT = '_private_key_uwu_';
 export const ID_JINNI_SLOT = '_jinni_uuid';
+export const ID_PROVIDER_IDS_SLOT = '_provider_ids';
+export const ID_OAUTH_NONCE_SLOT = '_oauth_nonces';
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
 
 export const getCached = memoize(

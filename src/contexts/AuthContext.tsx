@@ -8,17 +8,17 @@ import { Wallet } from 'ethers';
 import { ID_ANON_SLOT, ID_PLAYER_SLOT, getCached } from 'utils/config';
 
 interface AuthConsumables {
-    player: Avatar | null;
-    anonId: Identity | null;
-    spellbook: Wallet | null;
+    player: Avatar | undefined;
+    anonId: Identity | undefined;
+    spellbook: Wallet | undefined;
     getSpellBook: () => void;
 }
 
 export const AuthContext = createContext<AuthConsumables>({
-    player: null,
-    anonId: null,
-    spellbook: null,
-    getSpellBook: () => null,
+    player: undefined,
+    anonId: undefined,
+    spellbook: undefined,
+    getSpellBook: () => undefined,
 });
 
 export const useAuth = (): AuthConsumables => {
@@ -31,9 +31,9 @@ type Props = {
 
 export const AuthProvider: React.FC<Props> = ({ children }) => {
     const { sentry, segment } = useExternalServices();
-    const [player, setPlayer] = useState<Avatar | null>(null);
-    const [anonId, setAnonId] = useState<Identity | null>(null);
-    const [spellbook, setSpellbook] = useState<Wallet | null>(null);
+    const [player, setPlayer] = useState<Avatar | undefined>(undefined);
+    const [anonId, setAnonId] = useState<Identity | undefined>(undefined);
+    const [spellbook, setSpellbook] = useState<Wallet | undefined>(undefined);
 
     const login = useCallback(
         (id: string) => {
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     useMemo(() => {
         console.log('AuthContext: set player id', player?.id);
         if (!player?.id) {
-            getCached({ slot: ID_PLAYER_SLOT }).then((id) => id && login(id));
+            getCached<string>({ slot: ID_PLAYER_SLOT }).then((id) => id && login(id));
             // magicRug();
         } else {
             //  hydrate spellbook manually once required to prevent slow app start

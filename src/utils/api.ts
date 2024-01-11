@@ -10,7 +10,7 @@ export const getGqlClient = () =>
     client
         ? client
         : (client = new ApolloClient({
-              uri: `${getAppConfig().API_URL}/graphql` ?? 'localhost:8888/graphql',
+              uri: `${getAppConfig().API_URL}` ?? 'http://localhost:8888/graphql',
               cache: new InMemoryCache(),
 
               // optional metadata
@@ -22,6 +22,7 @@ interface Query {
     query: string;
     mutation?: string;
 }
+
 interface Mutation {
     mutation: string;
     query?: string;
@@ -51,17 +52,24 @@ export const qu =
         };
         console.log('api:qu:(player, vars)', spellbook.address, variables);
         console.log("api:qu:verification '", cleaned, "'", majikMsg);
+        console.log('api:qu:client', getGqlClient());
+        console.log('api:qu:qu/mu', !!query, !!mutation);
+        // console.log("api:qu:req ", await getGqlClient().query({
+        //     ...baseRequest,
+        //   //   fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
+        //     query: gql`${cleaned}`,
+        // }));
         return query
             ? getGqlClient().query({
                   ...baseRequest,
-                  fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
+                  //   fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
                   query: gql`
                       ${cleaned}
                   `,
               })
             : getGqlClient().mutate({
                   ...baseRequest,
-                  optimisticResponse: true,
+                  //   optimisticResponse: true,
                   mutation: gql`
                       ${cleaned}
                   `,

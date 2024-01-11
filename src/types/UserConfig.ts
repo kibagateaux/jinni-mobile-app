@@ -10,7 +10,8 @@ export interface StorageKey {
     secure?: boolean;
 }
 
-export type StorageValue = string | number | object | Identity | undefined | null;
+export type obj = { [key: string]: string };
+export type StorageValue = string | number | obj | Identity | undefined | null;
 export interface HomeConfig {
     jinniImage: string;
     widgets: WidgetConfig[];

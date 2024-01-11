@@ -1,4 +1,14 @@
 export default {
+    wizard: {
+        0: {
+            title: '',
+            text: '',
+        },
+        1: {
+            title: '',
+            text: '',
+        },
+    },
     modals: {
         'create-spellbook': {
             title: 'Retrieving Spellbook',
