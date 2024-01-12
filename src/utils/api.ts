@@ -4,13 +4,12 @@ import { getSpellBook } from 'utils/zkpid';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
 // https://www.apollographql.com/docs/react/caching/advanced-topics#persisting-the-cache
-
 let client: ApolloClient;
 export const getGqlClient = () =>
     client
         ? client
         : (client = new ApolloClient({
-              uri: `${getAppConfig().API_URL}` ?? 'http://localhost:8888/graphql',
+              uri: `${getAppConfig().API_URL}/graphql`,
               cache: new InMemoryCache(),
 
               // optional metadata
@@ -51,14 +50,16 @@ export const qu =
             },
         };
         console.log('api:qu:(player, vars)', spellbook.address, variables);
-        console.log("api:qu:verification '", cleaned, "'", majikMsg);
-        console.log('api:qu:client', getGqlClient());
+        console.log('api:qu:verification ', `'${cleaned}'`, '---', majikMsg);
         console.log('api:qu:qu/mu', !!query, !!mutation);
-        // console.log("api:qu:req ", await getGqlClient().query({
+
+        // getGqlClient().mutate({
         //     ...baseRequest,
-        //   //   fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
-        //     query: gql`${cleaned}`,
-        // }));
+        //     //   fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
+        //     mutation: gql`${cleaned}`,
+        // }).then((req) => console.log("sample qu res", req))
+        // .catch((err) => console.log("sample qu err", err))
+
         return query
             ? getGqlClient().query({
                   ...baseRequest,
@@ -77,7 +78,7 @@ export const qu =
     };
 
 export const MU_ACTIVATE_JINNI = `
-    mutation(
+    mutation jinni_activate(
         $verification: SignedRequest!,
         $majik_msg: String!,
         $player_id: String!
@@ -91,7 +92,7 @@ export const MU_ACTIVATE_JINNI = `
 `;
 
 export const MU_SUBMIT_DATA = `
-    mutation(
+    mutation submit_data(
         $verification: SignedRequest!,
         $data_provider: DataProvider!,
         $data: [RawInputData]!,

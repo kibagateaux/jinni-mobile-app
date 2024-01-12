@@ -34,7 +34,7 @@ interface ItemPageProps {
 }
 
 const ItemPage: React.FC<ItemPageProps> = () => {
-    const { item: id } = useLocalSearchParams();
+    const { item: id }: { item: string } = useLocalSearchParams();
     const { inventory, loading } = useInventory();
     const { player, getSpellBook } = useAuth();
 
@@ -60,27 +60,14 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     );
     // console.log('Item: oauth', itemOauthConfig, request, response);
 
-    useMemo(async () => {
-        if (item?.id) {
-            // configure oauth if required for item equip/unequip
-            const oauth = oauthConfigs[item.id];
-            console.log('page:inv:item:oauth', oauth);
-            if (oauth)
-                setItemOauth({
-                    ...oauth,
-                    state: await generateRedirectState(item.id as OAuthProviderIds),
-                });
-
-            // we cant store item status in config so compute and store in store
-            if (!status)
-                item!.checkStatus().then((newStatus: ItemStatus) => {
-                    console.log('pg:Inv:Item check item status', newStatus);
-                    setStatus(newStatus);
-                });
-        }
-    }, [item, status]);
-
     useMemo(() => {
+        // we cant store item status in config so compute and store in store
+        if (item?.id && !status)
+            item!.checkStatus().then((newStatus: ItemStatus) => {
+                console.log('pg:Inv:Item check item status', newStatus);
+                setStatus(newStatus);
+            });
+
         if (item?.abilities?.length && status) {
             Promise.all(
                 item.abilities?.filter(async (ability) => {
@@ -102,6 +89,19 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             if (item) setItem(item);
         }
     }, [id, item, inventory]);
+
+    useMemo(async () => {
+        if (item?.id) {
+            // configure oauth if required for item equip/unequip
+            const oauth = oauthConfigs[item.id];
+            console.log('page:inv:item:oauth', oauth);
+            if (oauth)
+                setItemOauth({
+                    ...oauth,
+                    state: await generateRedirectState(item.id as OAuthProviderIds),
+                });
+        }
+    }, [item]);
 
     if (loading) return <ActivityIndicator animating size="large" />;
 

@@ -14,7 +14,7 @@ import { OAuthProvider, OAuthProviderIds } from 'types/GameMechanics';
 import {
     ID_OAUTH_NONCE_SLOT,
     ID_PLAYER_SLOT,
-    ID_PROVIDER_TEMPLATE_SLOT,
+    ID_PROVIDER_IDS_SLOT,
     getAppConfig,
     getCached,
     saveStorage,
@@ -112,18 +112,16 @@ export const generateRedirectState = async (provider: OAuthProviderIds): Promise
 };
 
 export const QU_PROVIDER_ID = cleanGql(`
-    mutation(
-        $verification: SignedRequest!,
+    mutation sync_provider_id(
+        $verification: SignedRequest,
         $provider: String!,
-        $playerId: String!
+        $player_id: String!
     ) {
         sync_provider_id(
             verification: $verification, 
             provider: $provider,
-            player_id: $playerId
-        ) {
-            id
-        }
+            player_id: $player_id
+        )
     }
 `);
 
@@ -135,16 +133,22 @@ export const QU_PROVIDER_ID = cleanGql(`
  * @param provider - provider that issues id
  * @returns id on provider or null
  */
+const quProviderId = qu({ mutation: QU_PROVIDER_ID });
 export const getProviderId = async ({ playerId, provider }: obj): Promise<string | null> => {
-    const cached = (await getCached<obj>({ slot: ID_PROVIDER_TEMPLATE_SLOT }))?.[provider];
+    const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[provider];
     console.log('util:oauth:getProviderId:cached', cached);
     if (cached) return cached;
-    const response = await qu({ mutation: QU_PROVIDER_ID })({ playerId, provider });
-    console.log('util:oauth:getProviderId:res', response);
-    const id = response?.data ? response.data.id : null;
-    console.log('util:oauth:getProviderId', response, id);
-    id &&
-        playerId === (await getCached<string>({ slot: ID_PLAYER_SLOT })) &&
-        (await saveStorage(ID_PROVIDER_TEMPLATE_SLOT, { [provider]: id }, true));
-    return id;
+    try {
+        const response = await quProviderId({ player_id: playerId, provider });
+        console.log('util:oauth:getProviderId:res', response.data);
+        const id = response?.data ? response.data.sync_provider_id : null;
+        console.log('util:oauth:getProviderId', response, id);
+        id &&
+            playerId === (await getCached<string>({ slot: ID_PLAYER_SLOT })) &&
+            (await saveStorage(ID_PROVIDER_IDS_SLOT, { [provider]: id }, true));
+        return id;
+    } catch (e) {
+        console.log('util:oauth:getProviderId:ERROR', e);
+        return null;
+    }
 };

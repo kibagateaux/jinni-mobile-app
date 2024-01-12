@@ -63,19 +63,12 @@ const item: InventoryItem = {
         { ...IntelligenceStat, value: 5 },
     ],
     checkStatus: async () => {
-        console.log(
-            'Inv:Spotify:checkStatus',
-            await getCached({ slot: ID_PLAYER_SLOT }),
-            await getCached({ slot: ID_PROVIDER_IDS_SLOT }),
-            ITEM_ID,
-        );
         const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[ITEM_ID];
         console.log('Inv:Spotify:checkStatus', cached);
 
         // TODO could make api request to see if access_token exist on API but ID should be saved on equip
         // only irrelevant if logging in old account to new device.
         return cached ? 'equipped' : 'unequipped';
-        // return 'equipped';
     },
     canEquip: async () => true,
     equip,
