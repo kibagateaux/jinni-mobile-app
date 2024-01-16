@@ -1,5 +1,5 @@
 import { Platform, Share } from 'react-native';
-import { qu } from 'utils/api';
+import { cleanGql, qu } from 'utils/api';
 import { getProviderId } from 'utils/oauth';
 
 import {
@@ -83,24 +83,28 @@ const item: InventoryItem = {
             do: async () => {
                 const pid = await getCached({ slot: ID_PLAYER_SLOT });
                 if (!pid) return async () => false;
-
-                qu<Resource[]>({
-                    query: `
-                    query spotify_top_playlist(
-                        $verification: SignedRequest!
-                        $target_player: SignedRequest!
-                    ) {
-                        spotify_top_playlist(
-                            verification: $verification
-                            target_player: $target_player
+                try {
+                    const response = qu<Resource[]>({
+                        query: cleanGql(`
+                        query spotify_top_playlist(
+                            $verification: SignedRequest!
+                            $target_player: String!
                         ) {
-                            id
-                            name
-                            href
+                            spotify_top_playlist(
+                                verification: $verification
+                                target_player: $target_player
+                            ) {
+                                id
+                                name
+                                href
+                            }
                         }
-                    }
-                `,
-                })({ player_id: pid });
+                    `),
+                    })({ player_id: pid });
+                    console.log('inv:Spotify:SharePlaylist:res', response);
+                } catch (e) {
+                    console.log('inv:Spotify:SharePlaylist:ERROR', e);
+                }
                 // fetch their playlists from spotify
                 // open modal
                 // display playlists

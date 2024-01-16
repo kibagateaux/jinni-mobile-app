@@ -82,8 +82,8 @@ export const createOauthRedirectURI = memoize(() => {
     if (Platform.OS !== 'web') {
         return makeRedirectUri({
             native: Platform.select({
-                android: `https://30d6-45-7-237-230.ngrok-free.app/oauth/callback`,
-                ios: `https://30d6-45-7-237-230.ngrok-free.app/oauth/callback`,
+                android: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
+                ios: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
                 // android: `${getAppConfig().API_URL}/oauth/callback`,
                 // ios: `${getAppConfig().API_URL}/oauth/callback`,
             }),
@@ -124,6 +124,7 @@ export const QU_PROVIDER_ID = cleanGql(`
         )
     }
 `);
+const quProviderId = qu<{ data: { sync_provider_id: string } }>({ mutation: QU_PROVIDER_ID });
 
 // frequent helper functions + extra caching
 /**
@@ -133,7 +134,6 @@ export const QU_PROVIDER_ID = cleanGql(`
  * @param provider - provider that issues id
  * @returns id on provider or null
  */
-const quProviderId = qu({ mutation: QU_PROVIDER_ID });
 export const getProviderId = async ({ playerId, provider }: obj): Promise<string | null> => {
     const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[provider];
     console.log('util:oauth:getProviderId:cached', cached);

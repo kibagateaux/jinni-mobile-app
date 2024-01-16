@@ -329,7 +329,7 @@ export const saveStorage: <T>(
     try {
         if (shouldMerge) {
             console.log(
-                'Config:saveStorage:shouldMerge?',
+                'Config:saveStorage:shouldMerge isArray?',
                 Array.isArray(existingVal),
                 Array.isArray(defaultVal) || defaultVal === undefined,
             );
@@ -347,6 +347,10 @@ export const saveStorage: <T>(
                 updateCache({ slot: key }, value);
                 return newVal;
             } else {
+                console.log(
+                    'Config:saveStorage:shouldMerge isObj?',
+                    existingVal ? merge(existingVal, value) : merge(defaultVal ?? {}, value),
+                );
                 // assume its an object. technically could be a function but thats an object too
                 const newVal = existingVal
                     ? merge(existingVal, value)
