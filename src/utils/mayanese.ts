@@ -205,8 +205,8 @@ const tones: MayanTone[] = [
 
 // export const PORTAL_DAY_0 = '1958-10-30T12:30:00.000Z';
 export const PORTAL_DAY_0 = '1996-01-18T12:30:00.000Z';
-// export const PORTAL_DAY_PRIME = '2023-06-20T12:30:00.000Z';
-export const PORTAL_DAY_PRIME = '2023-10-30T12:30:00.000Z'; // just for testing purposes on current date
+export const PORTAL_DAY_PRIME = '2023-06-20T12:30:00.000Z';
+// export const PORTAL_DAY_PRIME = '2023-10-30T12:30:00.000Z'; // just for testing purposes on current date
 export const PORTAL_DAY_TRANCENDUS = '2032-01-18T12:30:00.000Z';
 
 export const PORTAL_DAY_0_UNIX = new Date(PORTAL_DAY_0).getTime();

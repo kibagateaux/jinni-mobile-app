@@ -17,6 +17,7 @@ import { getProviderId } from 'utils/oauth';
 
 export const ITEM_ID = 'Github';
 export const ABILITY_SYNC_REPOS = 'github-sync-repos';
+export const ABILITY_TRACK_COMMITS = 'github-sync-commits';
 
 const equip: HoF = async (promptAsync) => {
     console.log('equipping github!!!');
@@ -139,13 +140,72 @@ const item: InventoryItem = {
 
                     return async () => false;
                 }
+            },
+        },
+        {
+            id: ABILITY_TRACK_COMMITS,
+            name: 'Track Commits',
+            symbol: '💻',
+            description: 'Jinni will learn from what you have been working on',
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
+            do: async () => {
+                track(ABILITY_TRACK_COMMITS, {
+                    ability: ABILITY_TRACK_COMMITS,
+                    activityType: 'initiated',
+                });
+                const pid = await getCached<string>({ slot: ID_PLAYER_SLOT });
+                if (!pid) {
+                    track(ABILITY_TRACK_COMMITS, {
+                        ability: ABILITY_TRACK_COMMITS,
+                        activityType: 'unauthenticated',
+                    });
+                    return async () => false;
+                }
 
-                // fetch their playlists from spotify
-                // open modal
-                // display playlists
-                // player selects playlist
-                // open phone native share/contacts module
-                // player selects people to send to
+                try {
+                    // ensure provider id to pull
+                    const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
+                    if (!providerId) {
+                        track(ABILITY_TRACK_COMMITS, {
+                            ability: ABILITY_TRACK_COMMITS,
+                            activityType: 'unequipped',
+                            providerId,
+                            success: false,
+                        });
+                        return async () => false;
+                    }
+
+                    const response = await qu<{ data: { sync_repos: Resource[] } }>({
+                        mutation: cleanGql(`
+                            mutation track_commits(
+                                $player_id: String!,
+                                $provider: String!,
+                                $verification: SignedRequest
+                            ) {
+                                track_commits(
+                                    verification: $verification,
+                                    provider: $provider,
+                                    player_id: $player_id
+                                )
+                            }
+                    `),
+                    })({ player_id: pid, provider: ITEM_ID });
+                    track(ABILITY_TRACK_COMMITS, {
+                        ability: ABILITY_TRACK_COMMITS,
+                        activityType: 'completed',
+                        provider: providerId,
+                    });
+                    console.log('inv;Github:sync-repos:res', response);
+
+                    return async () => (response?.data?.sync_repos ? true : false);
+                } catch (e) {
+                    debug(e, {
+                        extra: { ability: ABILITY_TRACK_COMMITS },
+                        tags: { ability: true },
+                    });
+
+                    return async () => false;
+                }
             },
         },
     ],
