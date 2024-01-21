@@ -63,14 +63,17 @@ const item: InventoryItem = {
         { ...IntelligenceStat, value: 5 },
     ],
     checkStatus: async () => {
+        const pid = await getCached({ slot: ID_PLAYER_SLOT });
+        console.log('Inv:Spotify:checkStatus', pid);
+        if (!pid && !__DEV__) return 'ethereal'; // allow to interact in dev even if cant equip
         const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[ITEM_ID];
         console.log('Inv:Spotify:checkStatus', cached);
-
         // TODO could make api request to see if access_token exist on API but ID should be saved on equip
         // only irrelevant if logging in old account to new device.
+        // return 'unequipped';
         return cached ? 'equipped' : 'unequipped';
     },
-    canEquip: async () => true,
+    canEquip: async () => ((await getCached({ slot: ID_PLAYER_SLOT })) ? true : false),
     equip,
     unequip,
     abilities: [
@@ -123,14 +126,14 @@ const item: InventoryItem = {
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
                 track(SHARE_CONTENT, {
-                    ability: ABILITY_SHARE_PROFILE,
+                    spell: ABILITY_SHARE_PROFILE,
                     activityType: 'initiated',
                 });
                 const pid = await getCached({ slot: ID_PLAYER_SLOT });
                 console.log('Spotify:Ability:ShareProfile:pid', pid);
                 if (!pid) {
                     track(SHARE_CONTENT, {
-                        ability: ABILITY_SHARE_PROFILE,
+                        spell: ABILITY_SHARE_PROFILE,
                         activityType: 'unauthenticated',
                         success: false,
                     });
@@ -142,7 +145,7 @@ const item: InventoryItem = {
                     console.log('Spotify:Ability:ShareProfile:id', providerId);
                     if (!providerId) {
                         track(SHARE_CONTENT, {
-                            ability: ABILITY_SHARE_PROFILE,
+                            spell: ABILITY_SHARE_PROFILE,
                             activityType: 'unequipped',
                             providerId,
                             success: false,
@@ -162,7 +165,7 @@ const item: InventoryItem = {
                     console.log('Spotify:Ability:ShareProfile:share', action);
                     if (action === Share.sharedAction) {
                         track(SHARE_CONTENT, {
-                            ability: ABILITY_SHARE_PROFILE,
+                            spell: ABILITY_SHARE_PROFILE,
                             activityType: activityType ?? 'shared',
                             providerId,
                             success: true,
@@ -172,7 +175,7 @@ const item: InventoryItem = {
 
                     if (action === Share.dismissedAction) {
                         track(SHARE_CONTENT, {
-                            ability: ABILITY_SHARE_PROFILE,
+                            spell: ABILITY_SHARE_PROFILE,
                             activityType: 'dismissed',
                             providerId,
                         });
@@ -180,12 +183,12 @@ const item: InventoryItem = {
                     }
                 } catch (e: unknown) {
                     track(SHARE_CONTENT, {
-                        ability: ABILITY_SHARE_PROFILE,
+                        spell: ABILITY_SHARE_PROFILE,
                         activityType: 'failed',
                         success: false,
                     });
                     debug({
-                        extra: { ability: ABILITY_SHARE_PROFILE },
+                        extra: { spell: ABILITY_SHARE_PROFILE },
                         tags: { ability: true },
                     });
                     return async () => false;

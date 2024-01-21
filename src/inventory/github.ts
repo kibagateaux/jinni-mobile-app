@@ -61,6 +61,9 @@ const item: InventoryItem = {
         { ...IntelligenceStat, value: 20 },
     ],
     checkStatus: async () => {
+        const pid = await getCached({ slot: ID_PLAYER_SLOT });
+        console.log('Inv:Spotify:checkStatus', pid);
+        if (!pid && !__DEV__) return 'ethereal'; // allow to interact in dev even if cant equip
         // TODO api request to see if access_token exist on API
         const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[ITEM_ID];
         console.log('sync id res', cached, await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }));
@@ -68,7 +71,7 @@ const item: InventoryItem = {
         // return 'unequipped';
         return cached ? 'equipped' : 'unequipped';
     },
-    canEquip: async () => true,
+    canEquip: async () => ((await getCached({ slot: ID_PLAYER_SLOT })) ? true : false),
     equip,
     unequip,
     abilities: [
@@ -80,13 +83,13 @@ const item: InventoryItem = {
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 track(ABILITY_SYNC_REPOS, {
-                    ability: ABILITY_SYNC_REPOS,
+                    spell: ABILITY_SYNC_REPOS,
                     activityType: 'initiated',
                 });
                 const pid = await getCached<string>({ slot: ID_PLAYER_SLOT });
                 if (!pid) {
                     track(ABILITY_SYNC_REPOS, {
-                        ability: ABILITY_SYNC_REPOS,
+                        spell: ABILITY_SYNC_REPOS,
                         activityType: 'unauthenticated',
                     });
                     return async () => false;
@@ -97,7 +100,7 @@ const item: InventoryItem = {
                     const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
                     if (!providerId) {
                         track(ABILITY_SYNC_REPOS, {
-                            ability: ABILITY_SYNC_REPOS,
+                            spell: ABILITY_SYNC_REPOS,
                             activityType: 'unequipped',
                             providerId,
                             success: false,
@@ -125,7 +128,7 @@ const item: InventoryItem = {
                     `),
                     })({ player_id: pid, provider: ITEM_ID });
                     track(ABILITY_SYNC_REPOS, {
-                        ability: ABILITY_SYNC_REPOS,
+                        spell: ABILITY_SYNC_REPOS,
                         activityType: 'completed',
                         provider: providerId,
                     });
@@ -134,7 +137,7 @@ const item: InventoryItem = {
                     return async () => (response?.data?.sync_repos ? true : false);
                 } catch (e) {
                     debug(e, {
-                        extra: { ability: ABILITY_SYNC_REPOS },
+                        extra: { spell: ABILITY_SYNC_REPOS },
                         tags: { ability: true },
                     });
 
@@ -150,13 +153,13 @@ const item: InventoryItem = {
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 track(ABILITY_TRACK_COMMITS, {
-                    ability: ABILITY_TRACK_COMMITS,
+                    spell: ABILITY_TRACK_COMMITS,
                     activityType: 'initiated',
                 });
                 const pid = await getCached<string>({ slot: ID_PLAYER_SLOT });
                 if (!pid) {
                     track(ABILITY_TRACK_COMMITS, {
-                        ability: ABILITY_TRACK_COMMITS,
+                        spell: ABILITY_TRACK_COMMITS,
                         activityType: 'unauthenticated',
                     });
                     return async () => false;
@@ -167,7 +170,7 @@ const item: InventoryItem = {
                     const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
                     if (!providerId) {
                         track(ABILITY_TRACK_COMMITS, {
-                            ability: ABILITY_TRACK_COMMITS,
+                            spell: ABILITY_TRACK_COMMITS,
                             activityType: 'unequipped',
                             providerId,
                             success: false,
@@ -191,7 +194,7 @@ const item: InventoryItem = {
                     `),
                     })({ player_id: pid, provider: ITEM_ID });
                     track(ABILITY_TRACK_COMMITS, {
-                        ability: ABILITY_TRACK_COMMITS,
+                        spell: ABILITY_TRACK_COMMITS,
                         activityType: 'completed',
                         provider: providerId,
                     });
@@ -200,7 +203,7 @@ const item: InventoryItem = {
                     return async () => (response?.data?.sync_repos ? true : false);
                 } catch (e) {
                     debug(e, {
-                        extra: { ability: ABILITY_TRACK_COMMITS },
+                        extra: { spell: ABILITY_TRACK_COMMITS },
                         tags: { ability: true },
                     });
 

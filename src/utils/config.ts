@@ -49,6 +49,7 @@ const updateCache = (key: StorageKey, val: StorageValue) =>
 type AppConfig = {
     NODE_ENV: 'development' | 'production' | 'test';
     API_URL: string;
+    REDIRECT_URL: string;
     API_KEY: string;
     ETH_NETWORK: string;
     ETH_API_PROVIDER_URI: string;
@@ -65,6 +66,7 @@ type AppConfig = {
 export const getAppConfig = (): AppConfig => ({
     NODE_ENV: process.env.NODE_ENV || 'development',
     API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8888',
+    REDIRECT_URL: process.env.EXPO_PUBLIC_REDIRECT_URL || 'http://localhost:8888',
     API_KEY: process.env.EXPO_PUBLIC_API_KEY || 'test-api-key',
 
     ETH_NETWORK: process.env.EXPO_PUBLIC_ETH_NETWORK || 'optimism',

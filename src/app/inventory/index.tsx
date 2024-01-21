@@ -34,22 +34,24 @@ const InventoryScreen: React.FC = () => {
         }
     }, [inventory]);
 
-    const renderItem = ({ item }: { item: InventoryItem }) => (
-        <Card
-            // key={item.id}
-            horizontal
-            styleOverride={styles.itemCard}
-            image={item.image}
-            title={item.name}
-            path={`/inventory/${item.id}`}
-            pathParams={{ id: item.id }}
-            badges={item.attributes.map((a) => `+${a.value} ${a.symbol} `)}
-        />
-    );
+    const renderItem = ({ item }: { item: InventoryItem }) =>
+        item.status === 'ethereal' ? null : (
+            <Card
+                // key={item.id}
+                horizontal
+                styleOverride={styles.itemCard}
+                image={item.image}
+                title={item.name}
+                path={`/inventory/${item.id}`}
+                pathParams={{ id: item.id }}
+                badges={item.attributes.map((a) => `+${a.value} ${a.symbol} `)}
+            />
+        );
 
-    const renderCategoryHeader = ({ section: { title } }: { section: { title: string } }) => (
-        <Text style={styles.inventoryHeader}>{title.toUpperCase()}</Text>
-    );
+    const renderCategoryHeader = ({ section: { title } }: { section: { title: string } }) =>
+        title === 'ethereal' ? null : (
+            <Text style={styles.inventoryHeader}>{title.toUpperCase()}</Text>
+        );
 
     return loading ? (
         <ActivityIndicator animating size="large" />

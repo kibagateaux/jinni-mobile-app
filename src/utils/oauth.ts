@@ -77,15 +77,15 @@ export const oauthConfigs: { [key: string]: OAuthProvider } = {
 };
 
 export const createOauthRedirectURI = memoize(() => {
-    console.log('util:oauth:DeepLinkScheme', SCHEME, getAppConfig().API_URL);
+    console.log('util:oauth:DeepLinkScheme', SCHEME, getAppConfig().REDIRECT_URL);
 
     if (Platform.OS !== 'web') {
         return makeRedirectUri({
             native: Platform.select({
-                android: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
-                ios: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
-                // android: `${getAppConfig().API_URL}/oauth/callback`,
-                // ios: `${getAppConfig().API_URL}/oauth/callback`,
+                // android: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
+                // ios: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
+                android: `${getAppConfig().REDIRECT_URL}/oauth/callback`,
+                ios: `${getAppConfig().REDIRECT_URL}/oauth/callback`,
             }),
         });
     }
