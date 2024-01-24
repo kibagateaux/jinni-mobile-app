@@ -84,30 +84,30 @@ const item: InventoryItem = {
             description: 'Share a playlist on Spotify with another player',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
-                const pid = await getCached({ slot: ID_PLAYER_SLOT });
-                if (!pid) return async () => false;
-                try {
-                    const response = qu<Resource[]>({
-                        query: cleanGql(`
-                        query spotify_top_playlist(
-                            $verification: SignedRequest!
-                            $target_player: String!
-                        ) {
-                            spotify_top_playlist(
-                                verification: $verification
-                                target_player: $target_player
-                            ) {
-                                id
-                                name
-                                href
-                            }
-                        }
-                    `),
-                    })({ player_id: pid });
-                    console.log('inv:Spotify:SharePlaylist:res', response);
-                } catch (e) {
-                    console.log('inv:Spotify:SharePlaylist:ERROR', e);
-                }
+                // const pid = await getCached({ slot: ID_PLAYER_SLOT });
+                // if (!pid) return async () => false;
+                // try {
+                //     const response = qu<Resource[]>({
+                //         query: cleanGql(`
+                //         query spotify_top_playlist(
+                //             $verification: SignedRequest!
+                //             $target_player: String!
+                //         ) {
+                //             spotify_top_playlist(
+                //                 verification: $verification
+                //                 target_player: $target_player
+                //             ) {
+                //                 id
+                //                 name
+                //                 href
+                //             }
+                //         }
+                //     `),
+                //     })({ player_id: pid });
+                //     console.log('inv:Spotify:SharePlaylist:res', response);
+                // } catch (e) {
+                //     console.log('inv:Spotify:SharePlaylist:ERROR', e);
+                // }
                 // fetch their playlists from spotify
                 // open modal
                 // display playlists
@@ -197,22 +197,18 @@ const item: InventoryItem = {
                 return async () => false;
             },
         },
-        {
-            id: 'spotify-silent-disco',
-            name: 'Silent Disco',
-            symbol: '🪩',
-            description: 'Create an IRL rave right now!',
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
-            do: async () => {
-                // @DEV: Only Premium users can start Jams!
-                // get players playlists with name, id
-                // render list for them to select from
+        // {
+        //     id: 'spotify-silent-disco',
+        //     name: 'Silent Disco',
+        //     symbol: '🪩',
+        //     description: 'Create an IRL rave right now!',
+        //     canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
+        //     do: async () => {
 
-                // No api for jams. Deeplink into app with selected  playlist id
-                // TODO cant just return func, need to return initial data + follow up. follow up neds to take object of data
-                return async () => true;
-            },
-        },
+        //         // TODO cant just return func, need to return initial data + follow up. follow up neds to take object of data
+        //         return async () => true;
+        //     },
+        // },
     ],
     widgets: [
         {
@@ -229,6 +225,82 @@ const item: InventoryItem = {
                 // player selects playlist
                 // open phone native share/contacts module
                 // player selects people to send to
+
+                track(SHARE_CONTENT, {
+                    spell: WIDGET_PIN_PLAYLIST,
+                    activityType: 'initiated',
+                });
+                const pid = await getCached({ slot: ID_PLAYER_SLOT });
+                console.log('Spotify:Ability:PinPlaylist:pid', pid);
+                if (!pid) {
+                    track(SHARE_CONTENT, {
+                        spell: WIDGET_PIN_PLAYLIST,
+                        activityType: 'unauthenticated',
+                        success: false,
+                    });
+                    return async () => false;
+                }
+                try {
+                    console.log('Spotify:Ability:PinPlaylist:get-id');
+                    const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
+                    console.log('Spotify:Ability:PinPlaylist:id', providerId);
+                    if (!providerId) {
+                        track(SHARE_CONTENT, {
+                            spell: WIDGET_PIN_PLAYLIST,
+                            activityType: 'unequipped',
+                            providerId,
+                            success: false,
+                        });
+                        return async () => false;
+                    }
+                    // TODO abstract out all ability/widget logic (id checks, tracking, etc.) and pass func with API calls with return values
+                    const response = await qu<{ data: { get_playlists: Resource[] } }>({
+                        query: cleanGql(`
+                            query get_playlists(
+                                $target_player: String!,
+                                $provider: String!,
+                                $verification: SignedRequest
+                            ) {
+                                get_playlists(
+                                        target_player: $target_player,
+                                        provider: $provider,
+                                        verification: $verification
+                                ) {
+                                    name
+                                    url
+                                    image
+                                }
+                            }
+                    `),
+                    })({ target_player: pid, provider: ITEM_ID });
+                    console.log('Spotify:Ability:PinPlaylist:id', providerId);
+                    console.log('Spotify:Ability:PinPlaylist:res', response);
+
+                    track(WIDGET_PIN_PLAYLIST, {
+                        spell: WIDGET_PIN_PLAYLIST,
+                        activityType: 'completed',
+                        provider: providerId,
+                    });
+                    console.log('Spotify:Widget:PinPlaylist:res', response);
+
+                    return async () => (response?.data?.get_playlists ? true : false);
+                } catch (e: unknown) {
+                    track(SHARE_CONTENT, {
+                        spell: WIDGET_PIN_PLAYLIST,
+                        activityType: 'failed',
+                        success: false,
+                    });
+                    debug({
+                        extra: { spell: WIDGET_PIN_PLAYLIST },
+                        tags: { ability: true },
+                    });
+                    return async () => false;
+                }
+                // @DEV: Only Premium users can start Jams!
+                // get players playlists with name, id
+                // render list for them to select from
+                // maybe generator is better devex but doesnt really support async values
+
                 return async () => true;
             },
             // TODO need a func for when widget pressed on profile which is diff then setting up widget

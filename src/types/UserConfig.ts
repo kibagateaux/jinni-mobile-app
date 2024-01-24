@@ -1,5 +1,6 @@
 import { Identity } from '@semaphore-protocol/identity';
 import { RenderItemParams } from 'react-native-draggable-flatlist';
+import { ItemIds } from './GameMechanics';
 
 export interface UserSettings {
     defaultTheme: 'light' | 'dark';
@@ -20,10 +21,16 @@ export interface HomeConfig {
 
 export interface WidgetConfig {
     id: WidgetIds;
+    provider: ItemIds;
+    // navigation
     routeName: string; // Expo route navigation name
     title: string;
     path: string; // how to access via deep linking / weburl
+    // custom player config for widget
+    config?: unknown;
 }
+
+export interface PlayerWidgetSettings {}
 
 export type RenovatingWidgetConfig = RenderItemParams<WidgetConfig>;
 
@@ -44,7 +51,7 @@ export type GameWidgetIds =
     | 'stat-community'
     | 'stat-intelligence'
     | 'stat-faith'
-    | 'stat-stength'
+    | 'stat-strength'
     | 'stat-stamina'
     | 'stat-spirit';
 

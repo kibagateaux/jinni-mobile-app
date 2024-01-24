@@ -1,5 +1,13 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
-import { getAppConfig } from 'utils/config';
+import { HomeConfig } from 'types/UserConfig';
+import { UpdateWidgetConfigParams } from 'types/api';
+import {
+    HOME_CONFIG_STORAGE_SLOT,
+    defaultHomeConfig,
+    getAppConfig,
+    getStorage,
+    saveStorage,
+} from 'utils/config';
 import { getSpellBook } from 'utils/zkpid';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
@@ -106,3 +114,79 @@ export const MU_SUBMIT_DATA = `
         )
     }
 `;
+
+export const MU_SET_WIDGET = `
+    mutation jinni_set_widget(
+        $verification: SignedRequest!,
+        $settings: [WidgetSettingsInput]!
+    ) {
+        jinni_set_widget(
+            verification: $verification, 
+            $settings: [WidgetSettingsInput]!
+        )
+    }
+`;
+
+export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
+    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    // console.log("custom config ", customConfig)
+    // can only login from app so all changes MUST be saved locally if they exist on db
+    if (!isEmpty(customConfig)) return customConfig!;
+    // if not logged in then no reason to fetch custom config
+    if (!username) return defaultHomeConfig;
+    // if no internet connection, return default config
+    if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
+
+    return axios
+        .get(`${getAppConfig().API_URL}/scry/${username}/home-config/`)
+        .then((response) => {
+            AsyncStorage.setItem(HOME_CONFIG_STORAGE_SLOT, JSON.stringify(response.data));
+            // console.log("Home:config:get: SUCC", response)
+            return response.data as HomeConfig;
+        })
+        .catch((error) => {
+            console.error('Home:config:get: ERR ', error);
+            return defaultHomeConfig;
+        });
+};
+
+export const saveHomeConfig = async ({
+    username,
+    widgets,
+}: UpdateWidgetConfigParams): Promise<boolean> => {
+    const config = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    // TODO not sure if merge works with nested structs e.g. array in obj here. Add more tests
+    // save locally first
+    const newHomeConfig = await saveStorage<HomeConfig>(
+        HOME_CONFIG_STORAGE_SLOT,
+        { widgets: [...(config?.widgets ?? []), ...widgets] },
+        true,
+        defaultHomeConfig,
+    );
+
+    if (!username) return true;
+    console.log('new home config saved', newHomeConfig);
+
+    qu<string>({ mutation: MU_SET_WIDGET })({
+        widgets: widgets.map((s) => ({
+            ...s,
+            widget_id: s.id,
+            config: { provider_id: s.config!.providerId },
+        })),
+    })
+        .then((res) => {
+            console.log('Modal:SelectMulti:Save:response', res);
+        })
+        .catch((err) => {
+            console.log('Modal:SelectMulti:Save:ERR', err);
+        });
+
+    // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
+    // jest.mock('utils/config').mockResolvedValue(noConnection)
+    // if (!(await getNetworkState()).isNoosphere) {
+    //     return true;
+    // }
+
+    // return await qu<boolean>('TODO query on front+backend')({ config: newHomeConfig })
+    return Promise.resolve(false);
+};

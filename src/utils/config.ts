@@ -13,9 +13,13 @@ import {
     LogDataQueryProps,
     StorageKey,
     StorageValue,
+    WidgetIds,
 } from 'types/UserConfig';
 import { UpdateWidgetConfigParams } from 'types/api';
 import { debug, track } from './logging';
+import { ItemIds } from 'types/GameMechanics';
+import { MU_SET_WIDGET, qu } from './api';
+
 // import { qu } from './api';
 
 // Storage slots for different config items
@@ -117,6 +121,28 @@ export const saveHomeConfig = async ({
     if (!username) return true;
     console.log('new home config saved', newHomeConfig);
 
+    // local save will always finish first and
+    Promise.any([
+        saveStorage<{ [key: string]: WidgetConfig }>(
+            HOME_CONFIG_STORAGE_SLOT,
+            { ...config, widgets: [...(config?.widgets ?? []), ...settings] },
+            true,
+        ),
+        qu<string>({ mutation: MU_SET_WIDGET })({
+            settings: settings.map((s) => ({
+                ...s,
+                widget_id: s.id,
+                config: { provider_id: s.config!.providerId },
+            })),
+        }),
+    ])
+        .then((res) => {
+            console.log('Modal:SelectMulti:Save:response', res);
+        })
+        .catch((err) => {
+            console.log('Modal:SelectMulti:Save:ERR', err);
+        });
+
     // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
     // jest.mock('utils/config').mockResolvedValue(noConnection)
     // if (!(await getNetworkState()).isNoosphere) {
@@ -126,28 +152,42 @@ export const saveHomeConfig = async ({
     // return await qu<boolean>('TODO query on front+backend')({ config: newHomeConfig })
     return Promise.resolve(false);
 };
+export const itemAbilityToWidgetConfig = (
+    provider: ItemIds,
+    widgetId: WidgetIds,
+): WidgetConfig => ({
+    id: widgetId,
+    routeName: `/inventory/${provider}?widget=${widgetId}`,
+    path: `/inventory/${provider}?widget=${widgetId}`,
+    title: `Inventory: ${provider}`,
+    provider,
+});
 
 const defaultWidgetConfig: WidgetConfig[] = [
     {
         id: 'stat-strength',
+        provider: 'Jinni',
         title: 'Strength',
         routeName: '/stats/strength',
         path: '/stats/strength',
     },
     {
         id: 'stat-intelligence',
+        provider: 'Jinni',
         title: 'Intelligence',
         routeName: '/stats/intelligence',
         path: '/stats/intelligence',
     },
     {
         id: 'stat-stamina',
+        provider: 'Jinni',
         title: 'Stamina',
         routeName: '/stats/stamina',
         path: '/stats/stamina',
     },
     {
         id: 'stat-spirit',
+        provider: 'Jinni',
         title: 'Spirit',
         routeName: '/stats/spirit',
         path: '/stats/spirit',
@@ -156,13 +196,15 @@ const defaultWidgetConfig: WidgetConfig[] = [
 
 const defaultTabConfig: WidgetConfig[] = [
     {
-        id: 'page-home',
+        id: 'home',
+        provider: 'Jinni',
         routeName: 'index',
         title: 'Home',
         path: '/',
     },
     {
-        id: 'page-inventory',
+        id: 'inventory',
+        provider: 'Jinni',
         routeName: 'inventory',
         title: 'inventory',
         path: '/inventory',

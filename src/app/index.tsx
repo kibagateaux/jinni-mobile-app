@@ -55,7 +55,7 @@ const HomeScreen = () => {
 
     const finalizeRenovation = () =>
         saveHomeConfig({
-            username: player?.name || 'sampleusername',
+            playerId: player?.name || 'sampleusername',
             widgets: widgetConfig,
             proof: '!believeme!',
         });

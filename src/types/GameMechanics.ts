@@ -61,10 +61,11 @@ export interface Action {
 export type ResourceAccessibility = 'public' | 'permissioned' | 'private' | 'secret';
 export interface Resource {
     id?: string; // uuid
-    name: string; // human readable action name e.g. "walking"
+    provider_id: string;
+    name: string; // title of resource given by player in provider system
+    resource_type: string; // human readable action name e.g. "repo", "music"
     href: string; //
     dataProvider: string;
-    providerId?: string;
     accessibility: string;
     image: string;
     creators: Avatar[];
@@ -135,6 +136,7 @@ export const StatsConfig = [
 ];
 
 export type ItemIds =
+    | 'Jinni'
     | 'MaliksMajik'
     | 'IphoneHealthKit'
     | 'IwatchHealthKit'
@@ -161,7 +163,7 @@ export type HoF = <T, R>(func?: (data?: T) => R) => Promise<boolean>;
 
 export interface InventoryItem {
     // static metadata
-    id: string;
+    id: ItemIds;
     name: string;
     image: string;
     tags?: ItemTags[];

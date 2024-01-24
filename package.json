@@ -18,6 +18,8 @@
     "@arx-research/libhalo": "^1.2.17",
     "@react-native-async-storage/async-storage": "1.18.2",
     "@react-native-community/masked-view": "^0.1.11",
+    "@rneui/base": "^4.0.0-rc.7",
+    "@rneui/themed": "^4.0.0-rc.8",
     "@segment/analytics-react-native": "^2.16.1",
     "@segment/sovran-react-native": "^1.0.4",
     "@semaphore-protocol/group": "^3.11.1",

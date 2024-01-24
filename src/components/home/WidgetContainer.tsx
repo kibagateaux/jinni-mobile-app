@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { isEmpty } from 'lodash';
+import React, { useMemo, useState } from 'react';
 import { View, FlatList, StyleSheet, Button } from 'react-native';
 import DraggableFlatList, {
     ScaleDecorator,
@@ -7,8 +8,14 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { TouchableOpacity /** GestureHAndler */ } from 'react-native-gesture-handler';
 // import { useSharedValue, runOnJS } from 'react-native-reanimated';
-import { WidgetConfig } from 'types/UserConfig';
 
+import { useInventory } from 'hooks/useInventory';
+
+import SelectModal from 'components/modals/SelectMultiModal';
+
+import { itemAbilityToWidgetConfig } from 'utils/config';
+import { WidgetConfig, WidgetIds } from 'types/UserConfig';
+import { InventoryItem } from 'types/GameMechanics';
 interface WidgetContainerProps {
     widgets: WidgetConfig[];
     saveWidgets?: (widgets: WidgetConfig[]) => void;
@@ -25,7 +32,46 @@ const WidgetContainer = ({
     renovationConfig = {},
 }: WidgetContainerProps) => {
     // TODO https://reactnative.dev/docs/optimizing-flatlist-configuration
+    // all vars used for renovations
     const [editMode, setEditMode] = useState<boolean>(false);
+    const [addMode, setAddMode] = useState<boolean>(false);
+    const { inventory } = useInventory();
+    const [allWidgets, setAllWidgets] = useState<WidgetConfig[]>([]);
+    const [selectedWidgets, setSelectedWidgets] = useState<{ [key: string]: boolean }>({});
+
+    useMemo(() => {
+        if (!isEmpty(inventory) && isEmpty(allWidgets)) {
+            const options = inventory.reduce(
+                (agg: WidgetConfig[], item: InventoryItem) => [
+                    ...agg,
+                    ...(item.widgets ?? []).map((w) =>
+                        itemAbilityToWidgetConfig(item.id, w.id as WidgetIds),
+                    ),
+                ],
+                [],
+            );
+
+            console.log('comp:home:WidgiContain:allWidgi', options);
+            setAllWidgets(options);
+        }
+    }, [inventory, allWidgets]);
+
+    useMemo(() => {
+        if (editMode && !isEmpty(widgets) && isEmpty(selectedWidgets)) {
+            // if none selected, hydrate from displayed widgets
+            const selected = widgets.reduce(
+                (agg: object, widgi: WidgetConfig) => ({
+                    ...agg,
+                    [widgi.id]: true,
+                }),
+                {},
+            );
+
+            console.log('comp:home:WidgiContain:selectedWdig', selected);
+            setSelectedWidgets(selected);
+        }
+    }, [editMode, widgets, selectedWidgets]);
+
     // const _setEditMode = runOnJS(_setEditMode);
 
     // // TODO no buttons to enter renovate mode, just pres & hold widget module and it enters
@@ -103,15 +149,31 @@ const WidgetContainer = ({
             // <
         );
     };
-    2;
+
+    const renderAddWidgetModal = () => {
+        // console.log('Widgi:base');
+        return (
+            <SelectModal
+                options={allWidgets}
+                initialSelects={selectedWidgets}
+                allowMultiple
+                // onFinalize={}
+            />
+        );
+    };
+
+    const showSelectedWigets = () => {
+        setAddMode(true);
+    };
 
     return (
         <View style={styles.widgets}>
             {editMode ? renderRenovationMode() : renderBaseMode()}
+            {addMode ? renderAddWidgetModal() : null}
             {editMode ? ( // TODO use icons not buttons
                 <>
                     <Button title="Close" onPress={onEditModeEnd} />
-                    <Button title="Add Widget" />
+                    <Button title="Add Widget" onPress={showSelectedWigets} />
                 </>
             ) : (
                 <Button title="Renovate" onPress={() => setEditMode(true)} />
