@@ -68,6 +68,7 @@ export const getSegment = () => {
     if (!segmentClient && process.env.EXPO_PUBLIC_SEGMENT_API_KEY)
         segmentClient = createClient({
             writeKey: process.env.EXPO_PUBLIC_SEGMENT_API_KEY!,
+            trackAppLifecycleEvents: true,
             debug: __DEV__ ? true : false,
         });
 
