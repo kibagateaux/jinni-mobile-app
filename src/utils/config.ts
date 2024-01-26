@@ -19,6 +19,7 @@ import { UpdateWidgetConfigParams } from 'types/api';
 import { debug, track } from './logging';
 import { ItemIds } from 'types/GameMechanics';
 import { MU_SET_WIDGET, qu } from './api';
+import maliksMajik from 'inventory/maliks-majik';
 
 // import { qu } from './api';
 
@@ -163,48 +164,52 @@ export const itemAbilityToWidgetConfig = (
     provider,
 });
 
-const defaultWidgetConfig: WidgetConfig[] = [
-    {
-        id: 'stat-strength',
-        provider: 'Jinni',
-        title: 'Strength',
-        routeName: '/stats/strength',
-        path: '/stats/strength',
-    },
-    {
-        id: 'stat-intelligence',
-        provider: 'Jinni',
-        title: 'Intelligence',
-        routeName: '/stats/intelligence',
-        path: '/stats/intelligence',
-    },
-    {
-        id: 'stat-stamina',
-        provider: 'Jinni',
-        title: 'Stamina',
-        routeName: '/stats/stamina',
-        path: '/stats/stamina',
-    },
-    {
-        id: 'stat-spirit',
-        provider: 'Jinni',
-        title: 'Spirit',
-        routeName: '/stats/spirit',
-        path: '/stats/spirit',
-    },
-];
+const defaultWidgetConfig = maliksMajik.item.widgets?.map((w) =>
+    itemAbilityToWidgetConfig(w.provider, w.id as WidgetIds),
+);
+
+// const defaultWidgetConfig: WidgetConfig[] = [
+//     {
+//         id: 'stat-strength',
+//         provider: 'Jinni',
+//         title: 'Strength',
+//         routeName: '/stats/strength',
+//         path: '/stats/strength',
+//     },
+//     {
+//         id: 'stat-intelligence',
+//         provider: 'Jinni',
+//         title: 'Intelligence',
+//         routeName: '/stats/intelligence',
+//         path: '/stats/intelligence',
+//     },
+//     {
+//         id: 'stat-stamina',
+//         provider: 'Jinni',
+//         title: 'Stamina',
+//         routeName: '/stats/stamina',
+//         path: '/stats/stamina',
+//     },
+//     {
+//         id: 'stat-spirit',
+//         provider: 'Jinni',
+//         title: 'Spirit',
+//         routeName: '/stats/spirit',
+//         path: '/stats/spirit',
+//     },
+// ];
 
 const defaultTabConfig: WidgetConfig[] = [
     {
         id: 'home',
-        provider: 'Jinni',
+        provider: 'MaliksMajik',
         routeName: 'index',
         title: 'Home',
         path: '/',
     },
     {
         id: 'inventory',
-        provider: 'Jinni',
+        provider: 'MaliksMajik',
         routeName: 'inventory',
         title: 'inventory',
         path: '/inventory',

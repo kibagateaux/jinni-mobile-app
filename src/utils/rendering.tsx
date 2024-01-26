@@ -18,10 +18,12 @@ export const getIconForWidget = (widgetId: string, iconOptions: WidgetIconProps)
         );
 
     const svgProps = iconOptions ?? { focused: true, color: 'black', size: 1 };
+    console.log('render widgi emoji', widgi);
+
     switch (widgi) {
-        case 'page-home':
+        case 'home':
             return <Text> 🧞‍♂️ </Text>;
-        case 'page-inventory':
+        case 'inventory':
             return <Text> 📚 </Text>;
         case 'zuzalu':
             return <ZuzaluIcon {...svgProps} />;

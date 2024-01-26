@@ -16,7 +16,7 @@ export type ModalContentProps = {
             text: string | ((dialogueData: object) => string);
         };
     };
-    // key = ItemIds
+    // key = ItemIds;
     modal: {
         title: string | ((dialogueData: object) => string);
         text: string | ((dialogueData: object) => string);
@@ -25,7 +25,7 @@ export type ModalContentProps = {
 export type GameContent = {
     inventory: {
         [key: string]: {
-            // key = ItemIds
+            // key = ItemIds;
             [key: string]:
                 | {
                       // key = meta
@@ -95,18 +95,6 @@ export const IntelligenceStat: StatsAttribute = {
     value: 1,
 };
 
-export const StaminaStat: StatsAttribute = {
-    name: 'Stamina',
-    symbol: '🫀',
-    value: 1,
-};
-
-export const FaithStat: StatsAttribute = {
-    name: 'Faith',
-    symbol: '🙏',
-    value: 1,
-};
-
 export const CommunityStat: StatsAttribute = {
     name: 'Community',
     symbol: '🧚‍♂️',
@@ -125,18 +113,29 @@ export const DjinnStat: StatsAttribute = {
     value: 1,
 };
 
+// export const StaminaStat: StatsAttribute = {
+//     name: 'Stamina',
+//     symbol: '🫀',
+//     value: 1,
+// };
+//
+// export const FaithStat: StatsAttribute = {
+//     name: 'Faith',
+//     symbol: '🙏',
+//     value: 1,
+// };
+
 export const StatsConfig = [
+    DjinnStat,
     HealthStat,
     StrengthStat,
     IntelligenceStat,
-    StaminaStat,
-    FaithStat,
     CommunityStat,
-    DjinnStat,
+    // StaminaStat,
+    // FaithStat,
 ];
 
 export type ItemIds =
-    | 'Jinni'
     | 'MaliksMajik'
     | 'IphoneHealthKit'
     | 'IwatchHealthKit'
@@ -190,6 +189,7 @@ export interface InventoryItem {
 export interface ItemAbility {
     id: string;
     name: string;
+    provider: ItemIds;
     symbol: string;
     description: string;
     status?: AbilityStatus; // if undefined, call canDo() to get value and store to local object

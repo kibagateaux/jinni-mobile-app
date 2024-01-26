@@ -10,12 +10,8 @@ import { TouchableOpacity /** GestureHAndler */ } from 'react-native-gesture-han
 // import { useSharedValue, runOnJS } from 'react-native-reanimated';
 
 import { useInventory } from 'hooks/useInventory';
-
-import SelectModal from 'components/modals/SelectMultiModal';
-
-import { itemAbilityToWidgetConfig } from 'utils/config';
-import { WidgetConfig, WidgetIds } from 'types/UserConfig';
-import { InventoryItem } from 'types/GameMechanics';
+import SelectMultiModal from 'components/modals/SelectMultiModal';
+import { WidgetConfig } from 'types/UserConfig';
 interface WidgetContainerProps {
     widgets: WidgetConfig[];
     saveWidgets?: (widgets: WidgetConfig[]) => void;
@@ -35,26 +31,8 @@ const WidgetContainer = ({
     // all vars used for renovations
     const [editMode, setEditMode] = useState<boolean>(false);
     const [addMode, setAddMode] = useState<boolean>(false);
-    const { inventory } = useInventory();
-    const [allWidgets, setAllWidgets] = useState<WidgetConfig[]>([]);
+    const { widgets: allWidgets } = useInventory();
     const [selectedWidgets, setSelectedWidgets] = useState<{ [key: string]: boolean }>({});
-
-    useMemo(() => {
-        if (!isEmpty(inventory) && isEmpty(allWidgets)) {
-            const options = inventory.reduce(
-                (agg: WidgetConfig[], item: InventoryItem) => [
-                    ...agg,
-                    ...(item.widgets ?? []).map((w) =>
-                        itemAbilityToWidgetConfig(item.id, w.id as WidgetIds),
-                    ),
-                ],
-                [],
-            );
-
-            console.log('comp:home:WidgiContain:allWidgi', options);
-            setAllWidgets(options);
-        }
-    }, [inventory, allWidgets]);
 
     useMemo(() => {
         if (editMode && !isEmpty(widgets) && isEmpty(selectedWidgets)) {
@@ -93,6 +71,25 @@ const WidgetContainer = ({
 
     // TODO implement add/remove
 
+    const onWidgetsSelected = async (options: { [id: string]: boolean }) => {
+        console.log('widgets selected for homepage', options);
+
+        // TODO move to Widget Container onFinalize
+
+        // TODO replace with  options.map(k => )
+        // const widgets = Object.entries(checks)
+        //     .filter(([key, val]) => val)
+        //     .map(
+        //         ([key, val]): WidgetConfig => ({
+        //             ...itemAbilityToWidgetConfig(provider, key as WidgetIds),
+        //             config: {
+        //                 providerId: key, // TODO assumes widget config is provider dependent. ¿rename `value` or `config` and intepret on backend?
+        //             },
+        //         }),
+        //     );
+
+        // await saveHomeConfig({ username: player?.id, widgets });
+    };
     // const addWidget = (widget: WidgetConfig) => () =>
     //     saveWidgets && saveWidgets([...widgets, widget]);
 
@@ -151,13 +148,15 @@ const WidgetContainer = ({
     };
 
     const renderAddWidgetModal = () => {
-        // console.log('Widgi:base');
+        const selectedWidgi = Object.keys(allWidgets)
+            .map((k) => ({ [k]: find(widgets, { id: k }) ? true : false }))
+            .reduce((agg, opt) => ({ ...agg, ...opt }), {});
+
         return (
-            <SelectModal
-                options={allWidgets}
-                initialSelects={selectedWidgets}
+            <SelectMultiModal
+                options={selectedWidgi}
                 allowMultiple
-                // onFinalize={}
+                onFinalize={onWidgetsSelected}
             />
         );
     };

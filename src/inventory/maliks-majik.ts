@@ -1,4 +1,4 @@
-import { HoF, ItemStatus } from 'types/GameMechanics';
+import { HoF, ItemAbility, ItemStatus } from 'types/GameMechanics';
 
 import { _delete_id, getSpellBook, signWithId } from 'utils/zkpid';
 import {
@@ -12,10 +12,17 @@ import {
     getCached,
 } from 'utils/config';
 
-import { InventoryIntegration, DjinnStat, CommunityStat, InventoryItem } from 'types/GameMechanics';
+import {
+    InventoryIntegration,
+    DjinnStat,
+    CommunityStat,
+    InventoryItem,
+    StatsConfig,
+} from 'types/GameMechanics';
 import { MU_ACTIVATE_JINNI, qu } from 'utils/api';
 import { debug, track } from 'utils/logging';
 
+export const ITEM_ID = 'MaliksMajik';
 export const ABILITY_ACTIVATE_JINNI = 'activate-jinni';
 export const ABILITY_MYSTIC_CRYPT = 'create-mystic-crypt';
 
@@ -59,9 +66,9 @@ const unequip: HoF = async () => {
 };
 
 const item: InventoryItem = {
-    id: 'MaliksMajik',
+    id: ITEM_ID,
     name: "Malik's Majik",
-    dataProvider: 'MaliksMajik-card',
+    dataProvider: 'MaliksMajikCard',
     image: 'https://cdn.drawception.com/drawings/3yyv096cK5.png',
     attributes: [
         { ...DjinnStat, value: 10 },
@@ -81,6 +88,7 @@ const item: InventoryItem = {
         {
             id: ABILITY_ACTIVATE_JINNI,
             name: 'Activate Jinni',
+            provider: ITEM_ID,
             symbol: '🧞‍♂️',
             description: 'Get access to the full game',
             canDo: async (status: ItemStatus) => {
@@ -125,6 +133,7 @@ const item: InventoryItem = {
         {
             id: ABILITY_MYSTIC_CRYPT,
             name: 'Create Mystic Crypt',
+            provider: ITEM_ID,
             symbol: '🏦',
             description:
                 "Save game progress to your phone'scloud storage to restore account if you lose your phone",
@@ -150,6 +159,16 @@ const item: InventoryItem = {
             },
         },
     ],
+    widgets: StatsConfig.map(
+        (stat): ItemAbility => ({
+            ...stat,
+            id: 'stat-' + stat.name.toLowerCase(),
+            provider: ITEM_ID,
+            description: `Display your stat points for ${stat.name} so other jinn can see`,
+            canDo: async () => 'doable',
+            do: async () => async () => true,
+        }),
+    ),
 };
 
 // TODO should we abstract NFC Manager out of SignWithID so we can request permissions separately?

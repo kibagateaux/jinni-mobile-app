@@ -6,58 +6,40 @@ import { CheckBox, Icon } from '@rneui/themed';
 import { useGameContent } from 'contexts/GameContentContext';
 
 import BaseModal from './BaseModal';
-import { ItemIds, Resource } from 'types/GameMechanics';
 import { Button } from '@rneui/themed';
-import { itemAbilityToWidgetConfig } from 'utils/config';
-import { WidgetConfig, WidgetIds } from 'types/UserConfig';
 import { useAuth } from 'contexts/AuthContext';
-import { saveHomeConfig } from 'utils/api';
 
+type Options = { [id: string]: boolean }; // id = widget.id | resource.provider_id
 export interface SelectWidgetSettingsModalProps {
     dialogueData?: object; // params for modal text
-    allowMultiple?: boolean;
-    initialSelects?: { [id: string]: boolean };
-    provider: ItemIds;
-    widgetId: WidgetIds;
-    options: Resource[] | WidgetConfig[];
-    onFinalize: (options: Resource[] | WidgetConfig[]) => void;
+    allowMultiple?: boolean; // if can check off multiple boxes
+    options: Options; // can have preselected options
+    onFinalize: (options: Options) => void;
 }
 
 const SelectModal = ({
     dialogueData = {},
     options,
     allowMultiple,
-    provider,
-    widgetId,
-    initialSelects,
+    // provider,
+    // widgetId,
     onFinalize,
-}: SelectModalProps) => {
+}: SelectWidgetSettingsModalProps) => {
     const content = useGameContent().modals['select-multi'];
+    console.log(
+        'modal:select multi ',
+        useGameContent().modals['select-multi'],
+        Object.keys(useGameContent().modals),
+    );
+
     const { player } = useAuth();
-    const [checks, setChecks] = useState<{ [key: string]: boolean }>(initialSelects);
+    const [checks, setChecks] = useState<Options>(options);
 
     const setCheck = (key: string, val: boolean) => {
         if (allowMultiple || isEmpty(checks)) setChecks({ ...checks, [key]: val });
     };
 
-    const saveWidgets = async () => {
-        if (!player?.id) return null;
-        const widgets = Object.keys(checks)
-            .filter((x) => x)
-            .map(
-                (k): WidgetConfig => ({
-                    ...itemAbilityToWidgetConfig(provider, k as WidgetIds),
-                    config: {
-                        providerId: k, // TODO assumes widget config is provider dependent. ¿rename `value` or `config` and intepret on backend?
-                    },
-                }),
-            );
-
-        await saveHomeConfig({ username: player?.id, widgets });
-        onFinalize(options);
-    };
-
-    console.log('Select options', widgetId, options);
+    console.log('Select options', options);
 
     const titleTemplate = content.title;
     const dialogueTemplate = content.text;
@@ -79,21 +61,20 @@ const SelectModal = ({
             <View>
                 <Text style={styles.text}>{title}</Text>
                 <Text style={styles.text}>{dialogue}</Text>
-                {options.map((item: WidgetConfig | Resource) => {
-                    const itemId = item.routeName ? item.id : item.provider_id;
+                {Object.keys(options).map((id) => {
                     return (
                         <CheckBox
-                            key={itemId}
+                            key={id}
                             center
-                            title={item.name}
+                            title={id}
                             checkedIcon="dot-circle-o"
                             uncheckedIcon="circle-o"
-                            checked={checks[itemId]}
-                            onPress={() => setCheck(itemId, !checks[itemId])}
+                            checked={checks[id]}
+                            onPress={() => setCheck(id, !checks[id])}
                         />
                     );
                 })}
-                <Button onPress={saveWidgets}>
+                <Button onPress={() => onFinalize(checks)}>
                     {' '}
                     Save <Icon name="zap" color="white" type="foundation" />{' '}
                 </Button>
