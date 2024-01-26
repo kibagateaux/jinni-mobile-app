@@ -297,6 +297,7 @@ export const aggDailyData = (
         {},
     )(sortedRecords);
 
+    // return groupedRecords;
     return Object.values(groupedRecords) as AndroidHealthRecord[];
 };
 

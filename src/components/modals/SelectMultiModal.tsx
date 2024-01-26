@@ -39,7 +39,7 @@ const SelectModal = ({
         if (allowMultiple || isEmpty(checks)) setChecks({ ...checks, [key]: val });
     };
 
-    console.log('Select options', options);
+    console.log('Select options', checks);
 
     const titleTemplate = content.title;
     const dialogueTemplate = content.text;
@@ -76,7 +76,7 @@ const SelectModal = ({
                 })}
                 <Button onPress={() => onFinalize(checks)}>
                     {' '}
-                    Save <Icon name="zap" color="white" type="foundation" />{' '}
+                    Save <Icon name="asl" color="white" type="foundation" />{' '}
                 </Button>
             </View>
         </BaseModal>

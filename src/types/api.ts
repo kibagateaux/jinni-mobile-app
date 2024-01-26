@@ -8,7 +8,6 @@ export interface ApiAuthParams {
 }
 
 export interface UpdateWidgetConfigParams {
-    username: string;
     widgets: WidgetConfig[];
 }
 

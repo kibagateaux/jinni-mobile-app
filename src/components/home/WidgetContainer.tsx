@@ -1,5 +1,5 @@
-import { isEmpty } from 'lodash';
-import React, { useMemo, useState } from 'react';
+import { find } from 'lodash';
+import React, { useState } from 'react';
 import { View, FlatList, StyleSheet, Button } from 'react-native';
 import DraggableFlatList, {
     ScaleDecorator,
@@ -11,7 +11,9 @@ import { TouchableOpacity /** GestureHAndler */ } from 'react-native-gesture-han
 
 import { useInventory } from 'hooks/useInventory';
 import SelectMultiModal from 'components/modals/SelectMultiModal';
-import { WidgetConfig } from 'types/UserConfig';
+import { WidgetConfig, WidgetIds } from 'types/UserConfig';
+import { itemAbilityToWidgetConfig } from 'utils/config';
+
 interface WidgetContainerProps {
     widgets: WidgetConfig[];
     saveWidgets?: (widgets: WidgetConfig[]) => void;
@@ -31,24 +33,9 @@ const WidgetContainer = ({
     // all vars used for renovations
     const [editMode, setEditMode] = useState<boolean>(false);
     const [addMode, setAddMode] = useState<boolean>(false);
+
+    // TODO move to SelectWidgetSettingModal
     const { widgets: allWidgets } = useInventory();
-    const [selectedWidgets, setSelectedWidgets] = useState<{ [key: string]: boolean }>({});
-
-    useMemo(() => {
-        if (editMode && !isEmpty(widgets) && isEmpty(selectedWidgets)) {
-            // if none selected, hydrate from displayed widgets
-            const selected = widgets.reduce(
-                (agg: object, widgi: WidgetConfig) => ({
-                    ...agg,
-                    [widgi.id]: true,
-                }),
-                {},
-            );
-
-            console.log('comp:home:WidgiContain:selectedWdig', selected);
-            setSelectedWidgets(selected);
-        }
-    }, [editMode, widgets, selectedWidgets]);
 
     // const _setEditMode = runOnJS(_setEditMode);
 
@@ -73,28 +60,26 @@ const WidgetContainer = ({
 
     const onWidgetsSelected = async (options: { [id: string]: boolean }) => {
         console.log('widgets selected for homepage', options);
+        const newSettings = Object.entries(options)
+            .filter(([, val]) => val)
+            // TODO diff list
+            // TODO if new widgis have getOptions than popup SelectMulti modal and merge into settings
+            .map(
+                ([key]): WidgetConfig => ({
+                    ...itemAbilityToWidgetConfig(allWidgets[key].provider, key as WidgetIds),
+                    config: {
+                        // providerId: , // TODO assumes widget config is provider dependent. ¿rename `value` or `config` and intepret on backend?
+                    },
+                }),
+            );
 
-        // TODO move to Widget Container onFinalize
+        if (finalizeRenovation) {
+            onRenovateEnd({ data: newSettings });
+            finalizeRenovation();
+        }
 
-        // TODO replace with  options.map(k => )
-        // const widgets = Object.entries(checks)
-        //     .filter(([key, val]) => val)
-        //     .map(
-        //         ([key, val]): WidgetConfig => ({
-        //             ...itemAbilityToWidgetConfig(provider, key as WidgetIds),
-        //             config: {
-        //                 providerId: key, // TODO assumes widget config is provider dependent. ¿rename `value` or `config` and intepret on backend?
-        //             },
-        //         }),
-        //     );
-
-        // await saveHomeConfig({ username: player?.id, widgets });
+        setAddMode(false);
     };
-    // const addWidget = (widget: WidgetConfig) => () =>
-    //     saveWidgets && saveWidgets([...widgets, widget]);
-
-    // const removeWidget = (widget: WidgetConfig) => () =>
-    //     saveWidgets && saveWidgets(filter(({ id }) => id !== widget.id)(widgets));
 
     const onRenovateEnd = ({ data }: { data: WidgetConfig[] }) => {
         // console.log('draggable resordered', data);
@@ -104,7 +89,6 @@ const WidgetContainer = ({
     };
 
     const onEditModeEnd = () => {
-        console.log('end edit Mode');
         setEditMode(false);
         if (finalizeRenovation) finalizeRenovation();
     };
@@ -148,9 +132,10 @@ const WidgetContainer = ({
     };
 
     const renderAddWidgetModal = () => {
-        const selectedWidgi = Object.keys(allWidgets)
-            .map((k) => ({ [k]: find(widgets, { id: k }) ? true : false }))
-            .reduce((agg, opt) => ({ ...agg, ...opt }), {});
+        const selectedWidgi = Object.keys(allWidgets).reduce(
+            (agg, k) => ({ ...agg, [k]: find(widgets, { id: k }) ? true : false }),
+            {},
+        );
 
         return (
             <SelectMultiModal

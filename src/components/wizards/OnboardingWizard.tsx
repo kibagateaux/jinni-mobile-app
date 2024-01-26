@@ -16,7 +16,7 @@
 //     nextButtonStyle,
 // }) => {
 //     const onboardingContent = useGameContent().onboarding.wizard;
-
+// const [step, setStep] = useState(startIndex);
 //     // const { height, width } = Dimensions.get('window');
 //     // const modalStyle = {
 //     //   ...styles.modal,
@@ -34,6 +34,11 @@
 //     //             // screenName:
 //     //         })
 //     //    }
+// if stage === 'start'
+// switch(step) {  }
+// case 0: return SelectMulti options={avatarMood}
+// case 1: return SelectMulti options={avatarCharacteristics}
+// case 2: return SelectMulti options={intentions}
 //     return null;
 // };
 

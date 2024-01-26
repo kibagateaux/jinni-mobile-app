@@ -11,7 +11,8 @@ import {
     InventoryItem,
     ItemStatus,
     HoF,
-    Resource,
+    // eslint-ignore-next-line
+    // Resource,
 } from 'types/GameMechanics';
 import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, SHARE_CONTENT, getCached } from 'utils/config';
 import { debug, track } from 'utils/logging';
@@ -82,6 +83,7 @@ const item: InventoryItem = {
             name: 'Share Playlist',
             symbol: '🎶',
             description: 'Share a playlist on Spotify with another player',
+            provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 // const pid = await getCached({ slot: ID_PLAYER_SLOT });
@@ -122,6 +124,7 @@ const item: InventoryItem = {
             name: 'Share Profile',
             symbol: '🦹‍♂️',
             description: 'Share your Spotfiy profile with another player',
+            provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
@@ -217,20 +220,21 @@ const item: InventoryItem = {
             symbol: '💃',
             description:
                 'Add a playlist to your homepage that will autoplay when people visit your profile',
+            provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'notdoable'),
-            do: async () => {
-                // fetch their playlists from spotify
-                // open modal
-                // display playlists
-                // player selects playlist
-                // open phone native share/contacts module
-                // player selects people to send to
-
+            do: async <WidgetSettingInput>(params: WidgetSettingInput): Promise<HoF> => {
+                console.log('playlist to pin', params);
+                // TODO need a func for when widget pressed on profile which is diff then setting up widget
+                // https://developer.spotify.com/documentation/ios/tutorials/content-linking
+                // Linking.openUrl()
+                return async () => false;
+            },
+            getOptions: async <Resource>() => {
                 track(SHARE_CONTENT, {
                     spell: WIDGET_PIN_PLAYLIST,
                     activityType: 'initiated',
                 });
-                const pid = await getCached({ slot: ID_PLAYER_SLOT });
+                const pid = await getCached<string>({ slot: ID_PLAYER_SLOT });
                 console.log('Spotify:Ability:PinPlaylist:pid', pid);
                 if (!pid) {
                     track(SHARE_CONTENT, {
@@ -238,7 +242,7 @@ const item: InventoryItem = {
                         activityType: 'unauthenticated',
                         success: false,
                     });
-                    return async () => false;
+                    return;
                 }
                 try {
                     console.log('Spotify:Ability:PinPlaylist:get-id');
@@ -251,7 +255,7 @@ const item: InventoryItem = {
                             providerId,
                             success: false,
                         });
-                        return async () => false;
+                        return;
                     }
                     // TODO abstract out all ability/widget logic (id checks, tracking, etc.) and pass func with API calls with return values
                     const response = await qu<{ data: { get_playlists: Resource[] } }>({
@@ -283,7 +287,7 @@ const item: InventoryItem = {
                     });
                     console.log('Spotify:Widget:PinPlaylist:res', response);
 
-                    return async () => (response?.data?.get_playlists ? true : false);
+                    return response?.data?.get_playlists ?? null;
                 } catch (e: unknown) {
                     track(SHARE_CONTENT, {
                         spell: WIDGET_PIN_PLAYLIST,
@@ -294,18 +298,15 @@ const item: InventoryItem = {
                         extra: { spell: WIDGET_PIN_PLAYLIST },
                         tags: { ability: true },
                     });
-                    return async () => false;
+                    return;
                 }
                 // @DEV: Only Premium users can start Jams!
                 // get players playlists with name, id
                 // render list for them to select from
                 // maybe generator is better devex but doesnt really support async values
 
-                return async () => true;
+                return;
             },
-            // TODO need a func for when widget pressed on profile which is diff then setting up widget
-            // https://developer.spotify.com/documentation/ios/tutorials/content-linking
-            // Linking.openUrl()
         },
     ],
 };

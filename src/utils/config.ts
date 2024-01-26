@@ -4,7 +4,7 @@ import { setItemAsync, getItemAsync } from 'expo-secure-store';
 import axios from 'axios';
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
 import { merge, concat } from 'lodash/fp';
-import { isEmpty, memoize } from 'lodash';
+import { capitalize, isEmpty, memoize } from 'lodash';
 
 import { CurrentConnection } from 'types/SpiritWorld';
 import {
@@ -15,11 +15,8 @@ import {
     StorageValue,
     WidgetIds,
 } from 'types/UserConfig';
-import { UpdateWidgetConfigParams } from 'types/api';
 import { debug, track } from './logging';
 import { ItemIds } from 'types/GameMechanics';
-import { MU_SET_WIDGET, qu } from './api';
-import maliksMajik from 'inventory/maliks-majik';
 
 // import { qu } from './api';
 
@@ -107,52 +104,6 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
         });
 };
 
-export const saveHomeConfig = async ({
-    username,
-    widgets,
-}: UpdateWidgetConfigParams): Promise<boolean> => {
-    // save locally first
-    const newHomeConfig = await saveStorage<HomeConfig>(
-        HOME_CONFIG_STORAGE_SLOT,
-        { widgets },
-        true,
-        defaultHomeConfig,
-    );
-
-    if (!username) return true;
-    console.log('new home config saved', newHomeConfig);
-
-    // local save will always finish first and
-    Promise.any([
-        saveStorage<{ [key: string]: WidgetConfig }>(
-            HOME_CONFIG_STORAGE_SLOT,
-            { ...config, widgets: [...(config?.widgets ?? []), ...settings] },
-            true,
-        ),
-        qu<string>({ mutation: MU_SET_WIDGET })({
-            settings: settings.map((s) => ({
-                ...s,
-                widget_id: s.id,
-                config: { provider_id: s.config!.providerId },
-            })),
-        }),
-    ])
-        .then((res) => {
-            console.log('Modal:SelectMulti:Save:response', res);
-        })
-        .catch((err) => {
-            console.log('Modal:SelectMulti:Save:ERR', err);
-        });
-
-    // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
-    // jest.mock('utils/config').mockResolvedValue(noConnection)
-    // if (!(await getNetworkState()).isNoosphere) {
-    //     return true;
-    // }
-
-    // return await qu<boolean>('TODO query on front+backend')({ config: newHomeConfig })
-    return Promise.resolve(false);
-};
 export const itemAbilityToWidgetConfig = (
     provider: ItemIds,
     widgetId: WidgetIds,
@@ -160,44 +111,44 @@ export const itemAbilityToWidgetConfig = (
     id: widgetId,
     routeName: `/inventory/${provider}?widget=${widgetId}`,
     path: `/inventory/${provider}?widget=${widgetId}`,
-    title: `Inventory: ${provider}`,
+    title: widgetId.split('-').slice(1).map(capitalize).join(' '), // slice removes provider prefix from widget id
     provider,
 });
 
-const defaultWidgetConfig = maliksMajik.item.widgets?.map((w) =>
-    itemAbilityToWidgetConfig(w.provider, w.id as WidgetIds),
-);
-
-// const defaultWidgetConfig: WidgetConfig[] = [
-//     {
-//         id: 'stat-strength',
-//         provider: 'Jinni',
-//         title: 'Strength',
-//         routeName: '/stats/strength',
-//         path: '/stats/strength',
-//     },
-//     {
-//         id: 'stat-intelligence',
-//         provider: 'Jinni',
-//         title: 'Intelligence',
-//         routeName: '/stats/intelligence',
-//         path: '/stats/intelligence',
-//     },
-//     {
-//         id: 'stat-stamina',
-//         provider: 'Jinni',
-//         title: 'Stamina',
-//         routeName: '/stats/stamina',
-//         path: '/stats/stamina',
-//     },
-//     {
-//         id: 'stat-spirit',
-//         provider: 'Jinni',
-//         title: 'Spirit',
-//         routeName: '/stats/spirit',
-//         path: '/stats/spirit',
-//     },
-// ];
+// causes circular dependency with inventory item
+// const defaultWidgetConfig = maliksMajik.item.widgets?.map((w) =>
+//     itemAbilityToWidgetConfig(w.provider, w.id as WidgetIds),
+// );
+const defaultWidgetConfig: WidgetConfig[] = [
+    {
+        id: 'stat-strength',
+        provider: 'MaliksMajik',
+        title: 'Strength',
+        routeName: '/stats/strength',
+        path: '/stats/strength',
+    },
+    {
+        id: 'stat-intelligence',
+        provider: 'MaliksMajik',
+        title: 'Intelligence',
+        routeName: '/stats/intelligence',
+        path: '/stats/intelligence',
+    },
+    {
+        id: 'stat-stamina',
+        provider: 'MaliksMajik',
+        title: 'Stamina',
+        routeName: '/stats/stamina',
+        path: '/stats/stamina',
+    },
+    {
+        id: 'stat-spirit',
+        provider: 'MaliksMajik',
+        title: 'Spirit',
+        routeName: '/stats/spirit',
+        path: '/stats/spirit',
+    },
+];
 
 const defaultTabConfig: WidgetConfig[] = [
     {

@@ -137,6 +137,8 @@ export const StatsConfig = [
 
 export type ItemIds =
     | 'MaliksMajik'
+    | 'Spotify'
+    | 'Github'
     | 'IphoneHealthKit'
     | 'IwatchHealthKit'
     | ('AndroidHealthConnect' & OAuthProviderIds);
@@ -186,6 +188,13 @@ export interface InventoryItem {
     widgets?: ItemAbility[]; // things user can do with the item
 }
 
+export interface WidgetSettingInput {
+    widget_id: string;
+    provider: ItemIds;
+    priority: number;
+    provider_id?: string;
+}
+
 export interface ItemAbility {
     id: string;
     name: string;
@@ -194,7 +203,8 @@ export interface ItemAbility {
     description: string;
     status?: AbilityStatus; // if undefined, call canDo() to get value and store to local object
     canDo: (status: ItemStatus) => Promise<AbilityStatus>; // checks if action can be done right now with current item status
-    do: () => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
+    do: <T>(params?: T) => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
+    getOptions?: <T>() => Promise<T[] | void>; // settings for player to select before calling do()
 }
 
 // TODO I feel like this should all be rolled into InventoryItem

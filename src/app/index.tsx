@@ -4,10 +4,10 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { isEmpty } from 'lodash/fp';
 
 import { useHomeConfig } from 'hooks';
-import { useTheme, useAuth } from 'contexts';
+import { useTheme } from 'contexts';
 import { WidgetConfig } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
-import { saveHomeConfig } from 'utils/config';
+import { saveHomeConfig } from 'utils/api';
 import { getActivityData } from 'inventory/android-health-connect';
 
 import { AvatarViewer, WidgetIcon } from 'components/index';
@@ -15,7 +15,6 @@ import DefaultAvatar from 'assets/avatars/red-yellow-egg';
 import WidgetContainer from 'components/home/WidgetContainer';
 
 const HomeScreen = () => {
-    const { player } = useAuth();
     const homeConfig = useHomeConfig();
     const eggRollAngle = useSharedValue(30);
     const eggAnimatedStyles = useAnimatedStyle(() => ({
@@ -54,10 +53,9 @@ const HomeScreen = () => {
     );
 
     const finalizeRenovation = () =>
+        // TODO widgetConfig is not updated when adding/removing widgets
         saveHomeConfig({
-            playerId: player?.name || 'sampleusername',
             widgets: widgetConfig,
-            proof: '!believeme!',
         });
 
     const HomeWidget = ({ id, title, path }: WidgetConfig) => {
