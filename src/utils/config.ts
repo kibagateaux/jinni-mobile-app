@@ -82,7 +82,7 @@ export const getAppConfig = (): AppConfig => ({
 });
 
 export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
-    const customConfig = await getCached<HomeConfig>({ slot: HOME_CONFIG_STORAGE_SLOT });
+    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
     // console.log("custom config ", customConfig)
     // can only login from app so all changes MUST be saved locally if they exist on db
     if (!isEmpty(customConfig)) return customConfig!;

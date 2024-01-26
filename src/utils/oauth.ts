@@ -16,7 +16,7 @@ import {
     ID_PLAYER_SLOT,
     ID_PROVIDER_IDS_SLOT,
     getAppConfig,
-    getCached,
+    getStorage,
     saveStorage,
 } from './config';
 import { cleanGql, qu } from './api';
@@ -99,7 +99,7 @@ export const createOauthRedirectURI = memoize(() => {
  */
 export const generateRedirectState = async (provider: OAuthProviderIds): Promise<string> => {
     const nonce = randomUUID();
-    const player = await getCached({ slot: ID_PLAYER_SLOT });
+    const player = await getStorage(ID_PLAYER_SLOT);
     if (!player) return Promise.resolve(nonce);
 
     const sig = await (await getSpellBook()).signMessage(`${player}.${provider}.${nonce}`);
@@ -135,7 +135,7 @@ const quProviderId = qu<{ data: { sync_provider_id: string } }>({ mutation: QU_P
  * @returns id on provider or null
  */
 export const getProviderId = async ({ playerId, provider }: obj): Promise<string | null> => {
-    const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[provider];
+    const cached = (await getStorage<obj>(ID_PROVIDER_IDS_SLOT))?.[provider];
     console.log('util:oauth:getProviderId:cached', cached);
     if (cached) return cached;
     try {
@@ -144,7 +144,7 @@ export const getProviderId = async ({ playerId, provider }: obj): Promise<string
         const id = response?.data ? response.data.sync_provider_id : null;
         console.log('util:oauth:getProviderId', response, id);
         id &&
-            playerId === (await getCached<string>({ slot: ID_PLAYER_SLOT })) &&
+            playerId === (await getStorage<string>(ID_PLAYER_SLOT)) &&
             (await saveStorage(ID_PROVIDER_IDS_SLOT, { [provider]: id }, true));
         return id;
     } catch (e) {

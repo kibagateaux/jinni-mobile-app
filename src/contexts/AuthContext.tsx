@@ -5,7 +5,7 @@ import { generateIdentity, getId, getSpellBook as getSpells, saveId } from 'util
 import { Identity } from '@semaphore-protocol/identity';
 import { useExternalServices } from './ExternalServicesContext';
 import { Wallet } from 'ethers';
-import { ID_ANON_SLOT, ID_PLAYER_SLOT, getCached } from 'utils/config';
+import { ID_ANON_SLOT, ID_PLAYER_SLOT, getStorage } from 'utils/config';
 
 interface AuthConsumables {
     player: Avatar | undefined;
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     useMemo(() => {
         console.log('AuthContext: set player id', player?.id);
         if (!player?.id) {
-            getCached<string>({ slot: ID_PLAYER_SLOT }).then((id) => id && login(id));
+            getStorage<string>(ID_PLAYER_SLOT).then((id) => id && login(id));
             // magicRug();
         } else {
             //  hydrate spellbook manually once required to prevent slow app start

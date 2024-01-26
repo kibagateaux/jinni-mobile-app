@@ -14,7 +14,7 @@ import {
     // eslint-ignore-next-line
     // Resource,
 } from 'types/GameMechanics';
-import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, SHARE_CONTENT, getCached } from 'utils/config';
+import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, SHARE_CONTENT, getStorage } from 'utils/config';
 import { debug, track } from 'utils/logging';
 import { obj } from 'types/UserConfig';
 
@@ -64,17 +64,17 @@ const item: InventoryItem = {
         { ...IntelligenceStat, value: 5 },
     ],
     checkStatus: async () => {
-        const pid = await getCached({ slot: ID_PLAYER_SLOT });
+        const pid = await getStorage(ID_PLAYER_SLOT);
         console.log('Inv:Spotify:checkStatus', pid);
         if (!pid && !__DEV__) return 'ethereal'; // allow to interact in dev even if cant equip
-        const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[ITEM_ID];
+        const cached = (await getStorage<obj>(ID_PROVIDER_IDS_SLOT))?.[ITEM_ID];
         console.log('Inv:Spotify:checkStatus', cached);
         // TODO could make api request to see if access_token exist on API but ID should be saved on equip
         // only irrelevant if logging in old account to new device.
         // return 'unequipped';
         return cached ? 'equipped' : 'unequipped';
     },
-    canEquip: async () => ((await getCached({ slot: ID_PLAYER_SLOT })) ? true : false),
+    canEquip: async () => ((await getStorage(ID_PLAYER_SLOT)) ? true : false),
     equip,
     unequip,
     abilities: [
@@ -86,7 +86,7 @@ const item: InventoryItem = {
             provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
-                // const pid = await getCached({ slot: ID_PLAYER_SLOT });
+                // const pid = await getStorage(ID_PLAYER_SLOT);
                 // if (!pid) return async () => false;
                 // try {
                 //     const response = qu<Resource[]>({
@@ -132,7 +132,7 @@ const item: InventoryItem = {
                     spell: ABILITY_SHARE_PROFILE,
                     activityType: 'initiated',
                 });
-                const pid = await getCached({ slot: ID_PLAYER_SLOT });
+                const pid = await getStorage(ID_PLAYER_SLOT);
                 console.log('Spotify:Ability:ShareProfile:pid', pid);
                 if (!pid) {
                     track(SHARE_CONTENT, {
@@ -234,7 +234,7 @@ const item: InventoryItem = {
                     spell: WIDGET_PIN_PLAYLIST,
                     activityType: 'initiated',
                 });
-                const pid = await getCached<string>({ slot: ID_PLAYER_SLOT });
+                const pid = await getStorage<string>(ID_PLAYER_SLOT);
                 console.log('Spotify:Ability:PinPlaylist:pid', pid);
                 if (!pid) {
                     track(SHARE_CONTENT, {
