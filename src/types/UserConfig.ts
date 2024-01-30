@@ -22,6 +22,7 @@ export interface HomeConfig {
 export interface WidgetConfig {
     id: WidgetIds;
     provider: ItemIds;
+    priority?: number;
     // navigation
     routeName: string; // Expo route navigation name
     title: string;
@@ -53,11 +54,12 @@ export type GameWidgetIds =
     | 'stat-faith'
     | 'stat-strength'
     | 'stat-stamina'
-    | 'stat-spirit';
+    | 'stat-spirit'
+    | 'maliksmajik-avatar-viewer';
 
 // player action portals
 export type ItemWidgetIds =
-    | 'maliks-majik-leaderboard'
+    | 'maliksmajik-leaderboard'
     // identity
     | 'spotify-profile'
     | 'spotify-most-played'

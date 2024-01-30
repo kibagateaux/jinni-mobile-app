@@ -1,5 +1,5 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
-import { isEmpty } from 'lodash';
+import _, { isEmpty } from 'lodash';
 import { HomeConfig } from 'types/UserConfig';
 import { UpdateWidgetConfigParams } from 'types/api';
 import {
@@ -121,11 +121,11 @@ export const MU_SUBMIT_DATA = `
 export const MU_SET_WIDGET = `
     mutation jinni_set_widget(
         $verification: SignedRequest!,
-        $settings: [WidgetSettingsInput]!
+        $widgets: [WidgetSettingInput]!
     ) {
         jinni_set_widget(
             verification: $verification, 
-            $settings: [WidgetSettingsInput]!
+            widgets: $widgets
         )
     }
 `;
@@ -155,11 +155,33 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
 };
 
 export const saveHomeConfig = async ({ widgets }: UpdateWidgetConfigParams): Promise<boolean> => {
-    // get existing config to merge
+    console.log('home config deduped 1!!!', widgets);
     const config = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    // merge new and existing widget configs. only one widget per id allowed (eventually uniq by id + target_uuid)
+    // const deduped = _(config?.widgets ?? []) // start sequence
+    //     .keyBy('id') // create map
+    //     .merge(_.keyBy(widgets, 'id')) // create map of existing config and merge it to new configs
+    //     .values() // merged map back to array
+    //     .value()
+    const deduped = config?.widgets.filter((w) => !_.find(widgets, { id: w.id }));
+    const merged = [...widgets, ...deduped];
+    console.log(
+        'home config deduped 1!!!',
+        merged,
+        deduped.find((w) => w.id === 'maliksmajik-avatar-viewer'),
+    );
+    // const deduped2 = _.uniqBy([...config?.widgets ?? [], ...widgets], '')
+
+    const deduped2 = _.union([...(config?.widgets ?? []), ...widgets]);
+
+    console.log(
+        'home config deduped 2!!!',
+        deduped2.find((w) => w.id === 'maliksmajik-avatar-viewer'),
+    );
+
     const newConfig = await saveStorage<HomeConfig>(
         HOME_CONFIG_STORAGE_SLOT,
-        { ...config, widgets },
+        { ...config, widgets: deduped },
         false,
         defaultHomeConfig,
     );
@@ -174,20 +196,21 @@ export const saveHomeConfig = async ({ widgets }: UpdateWidgetConfigParams): Pro
     //     return true;
     // }
 
-    // return qu<string>({ mutation: MU_SET_WIDGET })({
-    //     settings: widgets.map((s) => ({
-    //         ...s,
-    //         widget_id: s.id,
-    //         config: s.config,
-    //     })),
-    // })
-    // .then((res) => {
-    //     console.log('Modal:SelectMulti:Save:response', res);
-    //     return true;
-    // })
-    // .catch((err) => {
-    //     console.log('Modal:SelectMulti:Save:ERR', err);
-    //     return false;
-    // });
+    return qu<string>({ mutation: MU_SET_WIDGET })({
+        widgets: merged.map(({ id, provider, priority = 0, config }) => ({
+            id,
+            provider,
+            priority,
+            ...(config ?? {}),
+        })),
+    })
+        .then((res) => {
+            console.log('utils:api:saveHomeConfig:response', res);
+            return true;
+        })
+        .catch((err) => {
+            console.log('utils:api:saveHomeConfig:ERR', err);
+            return false;
+        });
     return Promise.resolve(true);
 };

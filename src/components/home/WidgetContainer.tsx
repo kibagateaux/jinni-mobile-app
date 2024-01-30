@@ -73,6 +73,7 @@ const WidgetContainer = ({
                 }),
             );
 
+        console.log('widgets selected for homepage', newSettings);
         if (finalizeRenovation) {
             onRenovateEnd({ data: newSettings });
             finalizeRenovation();

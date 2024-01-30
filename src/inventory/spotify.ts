@@ -14,7 +14,12 @@ import {
     // eslint-ignore-next-line
     // Resource,
 } from 'types/GameMechanics';
-import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, SHARE_CONTENT, getStorage } from 'utils/config';
+import {
+    ID_PLAYER_SLOT,
+    ID_PROVIDER_IDS_SLOT,
+    TRACK_SHARE_CONTENT,
+    getStorage,
+} from 'utils/config';
 import { debug, track } from 'utils/logging';
 import { obj } from 'types/UserConfig';
 
@@ -128,14 +133,14 @@ const item: InventoryItem = {
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
-                track(SHARE_CONTENT, {
+                track(TRACK_SHARE_CONTENT, {
                     spell: ABILITY_SHARE_PROFILE,
                     activityType: 'initiated',
                 });
                 const pid = await getStorage(ID_PLAYER_SLOT);
                 console.log('Spotify:Ability:ShareProfile:pid', pid);
                 if (!pid) {
-                    track(SHARE_CONTENT, {
+                    track(TRACK_SHARE_CONTENT, {
                         spell: ABILITY_SHARE_PROFILE,
                         activityType: 'unauthenticated',
                         success: false,
@@ -147,7 +152,7 @@ const item: InventoryItem = {
                     const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
                     console.log('Spotify:Ability:ShareProfile:id', providerId);
                     if (!providerId) {
-                        track(SHARE_CONTENT, {
+                        track(TRACK_SHARE_CONTENT, {
                             spell: ABILITY_SHARE_PROFILE,
                             activityType: 'unequipped',
                             providerId,
@@ -167,7 +172,7 @@ const item: InventoryItem = {
 
                     console.log('Spotify:Ability:ShareProfile:share', action);
                     if (action === Share.sharedAction) {
-                        track(SHARE_CONTENT, {
+                        track(TRACK_SHARE_CONTENT, {
                             spell: ABILITY_SHARE_PROFILE,
                             activityType: activityType ?? 'shared',
                             providerId,
@@ -177,7 +182,7 @@ const item: InventoryItem = {
                     }
 
                     if (action === Share.dismissedAction) {
-                        track(SHARE_CONTENT, {
+                        track(TRACK_SHARE_CONTENT, {
                             spell: ABILITY_SHARE_PROFILE,
                             activityType: 'dismissed',
                             providerId,
@@ -185,7 +190,7 @@ const item: InventoryItem = {
                         return async () => false;
                     }
                 } catch (e: unknown) {
-                    track(SHARE_CONTENT, {
+                    track(TRACK_SHARE_CONTENT, {
                         spell: ABILITY_SHARE_PROFILE,
                         activityType: 'failed',
                         success: false,
@@ -230,14 +235,14 @@ const item: InventoryItem = {
                 return async () => false;
             },
             getOptions: async <Resource>() => {
-                track(SHARE_CONTENT, {
+                track(TRACK_SHARE_CONTENT, {
                     spell: WIDGET_PIN_PLAYLIST,
                     activityType: 'initiated',
                 });
                 const pid = await getStorage<string>(ID_PLAYER_SLOT);
                 console.log('Spotify:Ability:PinPlaylist:pid', pid);
                 if (!pid) {
-                    track(SHARE_CONTENT, {
+                    track(TRACK_SHARE_CONTENT, {
                         spell: WIDGET_PIN_PLAYLIST,
                         activityType: 'unauthenticated',
                         success: false,
@@ -249,7 +254,7 @@ const item: InventoryItem = {
                     const providerId = await getProviderId({ playerId: pid, provider: ITEM_ID });
                     console.log('Spotify:Ability:PinPlaylist:id', providerId);
                     if (!providerId) {
-                        track(SHARE_CONTENT, {
+                        track(TRACK_SHARE_CONTENT, {
                             spell: WIDGET_PIN_PLAYLIST,
                             activityType: 'unequipped',
                             providerId,
@@ -289,7 +294,7 @@ const item: InventoryItem = {
 
                     return response?.data?.get_playlists ?? null;
                 } catch (e: unknown) {
-                    track(SHARE_CONTENT, {
+                    track(TRACK_SHARE_CONTENT, {
                         spell: WIDGET_PIN_PLAYLIST,
                         activityType: 'failed',
                         success: false,

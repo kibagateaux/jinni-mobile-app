@@ -18,7 +18,7 @@ export default {
         text: 'You could not perform the ability at this time 🙈',
     },
     'select-multi': {
-        title: ({ title }) => `Select All Options${title ? ' For ' + title : ''}`,
+        title: ({ title }) => `Select All Options\n\n${title}`,
         text: '',
     },
 };
