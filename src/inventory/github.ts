@@ -11,7 +11,7 @@ import {
 } from 'types/GameMechanics';
 import { obj } from 'types/UserConfig';
 import { cleanGql, qu } from 'utils/api';
-import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, getCached } from 'utils/config';
+import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, getStorage } from 'utils/config';
 import { debug, track } from 'utils/logging';
 import { getProviderId } from 'utils/oauth';
 
@@ -61,17 +61,17 @@ const item: InventoryItem = {
         { ...IntelligenceStat, value: 20 },
     ],
     checkStatus: async () => {
-        const pid = await getCached({ slot: ID_PLAYER_SLOT });
+        const pid = await getStorage(ID_PLAYER_SLOT);
         console.log('Inv:Spotify:checkStatus', pid);
         if (!pid && !__DEV__) return 'ethereal'; // allow to interact in dev even if cant equip
         // TODO api request to see if access_token exist on API
-        const cached = (await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }))?.[ITEM_ID];
-        console.log('sync id res', cached, await getCached<obj>({ slot: ID_PROVIDER_IDS_SLOT }));
+        const cached = (await getStorage<obj>(ID_PROVIDER_IDS_SLOT))?.[ITEM_ID];
+        console.log('sync id res', cached, await getStorage<obj>(ID_PROVIDER_IDS_SLOT));
 
         // return 'unequipped';
         return cached ? 'equipped' : 'unequipped';
     },
-    canEquip: async () => ((await getCached({ slot: ID_PLAYER_SLOT })) ? true : false),
+    canEquip: async () => ((await getStorage(ID_PLAYER_SLOT)) ? true : false),
     equip,
     unequip,
     abilities: [
@@ -80,13 +80,14 @@ const item: InventoryItem = {
             name: 'Add Repos',
             symbol: '💻',
             description: 'Give your jinni access to your code repos to learn from your daily adds',
+            provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 track(ABILITY_SYNC_REPOS, {
                     spell: ABILITY_SYNC_REPOS,
                     activityType: 'initiated',
                 });
-                const pid = await getCached<string>({ slot: ID_PLAYER_SLOT });
+                const pid = await getStorage<string>(ID_PLAYER_SLOT);
                 if (!pid) {
                     track(ABILITY_SYNC_REPOS, {
                         spell: ABILITY_SYNC_REPOS,
@@ -150,13 +151,14 @@ const item: InventoryItem = {
             name: 'Track Commits',
             symbol: '💻',
             description: 'Jinni will learn from what you have been working on',
+            provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
             do: async () => {
                 track(ABILITY_TRACK_COMMITS, {
                     spell: ABILITY_TRACK_COMMITS,
                     activityType: 'initiated',
                 });
-                const pid = await getCached<string>({ slot: ID_PLAYER_SLOT });
+                const pid = await getStorage<string>(ID_PLAYER_SLOT);
                 if (!pid) {
                     track(ABILITY_TRACK_COMMITS, {
                         spell: ABILITY_TRACK_COMMITS,

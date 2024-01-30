@@ -8,6 +8,14 @@ export default {
             title: '',
             text: '',
         },
+        2: {
+            title: '',
+            text: '',
+        },
+        3: {
+            title: '',
+            text: '',
+        },
     },
     modals: {
         'create-spellbook': {

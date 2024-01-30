@@ -4,30 +4,46 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { isEmpty } from 'lodash/fp';
 
 import { useHomeConfig } from 'hooks';
-import { useTheme, useAuth } from 'contexts';
-import { WidgetConfig } from 'types/UserConfig';
+import { WidgetConfig, obj } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
-import { saveHomeConfig } from 'utils/config';
+import { saveHomeConfig } from 'utils/api';
 import { getActivityData } from 'inventory/android-health-connect';
 
 import { AvatarViewer, WidgetIcon } from 'components/index';
 import DefaultAvatar from 'assets/avatars/red-yellow-egg';
 import WidgetContainer from 'components/home/WidgetContainer';
+import OnboardingWizard from 'components/wizards/OnboardingWizard';
+import {
+    STAGE_AVATAR_CONFIG,
+    TRACK_ONBOARDING_STAGE,
+    filterOutDefaultWidgets,
+    getStorage,
+    saveStorage,
+} from 'utils/config';
+import { debug } from 'utils/logging';
 
 const HomeScreen = () => {
-    const { player } = useAuth();
     const homeConfig = useHomeConfig();
     const eggRollAngle = useSharedValue(30);
     const eggAnimatedStyles = useAnimatedStyle(() => ({
         transform: [{ rotate: `${eggRollAngle.value}deg` }],
     }));
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
+    const [onboardingStage, setOnboardingStage] = useState<string>();
 
     useMemo(() => {
         if (isEmpty(widgetConfig) && homeConfig?.widgets) {
             setWidgetConfig(homeConfig.widgets);
         }
     }, [homeConfig, widgetConfig]);
+
+    useMemo(async () => {
+        const currentStage = await getStorage<obj>(TRACK_ONBOARDING_STAGE);
+        console.log('onboarding stage', onboardingStage, currentStage);
+        if (!onboardingStage && !currentStage?.[STAGE_AVATAR_CONFIG]) {
+            setOnboardingStage(STAGE_AVATAR_CONFIG);
+        }
+    }, [onboardingStage]);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -53,12 +69,23 @@ const HomeScreen = () => {
         [setWidgetConfig],
     );
 
-    const finalizeRenovation = () =>
-        saveHomeConfig({
-            username: player?.name || 'sampleusername',
-            widgets: widgetConfig,
-            proof: '!believeme!',
-        });
+    const finalizeRenovation = useCallback(
+        (widgets?: WidgetConfig[]) =>
+            // TODO widgetConfig is not updated when adding/removing widgets
+            saveHomeConfig({
+                widgets: widgets ?? widgetConfig,
+            }),
+        [widgetConfig],
+    );
+
+    const completeWizardStage = useCallback(
+        (stage: string) => {
+            saveStorage(TRACK_ONBOARDING_STAGE, { [stage]: String(true) }, true, {}).then(() =>
+                setOnboardingStage(undefined),
+            );
+        },
+        [setOnboardingStage],
+    );
 
     const HomeWidget = ({ id, title, path }: WidgetConfig) => {
         return (
@@ -84,8 +111,35 @@ const HomeScreen = () => {
 
     console.log('eggroll ', eggRollAngle.value);
 
+    if (onboardingStage === STAGE_AVATAR_CONFIG)
+        return (
+            <OnboardingWizard
+                startIndex={0}
+                onComplete={async (config) => {
+                    try {
+                        await finalizeRenovation([
+                            ...widgetConfig,
+                            {
+                                id: 'maliksmajik-avatar-viewer',
+                                provider: 'MaliksMajik',
+                                routeName: 'index', // home page
+                                title: 'Avatar Viewer',
+                                path: '/',
+                                config,
+                                // They can't have registered yet so no jinni id to specify for config
+                                // eventually need to link with jiini. Could do in activate_jinni but :Widget wont be there if they start from desktop flow (github/facrcaster)
+                                // target_uuid: await getStorage(ID_JINNI_SLOT)
+                            },
+                        ]);
+                        completeWizardStage(STAGE_AVATAR_CONFIG);
+                    } catch (e) {
+                        debug(e, { extra: { onboardingStage } });
+                    }
+                }}
+            />
+        );
     return (
-        <View style={{ flex: 1, ...useTheme() }}>
+        <View style={{ flex: 1 }}>
             <View style={styles.container}>
                 <View style={styles.avatarContainer}>
                     <Animated.View style={[styles.avatar, eggAnimatedStyles]}>
@@ -94,7 +148,7 @@ const HomeScreen = () => {
                     <Button color="purple" title="Speak Intention" onPress={onIntentionPress} />
                 </View>
                 <WidgetContainer
-                    widgets={widgetConfig}
+                    widgets={filterOutDefaultWidgets(widgetConfig) as WidgetConfig[]}
                     WidgetRenderer={HomeWidget}
                     saveWidgets={saveWidgets}
                     finalizeRenovation={finalizeRenovation}

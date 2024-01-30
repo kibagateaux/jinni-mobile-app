@@ -4,7 +4,7 @@ import { setItemAsync, getItemAsync } from 'expo-secure-store';
 import axios from 'axios';
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
 import { merge, concat } from 'lodash/fp';
-import { isEmpty, memoize } from 'lodash';
+import { capitalize, isEmpty, memoize } from 'lodash';
 
 import { CurrentConnection } from 'types/SpiritWorld';
 import {
@@ -13,9 +13,11 @@ import {
     LogDataQueryProps,
     StorageKey,
     StorageValue,
+    WidgetIds,
 } from 'types/UserConfig';
-import { UpdateWidgetConfigParams } from 'types/api';
 import { debug, track } from './logging';
+import { ItemAbility, ItemIds } from 'types/GameMechanics';
+
 // import { qu } from './api';
 
 // Storage slots for different config items
@@ -24,9 +26,12 @@ export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
 export const MALIKS_MAJIK_CARD = '0x46C79830a421038E75853eD0b476Ae17bFeC289A';
 export const MAJIK_CARDS = [MALIKS_MAJIK_CARD];
 
+// cross provider analytics eventrs
 export const TRACK_PERMS_REQUESTED = 'PERMISSIONS_REQUESTED';
 export const TRACK_DATA_QUERIED = 'DATA_QUERIED';
-export const SHARE_CONTENT = 'SHARE_CONTENT';
+export const TRACK_SHARE_CONTENT = 'SHARE_CONTENT';
+export const TRACK_ONBOARDING_STAGE = 'ONBOARDING_STAGE';
+export const STAGE_AVATAR_CONFIG = '0_ONBOARDING_STAGE_AVATAR_CONFIG';
 
 // local + secure storage slots
 export const LAST_QUERIED_SLOT = 'LAST_TIME_QUERIED';
@@ -46,11 +51,28 @@ export const getCached = memoize(
 const updateCache = (key: StorageKey, val: StorageValue) =>
     getCached.cache.set(JSON.stringify(key), val);
 
-type AppConfig = {
+/**
+ * This is the description of the interface
+ *
+ * @interface AppConfig
+ * @member {string} label is used for whatever reason
+ * @field {string} prop is used for other reason
+ * @member {string} NODE_ENV -
+ * @member {string} API_URL - jinni api to call for functionality
+ * @member {string} REDIRECT_URL - oauth redirect uri. Could be API_URL or other approved url
+ * @member {string} ETH_NETWORK - which Ethereum network to use for attestations and contract interactions
+ * @member {string} ETH_API_PROVIDER_URI - Ethereum RPC provider for Network
+ * @member {string} ETH_API_PROVIDER_API_KEY - API key for RPC provider
+ * @member {string} SENTRY_DSN - Sentry.io project id
+ * @member {string} SENTRY_ORG - Sentry.io project id
+ * @member {string} SENTRY_PROJECT - Sentry.io project id
+ * @member {string} SEGMENT_API_KEY - Segment.io API key for sending analytics
+ */
+interface AppConfig {
     NODE_ENV: 'development' | 'production' | 'test';
     API_URL: string;
     REDIRECT_URL: string;
-    API_KEY: string;
+
     ETH_NETWORK: string;
     ETH_API_PROVIDER_URI: string;
     ETH_API_PROVIDER_API_KEY: string;
@@ -59,7 +81,7 @@ type AppConfig = {
     SENTRY_ORG: string | undefined;
     SENTRY_PROJECT: string | undefined;
     SEGMENT_API_KEY: string | undefined;
-};
+}
 
 // console.log('Config:env', process.env);
 
@@ -67,7 +89,6 @@ export const getAppConfig = (): AppConfig => ({
     NODE_ENV: process.env.NODE_ENV || 'development',
     API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8888',
     REDIRECT_URL: process.env.EXPO_PUBLIC_REDIRECT_URL || 'http://localhost:8888',
-    API_KEY: process.env.EXPO_PUBLIC_API_KEY || 'test-api-key',
 
     ETH_NETWORK: process.env.EXPO_PUBLIC_ETH_NETWORK || 'optimism',
     ETH_API_PROVIDER_URI: process.env.EXPO_PUBLIC_ETH_API_PROVIDER_URI || 'test-api-key',
@@ -79,8 +100,9 @@ export const getAppConfig = (): AppConfig => ({
     SEGMENT_API_KEY: process.env.EXPO_PUBLIC_SEGMENT_API_KEY || 'aaaaaaa',
 });
 
+// TODO deprecate for utils/api.getHomeConfig
 export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
-    const customConfig = await getCached<HomeConfig>({ slot: HOME_CONFIG_STORAGE_SLOT });
+    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
     // console.log("custom config ", customConfig)
     // can only login from app so all changes MUST be saved locally if they exist on db
     if (!isEmpty(customConfig)) return customConfig!;
@@ -102,52 +124,50 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
         });
 };
 
-export const saveHomeConfig = async ({
-    username,
-    widgets,
-}: UpdateWidgetConfigParams): Promise<boolean> => {
-    // save locally first
-    const newHomeConfig = await saveStorage<HomeConfig>(
-        HOME_CONFIG_STORAGE_SLOT,
-        { widgets },
-        true,
-        defaultHomeConfig,
+export const filterOutDefaultWidgets = (widgets: WidgetConfig[] | ItemAbility[]) =>
+    widgets.filter(
+        (w) => w.id !== 'maliksmajik-avatar-viewer' && w.id !== 'maliksmajik-speak-intention',
     );
+export const itemAbilityToWidgetConfig = (
+    provider: ItemIds,
+    widgetId: WidgetIds,
+): WidgetConfig => ({
+    id: widgetId,
+    routeName: `/inventory/${provider}?widget=${widgetId}`,
+    path: `/inventory/${provider}?widget=${widgetId}`,
+    title: widgetId.split('-').slice(1).map(capitalize).join(' '), // slice removes provider prefix from widget id
+    provider,
+});
 
-    if (!username) return true;
-    console.log('new home config saved', newHomeConfig);
-
-    // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
-    // jest.mock('utils/config').mockResolvedValue(noConnection)
-    // if (!(await getNetworkState()).isNoosphere) {
-    //     return true;
-    // }
-
-    // return await qu<boolean>('TODO query on front+backend')({ config: newHomeConfig })
-    return Promise.resolve(false);
-};
-
+// causes circular dependency with inventory item
+// const defaultWidgetConfig = maliksMajik.item.widgets?.map((w) =>
+//     itemAbilityToWidgetConfig(w.provider, w.id as WidgetIds),
+// );
 const defaultWidgetConfig: WidgetConfig[] = [
     {
         id: 'stat-strength',
+        provider: 'MaliksMajik',
         title: 'Strength',
         routeName: '/stats/strength',
         path: '/stats/strength',
     },
     {
         id: 'stat-intelligence',
+        provider: 'MaliksMajik',
         title: 'Intelligence',
         routeName: '/stats/intelligence',
         path: '/stats/intelligence',
     },
     {
         id: 'stat-stamina',
+        provider: 'MaliksMajik',
         title: 'Stamina',
         routeName: '/stats/stamina',
         path: '/stats/stamina',
     },
     {
         id: 'stat-spirit',
+        provider: 'MaliksMajik',
         title: 'Spirit',
         routeName: '/stats/spirit',
         path: '/stats/spirit',
@@ -156,13 +176,15 @@ const defaultWidgetConfig: WidgetConfig[] = [
 
 const defaultTabConfig: WidgetConfig[] = [
     {
-        id: 'page-home',
+        id: 'home',
+        provider: 'MaliksMajik',
         routeName: 'index',
         title: 'Home',
         path: '/',
     },
     {
-        id: 'page-inventory',
+        id: 'inventory',
+        provider: 'MaliksMajik',
         routeName: 'inventory',
         title: 'inventory',
         path: '/inventory',
@@ -261,8 +283,8 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
         console.log(
             'get storage 1 - {slot, useCrypt} + cached',
             JSON.stringify({ slot, secure: useMysticCrypt }),
-            cached,
         );
+        console.dir(cached);
         if (cached) return cached;
         const val = useMysticCrypt
             ? await getItemAsync(slot, { requireAuthentication: !__DEV__ })

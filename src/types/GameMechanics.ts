@@ -16,7 +16,7 @@ export type ModalContentProps = {
             text: string | ((dialogueData: object) => string);
         };
     };
-    // key = ItemIds
+    // key = ItemIds;
     modal: {
         title: string | ((dialogueData: object) => string);
         text: string | ((dialogueData: object) => string);
@@ -25,7 +25,7 @@ export type ModalContentProps = {
 export type GameContent = {
     inventory: {
         [key: string]: {
-            // key = ItemIds
+            // key = ItemIds;
             [key: string]:
                 | {
                       // key = meta
@@ -61,10 +61,11 @@ export interface Action {
 export type ResourceAccessibility = 'public' | 'permissioned' | 'private' | 'secret';
 export interface Resource {
     id?: string; // uuid
-    name: string; // human readable action name e.g. "walking"
+    provider_id: string;
+    name: string; // title of resource given by player in provider system
+    resource_type: string; // human readable action name e.g. "repo", "music"
     href: string; //
     dataProvider: string;
-    providerId?: string;
     accessibility: string;
     image: string;
     creators: Avatar[];
@@ -94,18 +95,6 @@ export const IntelligenceStat: StatsAttribute = {
     value: 1,
 };
 
-export const StaminaStat: StatsAttribute = {
-    name: 'Stamina',
-    symbol: '🫀',
-    value: 1,
-};
-
-export const FaithStat: StatsAttribute = {
-    name: 'Faith',
-    symbol: '🙏',
-    value: 1,
-};
-
 export const CommunityStat: StatsAttribute = {
     name: 'Community',
     symbol: '🧚‍♂️',
@@ -124,18 +113,32 @@ export const DjinnStat: StatsAttribute = {
     value: 1,
 };
 
+// export const StaminaStat: StatsAttribute = {
+//     name: 'Stamina',
+//     symbol: '🫀',
+//     value: 1,
+// };
+//
+// export const FaithStat: StatsAttribute = {
+//     name: 'Faith',
+//     symbol: '🙏',
+//     value: 1,
+// };
+
 export const StatsConfig = [
+    DjinnStat,
     HealthStat,
     StrengthStat,
     IntelligenceStat,
-    StaminaStat,
-    FaithStat,
     CommunityStat,
-    DjinnStat,
+    // StaminaStat,
+    // FaithStat,
 ];
 
 export type ItemIds =
     | 'MaliksMajik'
+    | 'Spotify'
+    | 'Github'
     | 'IphoneHealthKit'
     | 'IwatchHealthKit'
     | ('AndroidHealthConnect' & OAuthProviderIds);
@@ -161,7 +164,7 @@ export type HoF = <T, R>(func?: (data?: T) => R) => Promise<boolean>;
 
 export interface InventoryItem {
     // static metadata
-    id: string;
+    id: ItemIds;
     name: string;
     image: string;
     tags?: ItemTags[];
@@ -185,14 +188,23 @@ export interface InventoryItem {
     widgets?: ItemAbility[]; // things user can do with the item
 }
 
+export interface WidgetSettingInput {
+    widget_id: string;
+    provider: ItemIds;
+    priority: number;
+    provider_id?: string;
+}
+
 export interface ItemAbility {
     id: string;
     name: string;
+    provider: ItemIds;
     symbol: string;
     description: string;
     status?: AbilityStatus; // if undefined, call canDo() to get value and store to local object
     canDo: (status: ItemStatus) => Promise<AbilityStatus>; // checks if action can be done right now with current item status
-    do: () => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
+    do: <T>(params?: T) => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
+    getOptions?: <T>() => Promise<T[] | void>; // settings for player to select before calling do()
 }
 
 // TODO I feel like this should all be rolled into InventoryItem

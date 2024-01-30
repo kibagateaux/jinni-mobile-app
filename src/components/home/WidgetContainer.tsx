@@ -1,3 +1,4 @@
+import { find } from 'lodash';
 import React, { useState } from 'react';
 import { View, FlatList, StyleSheet, Button } from 'react-native';
 import DraggableFlatList, {
@@ -7,7 +8,11 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { TouchableOpacity /** GestureHAndler */ } from 'react-native-gesture-handler';
 // import { useSharedValue, runOnJS } from 'react-native-reanimated';
-import { WidgetConfig } from 'types/UserConfig';
+
+import { useInventory } from 'hooks/useInventory';
+import SelectMultiModal from 'components/modals/SelectMultiModal';
+import { WidgetConfig, WidgetIds } from 'types/UserConfig';
+import { itemAbilityToWidgetConfig } from 'utils/config';
 
 interface WidgetContainerProps {
     widgets: WidgetConfig[];
@@ -25,7 +30,13 @@ const WidgetContainer = ({
     renovationConfig = {},
 }: WidgetContainerProps) => {
     // TODO https://reactnative.dev/docs/optimizing-flatlist-configuration
+    // all vars used for renovations
     const [editMode, setEditMode] = useState<boolean>(false);
+    const [addMode, setAddMode] = useState<boolean>(false);
+
+    // TODO move to SelectWidgetSettingModal
+    const { widgets: allWidgets } = useInventory();
+
     // const _setEditMode = runOnJS(_setEditMode);
 
     // // TODO no buttons to enter renovate mode, just pres & hold widget module and it enters
@@ -47,11 +58,29 @@ const WidgetContainer = ({
 
     // TODO implement add/remove
 
-    // const addWidget = (widget: WidgetConfig) => () =>
-    //     saveWidgets && saveWidgets([...widgets, widget]);
+    const onWidgetsSelected = async (options: { [id: string]: boolean }) => {
+        console.log('widgets selected for homepage', options);
+        const newSettings = Object.entries(options)
+            .filter(([, val]) => val)
+            // TODO diff list
+            // TODO if new widgis have getOptions than popup SelectMulti modal and merge into settings
+            .map(
+                ([key]): WidgetConfig => ({
+                    ...itemAbilityToWidgetConfig(allWidgets[key].provider, key as WidgetIds),
+                    config: {
+                        // providerId: , // TODO assumes widget config is provider dependent. ¿rename `value` or `config` and intepret on backend?
+                    },
+                }),
+            );
 
-    // const removeWidget = (widget: WidgetConfig) => () =>
-    //     saveWidgets && saveWidgets(filter(({ id }) => id !== widget.id)(widgets));
+        console.log('widgets selected for homepage', newSettings);
+        if (finalizeRenovation) {
+            onRenovateEnd({ data: newSettings });
+            finalizeRenovation();
+        }
+
+        setAddMode(false);
+    };
 
     const onRenovateEnd = ({ data }: { data: WidgetConfig[] }) => {
         // console.log('draggable resordered', data);
@@ -61,7 +90,6 @@ const WidgetContainer = ({
     };
 
     const onEditModeEnd = () => {
-        console.log('end edit Mode');
         setEditMode(false);
         if (finalizeRenovation) finalizeRenovation();
     };
@@ -103,15 +131,34 @@ const WidgetContainer = ({
             // <
         );
     };
-    2;
+
+    const renderAddWidgetModal = () => {
+        const selectedWidgi = Object.keys(allWidgets).reduce(
+            (agg, k) => ({ ...agg, [k]: find(widgets, { id: k }) ? true : false }),
+            {},
+        );
+
+        return (
+            <SelectMultiModal
+                options={selectedWidgi}
+                allowMultiple
+                onFinalize={onWidgetsSelected}
+            />
+        );
+    };
+
+    const showSelectedWigets = () => {
+        setAddMode(true);
+    };
 
     return (
         <View style={styles.widgets}>
             {editMode ? renderRenovationMode() : renderBaseMode()}
+            {addMode ? renderAddWidgetModal() : null}
             {editMode ? ( // TODO use icons not buttons
                 <>
                     <Button title="Close" onPress={onEditModeEnd} />
-                    <Button title="Add Widget" />
+                    <Button title="Add Widget" onPress={showSelectedWigets} />
                 </>
             ) : (
                 <Button title="Renovate" onPress={() => setEditMode(true)} />

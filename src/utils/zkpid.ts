@@ -4,7 +4,7 @@ import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
 import {
     getAppConfig,
-    getCached,
+    getStorage,
     saveStorage,
     ID_PLAYER_SLOT,
     ID_PKEY_SLOT,
@@ -26,7 +26,7 @@ const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvid
 let spellbook: Wallet | undefined;
 export const getSpellBook = memoize(async (): Promise<Wallet> => {
     if (spellbook) return spellbook;
-    const pk = await getCached({ slot: ID_PKEY_SLOT });
+    const pk = await getStorage(ID_PKEY_SLOT);
     if (!pk) {
         // no spellbook yet. generate random seed and save to storage
         const newSpellbook = ethers.Wallet.createRandom();
@@ -56,10 +56,10 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
     try {
         console.log(
             'saveId cached val 1',
-            await getCached({ slot: idType }),
-            typeof (await getCached({ slot: idType })),
+            await getStorage(idType),
+            typeof (await getStorage(idType)),
         );
-        const value = await getCached({ slot: idType });
+        const value = await getStorage(idType);
 
         console.log('saveId cached val 2', idType, value);
         // console.log("save id existing value?", value, !value, id)
@@ -76,8 +76,7 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
 };
 
 export const getId = memoize(
-    async (idType: string): Promise<Identity | null> =>
-        (await getCached({ slot: idType })) as Identity,
+    async (idType: string): Promise<Identity | null> => (await getStorage(idType)) as Identity,
 );
 
 export const _delete_id = async (idType: string): Promise<void> => {

@@ -12,7 +12,12 @@ export default function Layout() {
                     title: 'Inventory',
                 }}
             />
-            <Stack.Screen name="[item]" />
+            <Stack.Screen
+                name="[item]"
+                options={{
+                    headerBackButtonMenuEnabled: true,
+                }}
+            />
         </Stack>
     );
 }

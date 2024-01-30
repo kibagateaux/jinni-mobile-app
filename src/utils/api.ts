@@ -1,5 +1,16 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
-import { getAppConfig } from 'utils/config';
+import _, { isEmpty } from 'lodash';
+import { HomeConfig } from 'types/UserConfig';
+import { UpdateWidgetConfigParams } from 'types/api';
+import {
+    HOME_CONFIG_STORAGE_SLOT,
+    ID_PLAYER_SLOT,
+    defaultHomeConfig,
+    getAppConfig,
+    getNetworkState,
+    getStorage,
+    saveStorage,
+} from 'utils/config';
 import { getSpellBook } from 'utils/zkpid';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
@@ -106,3 +117,100 @@ export const MU_SUBMIT_DATA = `
         )
     }
 `;
+
+export const MU_SET_WIDGET = `
+    mutation jinni_set_widget(
+        $verification: SignedRequest!,
+        $widgets: [WidgetSettingInput]!
+    ) {
+        jinni_set_widget(
+            verification: $verification, 
+            widgets: $widgets
+        )
+    }
+`;
+
+export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
+    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    // console.log("custom config ", customConfig)
+    // can only login from app so all changes MUST be saved locally if they exist on db
+    if (!isEmpty(customConfig)) return customConfig!;
+    // if not logged in then no reason to fetch custom config
+    if (!username) return defaultHomeConfig;
+    // if no internet connection, return default config
+    if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
+
+    return qu({ query: 'TODO' })({ player_id: await getStorage(ID_PLAYER_SLOT) })
+        .then((response) => {
+            if (response?.data) {
+                saveHomeConfig({ widgets: response.data.widgets });
+                // console.log("Home:config:get: SUCC", response)
+                return response.data as HomeConfig;
+            }
+        })
+        .catch((error) => {
+            console.error('Home:config:get: ERR ', error);
+            return defaultHomeConfig;
+        });
+};
+
+export const saveHomeConfig = async ({ widgets }: UpdateWidgetConfigParams): Promise<boolean> => {
+    console.log('home config deduped 1!!!', widgets);
+    const config = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
+    // merge new and existing widget configs. only one widget per id allowed (eventually uniq by id + target_uuid)
+    // const deduped = _(config?.widgets ?? []) // start sequence
+    //     .keyBy('id') // create map
+    //     .merge(_.keyBy(widgets, 'id')) // create map of existing config and merge it to new configs
+    //     .values() // merged map back to array
+    //     .value()
+    const deduped = config?.widgets.filter((w) => !_.find(widgets, { id: w.id }));
+    const merged = [...widgets, ...deduped];
+    console.log(
+        'home config deduped 1!!!',
+        merged,
+        deduped.find((w) => w.id === 'maliksmajik-avatar-viewer'),
+    );
+    // const deduped2 = _.uniqBy([...config?.widgets ?? [], ...widgets], '')
+
+    const deduped2 = _.union([...(config?.widgets ?? []), ...widgets]);
+
+    console.log(
+        'home config deduped 2!!!',
+        deduped2.find((w) => w.id === 'maliksmajik-avatar-viewer'),
+    );
+
+    const newConfig = await saveStorage<HomeConfig>(
+        HOME_CONFIG_STORAGE_SLOT,
+        { ...config, widgets: deduped },
+        false,
+        defaultHomeConfig,
+    );
+
+    console.log('!!! new home config saved!!!', newConfig);
+    const playerId = await getStorage(ID_PLAYER_SLOT);
+    if (!playerId) return true;
+
+    // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
+    // jest.mock('utils/config').mockResolvedValue(noConnection)
+    // if (!(await getNetworkState()).isNoosphere) {
+    //     return true;
+    // }
+
+    return qu<string>({ mutation: MU_SET_WIDGET })({
+        widgets: merged.map(({ id, provider, priority = 0, config }) => ({
+            id,
+            provider,
+            priority,
+            ...(config ?? {}),
+        })),
+    })
+        .then((res) => {
+            console.log('utils:api:saveHomeConfig:response', res);
+            return true;
+        })
+        .catch((err) => {
+            console.log('utils:api:saveHomeConfig:ERR', err);
+            return false;
+        });
+    return Promise.resolve(true);
+};

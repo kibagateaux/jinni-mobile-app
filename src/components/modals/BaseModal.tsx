@@ -3,22 +3,15 @@ import React, { useState, ReactNode } from 'react';
 import { Text, Modal, View, TouchableOpacity, StyleSheet, Button } from 'react-native';
 
 interface ModalProps {
-    children: ReactNode;
+    children: React.JSX.Element;
     onClose?: () => void;
-    primaryButton?: { title: string; onPress: () => void };
-    secondaryButton?: { title: string; onPress: () => void };
+    primaryButton?: { button?: ReactNode; title?: string; onPress?: () => void };
+    secondaryButton?: { button?: ReactNode; title?: string; onPress?: () => void };
 }
 
 const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, secondaryButton }) => {
     const [visible, setVisible] = useState(true);
     const theme = useTheme();
-
-    // const { height, width } = Dimensions.get('window');
-    // const modalStyle = {
-    //   ...styles.modal,
-    //   height: size === 'lg' ? height : size === 'md' ? height * 0.6 : 'auto',
-    //   width: size === 'lg' ? width : size === 'md' ? width * 0.8 : 'auto',
-    // };
 
     const closeModal = () => {
         setVisible(false);
@@ -28,7 +21,21 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
     const textStyles = {
         color: theme.primaryTextColor,
     };
+    const renderButton = (config) => {
+        console.log('base modal button', config);
 
+        if (!config) return null;
+        if (config.button) return config.button;
+        if (config.title && config.onPress)
+            return (
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: theme.primaryBackgroundColor }]}
+                    onPress={config.onPress}
+                >
+                    <Text style={[styles.text, textStyles]}>{config.title}</Text>
+                </TouchableOpacity>
+            );
+    };
     return !visible ? null : (
         <Modal
             animationType="fade"
@@ -40,17 +47,7 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
                 {children}
                 <View>
                     <View style={styles.ctaContainer}>
-                        {primaryButton && (
-                            <TouchableOpacity
-                                style={[
-                                    styles.button,
-                                    { backgroundColor: theme.primaryBackgroundColor },
-                                ]}
-                                onPress={primaryButton.onPress}
-                            >
-                                <Text style={[styles.text, textStyles]}>{primaryButton.title}</Text>
-                            </TouchableOpacity>
-                        )}
+                        {renderButton(primaryButton)}
                         {secondaryButton && (
                             <TouchableOpacity
                                 style={[styles.button, { backgroundColor: theme.secondaryColor }]}
@@ -71,10 +68,10 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
 
 const styles = StyleSheet.create({
     modalSize: {
-        top: '15%',
+        top: '8%',
         left: '10%',
         right: '10%',
-        bottom: '15%',
+        bottom: '10%',
         // shadowColor: '#FFC1CB',
         // shadowOffset: { width: 5, height: 10 },
         // shadowOpacity: 1,

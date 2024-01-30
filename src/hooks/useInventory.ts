@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
+import { reduce } from 'lodash/fp';
 
-import { InventoryItem } from 'types/GameMechanics';
+import { InventoryItem, ItemAbility } from 'types/GameMechanics';
 import utils from 'inventory';
 import { useAuth } from 'contexts/AuthContext';
 
@@ -11,6 +12,7 @@ import { useAuth } from 'contexts/AuthContext';
 export const useInventory = () => {
     const { player } = useAuth();
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
+    const [widgets, setWidgets] = useState<{ [id: string]: ItemAbility }>({});
     const [loading, setLoading] = useState<boolean>(false);
 
     // TODO use redux store or something to persists data better
@@ -21,6 +23,19 @@ export const useInventory = () => {
                 .getInventoryItems(player?.name)
                 .then((inventoryItems: InventoryItem[]) => {
                     setInventory(inventoryItems);
+                    const allWidgets = reduce(
+                        (agg, item: InventoryItem) => ({
+                            ...agg,
+                            ...(!item.widgets
+                                ? {}
+                                : reduce(
+                                      (agg, widgi: ItemAbility) => ({ ...agg, [widgi.id]: widgi }),
+                                      {},
+                                  )(item.widgets)),
+                        }),
+                        {},
+                    )(inventoryItems);
+                    setWidgets(allWidgets);
                     setLoading(false);
                 })
                 .catch((err) => {
@@ -30,5 +45,5 @@ export const useInventory = () => {
         }
     }, [player?.name, inventory.length]);
 
-    return { inventory, loading };
+    return { inventory, loading, widgets };
 };

@@ -1,4 +1,4 @@
-import { HoF, ItemStatus } from 'types/GameMechanics';
+import { HoF, ItemAbility, ItemStatus } from 'types/GameMechanics';
 
 import { _delete_id, getSpellBook, signWithId } from 'utils/zkpid';
 import {
@@ -9,20 +9,27 @@ import {
     MALIKS_MAJIK_CARD,
     saveMysticCrypt,
     saveStorage,
-    getCached,
+    getStorage,
 } from 'utils/config';
 
-import { InventoryIntegration, DjinnStat, CommunityStat, InventoryItem } from 'types/GameMechanics';
+import {
+    InventoryIntegration,
+    DjinnStat,
+    CommunityStat,
+    InventoryItem,
+    StatsConfig,
+} from 'types/GameMechanics';
 import { MU_ACTIVATE_JINNI, qu } from 'utils/api';
 import { debug, track } from 'utils/logging';
 
+export const ITEM_ID = 'MaliksMajik';
 export const ABILITY_ACTIVATE_JINNI = 'activate-jinni';
 export const ABILITY_MYSTIC_CRYPT = 'create-mystic-crypt';
 
 const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
-        const address = await getCached<string>({ slot: ID_PLAYER_SLOT });
+        const address = await getStorage<string>(ID_PLAYER_SLOT);
         console.log('address to get verified: ', address);
         const result = address
             ? await signWithId(address)
@@ -59,16 +66,16 @@ const unequip: HoF = async () => {
 };
 
 const item: InventoryItem = {
-    id: 'MaliksMajik',
+    id: ITEM_ID,
     name: "Malik's Majik",
-    dataProvider: 'MaliksMajik-card',
+    dataProvider: 'MaliksMajikCard',
     image: 'https://cdn.drawception.com/drawings/3yyv096cK5.png',
     attributes: [
         { ...DjinnStat, value: 10 },
         { ...CommunityStat, value: 10 },
     ],
     checkStatus: async () => {
-        const proof = await getCached({ slot: PROOF_MALIKS_MAJIK_SLOT });
+        const proof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
         console.log('maliks majik check status', proof);
 
         if (proof) return 'equipped';
@@ -81,17 +88,18 @@ const item: InventoryItem = {
         {
             id: ABILITY_ACTIVATE_JINNI,
             name: 'Activate Jinni',
+            provider: ITEM_ID,
             symbol: '🧞‍♂️',
             description: 'Get access to the full game',
             canDo: async (status: ItemStatus) => {
-                const isBonded = await getCached({ slot: ID_JINNI_SLOT });
+                const isBonded = await getStorage(ID_JINNI_SLOT);
                 if (isBonded) return 'complete';
                 if (status === 'equipped') return 'doable';
                 return 'unequipped'; // if not curated then cant save
             },
             do: async () => {
-                const myProof = await getCached({ slot: PROOF_MALIKS_MAJIK_SLOT });
-                const myId = await getCached({ slot: ID_PLAYER_SLOT });
+                const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
+                const myId = await getStorage(ID_PLAYER_SLOT);
                 try {
                     track(ABILITY_ACTIVATE_JINNI, { ability: ABILITY_ACTIVATE_JINNI });
                     if (!myId) throw Error('You need to create an magic ID first');
@@ -125,18 +133,19 @@ const item: InventoryItem = {
         {
             id: ABILITY_MYSTIC_CRYPT,
             name: 'Create Mystic Crypt',
+            provider: ITEM_ID,
             symbol: '🏦',
             description:
                 "Save game progress to your phone'scloud storage to restore account if you lose your phone",
             canDo: async (status: ItemStatus) => {
-                const pk = await getCached({ slot: ID_PKEY_SLOT });
+                const pk = await getStorage(ID_PKEY_SLOT);
                 if (!pk) return 'unequipped';
                 if (status === 'equipped') return 'doable';
                 return 'notdoable';
             },
             do: async () => {
                 try {
-                    const pk = await getCached({ slot: ID_PKEY_SLOT });
+                    const pk = await getStorage(ID_PKEY_SLOT);
                     console.log('save pk mystic crypt', pk);
                     if (!pk) throw Error('No account to backup');
 
@@ -150,6 +159,16 @@ const item: InventoryItem = {
             },
         },
     ],
+    widgets: StatsConfig.map(
+        (stat): ItemAbility => ({
+            ...stat,
+            id: 'stat-' + stat.name.toLowerCase(),
+            provider: ITEM_ID,
+            description: `Display your stat points for ${stat.name} so other jinn can see`,
+            canDo: async () => 'doable',
+            do: async () => async () => true,
+        }),
+    ),
 };
 
 // TODO should we abstract NFC Manager out of SignWithID so we can request permissions separately?
