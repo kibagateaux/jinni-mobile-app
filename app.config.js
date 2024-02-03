@@ -81,7 +81,7 @@ export default {
         },
         android: {
             package: packageName,
-            versionCode: 3,
+            versionCode: 4,
             adaptiveIcon: {
                 foregroundImage: './public/adaptive-icon.png',
                 backgroundColor: '#ffffff',

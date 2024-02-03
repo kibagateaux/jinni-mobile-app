@@ -57,33 +57,33 @@ jobs:
       # TODO decide profile. master = production, staging = testing
       - name: Build app
         run: eas build --profile production --platform android # TODO -p 'all'
-  update:
-    name: EAS Update
-    needs: build
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/staging'
-    runs-on: ubuntu-latest
-    steps:
-      ## todo add label to auto build
-      # https://docs.expo.dev/build/automate-submissions/
-      - name: Check for EXPO_TOKEN
-        run: |
-          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
-            echo "You must provide an EXPO_TOKEN secret linked to this project's Expo account in this repo's secrets. Learn more: https://docs.expo.dev/eas-update/github-actions"
-            exit 1
-          fi
+  # update:
+  #   name: EAS Update
+  #   needs: build
+  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/staging'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     ## todo add label to auto build
+  #     # https://docs.expo.dev/build/automate-submissions/
+  #     - name: Check for EXPO_TOKEN
+  #       run: |
+  #         if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+  #           echo "You must provide an EXPO_TOKEN secret linked to this project's Expo account in this repo's secrets. Learn more: https://docs.expo.dev/eas-update/github-actions"
+  #           exit 1
+  #         fi
 
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+  #     - name: Setup EAS
+  #       uses: expo/expo-github-action@v8
+  #       with:
+  #         eas-version: latest
+  #         token: ${{ secrets.EXPO_TOKEN }}
 
-      # TODO decide profile. master = production, staging = testing
-      - name: Submit To Google app store (native updates)
-        run: eas submit -p android --profile production
+  #     # TODO decide profile. master = production, staging = testing
+  #     - name: Submit To Google app store (native updates)
+  #       run: eas submit -p android --profile production
 
-      - name: Submit To Apple app store (native updates)
-        run: eas submit -p ios --profile production
+  #     - name: Submit To Apple app store (native updates)
+  #       run: eas submit -p ios --profile production
 
-      - name: Publish update (js hot updates)
-        run: eas update --auto
+  #     - name: Publish update (js hot updates)
+  #       run: eas update --auto
