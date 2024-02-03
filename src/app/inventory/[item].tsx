@@ -20,13 +20,13 @@ import {
     OAuthProviderIds,
     StatsAttribute,
 } from 'types/GameMechanics';
+import ModalRenderer from 'components/modals';
 
 import { createOauthRedirectURI, oauthConfigs, generateRedirectState } from 'utils/oauth';
 import { useInventory } from 'hooks/useInventory';
 import { useGameContent } from 'contexts/GameContentContext';
 
 import { Link, Pill, WidgetIcon } from 'components';
-import ModalRenderer from 'components/modals';
 import { useAuth } from 'contexts/AuthContext';
 
 interface ItemPageProps {
@@ -40,7 +40,8 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     const [item, setItem] = useState<InventoryItem | null>(null);
     const [status, setStatus] = useState<ItemStatus | null>(null);
-    const [activeModal, setActiveModal] = useState<string | null>(null);
+    // const [activeModal, setActiveModal] = useState<string | null>(null);
+    const { setActiveModal } = useGameContent();
     const { inventory: content } = useGameContent();
     // hooks for items that require 3rd party authentication
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
@@ -116,13 +117,13 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             // console.log('modal to render', ItemEquipWizardModal, Modals);
             // TODO check if player.id first.
             if (!player?.id) {
-                setActiveModal('create-spellbook');
+                setActiveModal({ name: 'create-spellbook' });
                 // await Promise.resolve((r: () => void) => setTimeout(r, 10000))
                 await getSpellBook();
-                setActiveModal(null);
+                setActiveModal(undefined);
             }
 
-            setActiveModal('equip-wizard');
+            setActiveModal({ name: 'equip-wizard' });
             try {
                 console.log('pg:Inv:Item:equip:oauth', request?.redirectUri, request?.scopes);
 
@@ -207,24 +208,6 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             );
     };
 
-    const renderActiveModal = () => {
-        // console.log('Inventory Active Modal data', status, item);
-        const onClose = () => {
-            setActiveModal(null);
-        };
-        // const dialogueData =
-        return activeModal ? (
-            <ModalRenderer
-                modalName={activeModal}
-                dialogueData={{}}
-                size="mid"
-                item={item}
-                status={status}
-                onClose={onClose}
-            />
-        ) : null;
-    };
-
     const renderDefaultItemInfo = () => (
         <View style={styles.defaultInfoContainer}>
             <View style={{ flexDirection: 'row', flex: 0.1 }}>
@@ -251,12 +234,17 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     );
 
     const onAbilityPress = async (ability: ItemAbility) => {
-        setActiveModal('ability-check');
+        setActiveModal({ name: 'ability-check' });
         await ability.canDo(item.status!);
-        setActiveModal('ability-activate');
-        await ability.do();
-        setActiveModal('ability-complete');
+        setActiveModal({ name: 'ability-activate' });
+        try {
+            await ability.do();
+            setActiveModal({ name: 'ability-complete' });
+        } catch (e) {
+            setActiveModal({ name: 'ability-fail' });
+        }
     };
+
     const renderActiveItemAbilities = () => (
         <View>
             <Text style={styles.sectionTitle}>Active Abilities</Text>
@@ -372,6 +360,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                     title: item.name,
                 }}
             />
+            <ModalRenderer item={item} status={status} />
             <View style={styles.topContainer}>
                 <View style={styles.itemImageContainer}>
                     <Image source={{ uri: item.image }} style={styles.itemImage} />
@@ -380,10 +369,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 <View style={styles.defaultInfoContainer}>{renderDefaultItemInfo()}</View>
             </View>
 
-            <ScrollView style={styles.bottomContainer}>
-                {renderActiveItemInfo()}
-                {renderActiveModal()}
-            </ScrollView>
+            <ScrollView style={styles.bottomContainer}>{renderActiveItemInfo()}</ScrollView>
         </View>
     );
 };

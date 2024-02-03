@@ -12,11 +12,16 @@ export interface ItemEquipWizardModalProps {
     status: ItemStatus;
 }
 
-const ItemEquipWizardModal = ({ item, dialogueData = {}, status }: ItemEquipWizardModalProps) => {
+const ItemEquipWizardModal = ({
+    item,
+    dialogueData = {},
+    status,
+    ...props
+}: ItemEquipWizardModalProps) => {
     // console.log('get equip item modal content', status, dialogueData, item);
     // console.log('game item content', useGameContent(), useGameContent().inventory);
     const content = useGameContent().inventory[item.id];
-    // console.log('game item content', content);
+    console.log('game item content', content);
     if (!content) return null;
     if (!content[status]) return null;
     // console.log('game item content', content[status]);
@@ -29,7 +34,7 @@ const ItemEquipWizardModal = ({ item, dialogueData = {}, status }: ItemEquipWiza
 
     // return null;
     return (
-        <BaseModal size="md">
+        <BaseModal size="md" {...props}>
             <View>
                 <Text style={styles.text}>{title}</Text>
                 <Text style={styles.text}>{dialogue}</Text>

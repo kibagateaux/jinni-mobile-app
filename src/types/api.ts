@@ -9,6 +9,7 @@ export interface ApiAuthParams {
 
 export interface UpdateWidgetConfigParams {
     widgets: WidgetConfig[];
+    merge?: boolean;
 }
 
 export interface UploadRawActivityData {

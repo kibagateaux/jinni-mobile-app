@@ -4,22 +4,42 @@ import BaseModal from './BaseModal';
 import { default as ItemEquipWizardModal, ItemEquipWizardModalProps } from './ItemEquipWizardModal';
 import { default as CreateSpellbookModal } from './CreateSpellbookModal';
 import { default as GeneralTimeWarpModal } from './GeneralTimeWarpModal';
+import { useGameContent } from 'contexts/GameContentContext';
 export { BaseModal, ItemEquipWizardModal, CreateSpellbookModal };
 
 interface ModalRendererProps {
-    modalName: string;
-    dialogueData: object;
+    onClose?: (data: unknown) => Promise<boolean | void>;
     [key: string]: unknown;
 }
 
-const ModalRenderer = ({ modalName, ...props }: ModalRendererProps) => {
-    switch (modalName) {
+const ModalRenderer = (props: ModalRendererProps) => {
+    const { activeModal, setActiveModal } = useGameContent();
+    if (!activeModal || !activeModal.name) return null;
+    const onClose = (data: unknown) => {
+        props.onClose && props.onClose(data);
+        setActiveModal(undefined);
+    };
+
+    switch (activeModal.name) {
         case 'equip-wizard':
-            return <ItemEquipWizardModal {...(props as ItemEquipWizardModalProps)} />;
+            return (
+                <ItemEquipWizardModal
+                    onClose={onClose}
+                    {...(activeModal as ItemEquipWizardModalProps)}
+                    {...props}
+                />
+            );
         case 'create-spellbook':
-            return <CreateSpellbookModal {...props} />;
+            return <CreateSpellbookModal onClose={onClose} {...activeModal} {...props} />;
         default:
-            return <GeneralTimeWarpModal modalName={modalName} {...props} />;
+            return (
+                <GeneralTimeWarpModal
+                    onClose={onClose}
+                    modalName={activeModal.name}
+                    {...activeModal}
+                    {...props}
+                />
+            );
     }
 };
 

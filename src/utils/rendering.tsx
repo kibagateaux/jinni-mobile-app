@@ -28,6 +28,10 @@ export const getIconForWidget = (widgetId: string, iconOptions: WidgetIconProps)
         case 'zuzalu':
             return <ZuzaluIcon {...svgProps} />;
         default:
-            return <Text>¿</Text>;
+            return (
+                StatsConfig.find((stat) => stat.name.toLowerCase() === widgi.replace('stat-', ''))
+                    ?.symbol ?? '¿'
+            );
+        // return <Text>¿</Text>;
     }
 };

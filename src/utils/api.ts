@@ -94,7 +94,7 @@ export const MU_ACTIVATE_JINNI = `
         $majik_msg: String!,
         $player_id: String!
     ) {
-        activate_jinni(
+        jinni_activate(
             verification: $verification, 
             majik_msg: $majik_msg, 
             player_id: $player_id
@@ -154,8 +154,11 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
         });
 };
 
-export const saveHomeConfig = async ({ widgets }: UpdateWidgetConfigParams): Promise<boolean> => {
-    console.log('home config deduped 1!!!', widgets);
+export const saveHomeConfig = async ({
+    widgets,
+    merge,
+}: UpdateWidgetConfigParams): Promise<boolean> => {
+    console.log('home config deduped 1!!!', merge, widgets);
     const config = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
     // merge new and existing widget configs. only one widget per id allowed (eventually uniq by id + target_uuid)
     // const deduped = _(config?.widgets ?? []) // start sequence
@@ -163,27 +166,24 @@ export const saveHomeConfig = async ({ widgets }: UpdateWidgetConfigParams): Pro
     //     .merge(_.keyBy(widgets, 'id')) // create map of existing config and merge it to new configs
     //     .values() // merged map back to array
     //     .value()
-    const deduped = config?.widgets.filter((w) => !_.find(widgets, { id: w.id }));
-    const merged = [...widgets, ...deduped];
+    const merged = !merge
+        ? widgets
+        : [
+              ...widgets,
+              ...(config?.widgets.filter((w) => !_.find(widgets, { id: w.id })) ?? []), // dedupe widgets that are already in saved config
+          ];
     console.log(
-        'home config deduped 1!!!',
+        'home config deduped 2!!!',
         merged,
-        deduped.find((w) => w.id === 'maliksmajik-avatar-viewer'),
+        // deduped.find((w) => w.id === 'maliksmajik-avatar-viewer'),
     );
     // const deduped2 = _.uniqBy([...config?.widgets ?? [], ...widgets], '')
 
-    const deduped2 = _.union([...(config?.widgets ?? []), ...widgets]);
-
-    console.log(
-        'home config deduped 2!!!',
-        deduped2.find((w) => w.id === 'maliksmajik-avatar-viewer'),
-    );
-
     const newConfig = await saveStorage<HomeConfig>(
         HOME_CONFIG_STORAGE_SLOT,
-        { ...config, widgets: deduped },
-        false,
-        defaultHomeConfig,
+        { ...config, widgets: merged },
+        merge,
+        // defaultHomeConfig,
     );
 
     console.log('!!! new home config saved!!!', newConfig);

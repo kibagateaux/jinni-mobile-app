@@ -4,10 +4,11 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { isEmpty } from 'lodash/fp';
 
 import { useHomeConfig } from 'hooks';
-import { WidgetConfig, obj } from 'types/UserConfig';
+// import { useAuth } from 'contexts';
+import { WidgetConfig, WidgetIds, obj } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 import { saveHomeConfig } from 'utils/api';
-import { getActivityData } from 'inventory/android-health-connect';
+// import { getActivityData } from 'inventory/android-health-connect';
 
 import { AvatarViewer, WidgetIcon } from 'components/index';
 import DefaultAvatar from 'assets/avatars/red-yellow-egg';
@@ -18,12 +19,16 @@ import {
     TRACK_ONBOARDING_STAGE,
     filterOutDefaultWidgets,
     getStorage,
+    itemAbilityToWidgetConfig,
     saveStorage,
 } from 'utils/config';
 import { debug } from 'utils/logging';
+import { magicRug } from 'utils/zkpid';
 
 const HomeScreen = () => {
     const homeConfig = useHomeConfig();
+    // const { setActiveModal } = useGameContent();
+    // const { player, getSpellBook } = useAuth();
     const eggRollAngle = useSharedValue(30);
     const eggAnimatedStyles = useAnimatedStyle(() => ({
         transform: [{ rotate: `${eggRollAngle.value}deg` }],
@@ -41,6 +46,7 @@ const HomeScreen = () => {
         const currentStage = await getStorage<obj>(TRACK_ONBOARDING_STAGE);
         console.log('onboarding stage', onboardingStage, currentStage);
         if (!onboardingStage && !currentStage?.[STAGE_AVATAR_CONFIG]) {
+            console.log('init avatar config onboarding stage');
             setOnboardingStage(STAGE_AVATAR_CONFIG);
         }
     }, [onboardingStage]);
@@ -70,17 +76,22 @@ const HomeScreen = () => {
     );
 
     const finalizeRenovation = useCallback(
-        (widgets?: WidgetConfig[]) =>
+        (widgets?: WidgetConfig[], merge: boolean = true) => {
             // TODO widgetConfig is not updated when adding/removing widgets
             saveHomeConfig({
                 widgets: widgets ?? widgetConfig,
-            }),
+                merge,
+            });
+        },
+
         [widgetConfig],
     );
 
     const completeWizardStage = useCallback(
         (stage: string) => {
-            saveStorage(TRACK_ONBOARDING_STAGE, { [stage]: String(true) }, true, {}).then(() =>
+            console.log('compelete wizard', stage);
+
+            return saveStorage(TRACK_ONBOARDING_STAGE, { [stage]: true }, true, {}).then(() =>
                 setOnboardingStage(undefined),
             );
         },
@@ -102,36 +113,58 @@ const HomeScreen = () => {
     };
 
     const onIntentionPress = async () => {
-        const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        const startTime = oneDayAgo.toISOString(); // TODO last activity time
-        const endTime = now.toISOString();
-        await getActivityData({ startTime, endTime });
+        if (__DEV__) await magicRug();
+        // const now = new Date();
+        // const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        // const startTime = oneDayAgo.toISOString(); // TODO last activity time
+        // const endTime = now.toISOString();
+        // await getActivityData({ startTime, endTime });
     };
 
     console.log('eggroll ', eggRollAngle.value);
-
+    // console.log('home onboarding ', onboardingStage);
     if (onboardingStage === STAGE_AVATAR_CONFIG)
         return (
             <OnboardingWizard
                 startIndex={0}
                 onComplete={async (config) => {
                     try {
-                        await finalizeRenovation([
-                            ...widgetConfig,
-                            {
-                                id: 'maliksmajik-avatar-viewer',
-                                provider: 'MaliksMajik',
-                                routeName: 'index', // home page
-                                title: 'Avatar Viewer',
-                                path: '/',
-                                config,
-                                // They can't have registered yet so no jinni id to specify for config
-                                // eventually need to link with jiini. Could do in activate_jinni but :Widget wont be there if they start from desktop flow (github/facrcaster)
-                                // target_uuid: await getStorage(ID_JINNI_SLOT)
-                            },
+                        console.log('on avatar config wizard complete', config.stats);
+                        // if(!player?.id) setActiveModal({
+                        //     name: 'create-spellbook',
+                        //     dialogueData: {
+                        //         title: "A jinni is approaching",
+                        //         text: "Wait for it to sniff you and say hi",
+                        //     }
+                        // });
+                        // await getSpellBook();
+
+                        // setActiveModal(undefined);
+                        await Promise.all([
+                            finalizeRenovation(
+                                [
+                                    ...(config.stats?.map((widgetId: string) =>
+                                        itemAbilityToWidgetConfig(
+                                            'MaliksMajik',
+                                            `stat-${widgetId.toLowerCase()}` as WidgetIds,
+                                        ),
+                                    ) ?? []),
+                                    {
+                                        id: 'maliksmajik-avatar-viewer',
+                                        provider: 'MaliksMajik',
+                                        routeName: 'index', // home page
+                                        title: 'Avatar Viewer',
+                                        path: '/',
+                                        config,
+                                        // They can't have registered yet so no jinni id to specify for config
+                                        // eventually need to link with jiini. Could do in activate_jinni but :Widget wont be there if they start from desktop flow (github/facrcaster)
+                                        // target_uuid: await getStorage(ID_JINNI_SLOT)
+                                    },
+                                ],
+                                false,
+                            ), // overwrite current config with new onboarding config
+                            completeWizardStage(STAGE_AVATAR_CONFIG),
                         ]);
-                        completeWizardStage(STAGE_AVATAR_CONFIG);
                     } catch (e) {
                         debug(e, { extra: { onboardingStage } });
                     }

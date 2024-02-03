@@ -133,10 +133,13 @@ export const itemAbilityToWidgetConfig = (
     widgetId: WidgetIds,
 ): WidgetConfig => ({
     id: widgetId,
+    provider,
     routeName: `/inventory/${provider}?widget=${widgetId}`,
     path: `/inventory/${provider}?widget=${widgetId}`,
-    title: widgetId.split('-').slice(1).map(capitalize).join(' '), // slice removes provider prefix from widget id
-    provider,
+    title:
+        widgetId.split('-').length === 1
+            ? widgetId
+            : widgetId.split('-').slice(1).map(capitalize).join(' '), // slice removes provider prefix from widget id
 });
 
 // causes circular dependency with inventory item
@@ -284,7 +287,7 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
             'get storage 1 - {slot, useCrypt} + cached',
             JSON.stringify({ slot, secure: useMysticCrypt }),
         );
-        console.dir(cached);
+        console.log(cached);
         if (cached) return cached;
         const val = useMysticCrypt
             ? await getItemAsync(slot, { requireAuthentication: !__DEV__ })

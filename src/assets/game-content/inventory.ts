@@ -24,8 +24,8 @@ export default {
         'post-equip': {
             modal: {
                 title: 'Congrats on acquiring your new item!',
-                text: ({ anonId, proof }: { anonId: string; proof: string }) =>
-                    `${anonId} has been blessed with Malik's Majik! \n Proof: ${proof}`,
+                text: ({ pid, proof }: { pid: string; proof: string }) =>
+                    `${pid} has been blessed with Malik's Majik! \n Proof: ${proof}`,
             },
         },
     },

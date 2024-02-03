@@ -1,22 +1,25 @@
 import React, { createContext, useState, useMemo, useCallback } from 'react';
 
 import { Avatar } from 'types/GameMechanics';
-import { generateIdentity, getId, getSpellBook as getSpells, saveId } from 'utils/zkpid';
-import { Identity } from '@semaphore-protocol/identity';
+import {
+    getSpellBook as getSpells,
+    // getId, generateIdentity, saveId
+} from 'utils/zkpid';
+// import { Identity } from '@semaphore-protocol/identity';
 import { useExternalServices } from './ExternalServicesContext';
 import { Wallet } from 'ethers';
-import { ID_ANON_SLOT, ID_PLAYER_SLOT, getStorage } from 'utils/config';
+import { /* ID_ANON_SLOT, */ ID_PLAYER_SLOT, getStorage } from 'utils/config';
 
 interface AuthConsumables {
     player: Avatar | undefined;
-    anonId: Identity | undefined;
+    // anonId: Identity | undefined;
     spellbook: Wallet | undefined;
     getSpellBook: () => void;
 }
 
 export const AuthContext = createContext<AuthConsumables>({
     player: undefined,
-    anonId: undefined,
+    // anonId: undefined,
     spellbook: undefined,
     getSpellBook: () => undefined,
 });
@@ -32,7 +35,7 @@ type Props = {
 export const AuthProvider: React.FC<Props> = ({ children }) => {
     const { sentry, segment } = useExternalServices();
     const [player, setPlayer] = useState<Avatar | undefined>(undefined);
-    const [anonId, setAnonId] = useState<Identity | undefined>(undefined);
+    // const [anonId, setAnonId] = useState<Identity | undefined>(undefined);
     const [spellbook, setSpellbook] = useState<Wallet | undefined>(undefined);
 
     const login = useCallback(
@@ -60,22 +63,22 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
      *        Save to local storage on the phone for later use and for authentication
      * @DEV not needed until we do social features. Built for initial auth system before moving to spellbooks.
      */
-    useMemo(() => {
-        console.log('anon id generation', anonId);
-        if (!anonId) {
-            getId(ID_ANON_SLOT).then((id) => {
-                // console.log("anon id lookup", id);
-                if (!id) {
-                    const _anon_ = generateIdentity();
-                    // console.log("anon id save", _anon_);
-                    setAnonId(_anon_);
-                    saveId(ID_ANON_SLOT, _anon_);
-                } else {
-                    setAnonId(id as Identity);
-                }
-            });
-        }
-    }, [anonId]);
+    // useMemo(() => {
+    //     console.log('anon id generation', anonId);
+    //     if (!anonId) {
+    //         getId(ID_ANON_SLOT).then((id) => {
+    //             // console.log("anon id lookup", id);
+    //             if (!id) {
+    //                 const _anon_ = generateIdentity();
+    //                 // console.log("anon id save", _anon_);
+    //                 setAnonId(_anon_);
+    //                 saveId(ID_ANON_SLOT, _anon_);
+    //             } else {
+    //                 setAnonId(id as Identity);
+    //             }
+    //         });
+    //     }
+    // }, [anonId]);
 
     /**
      * @desc Generate an anonymous Ethereum identity for the player if they dont already have one
@@ -90,7 +93,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }, [spellbook, player, login]);
 
     return (
-        <AuthContext.Provider value={{ player, anonId, spellbook, getSpellBook }}>
+        <AuthContext.Provider value={{ player, spellbook, getSpellBook }}>
             {children}
         </AuthContext.Provider>
     );

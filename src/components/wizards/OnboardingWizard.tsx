@@ -14,7 +14,7 @@ export interface OnboardingWizardProps {
     // screens: string[]; // expo routes
     onNext?: () => void;
     onBack?: () => void;
-    onComplete: (config: object) => void;
+    onComplete: (config: object) => Promise<void>;
     backButtonStyle?: object;
     nextButtonStyle?: object;
 }
@@ -36,6 +36,8 @@ const intentions = {
     'unleashing inner child': false,
     'achieving immortality': false,
     'sexy physique': false,
+    'openness & adventures': false,
+    vulnerability: false,
 };
 
 const steps = [
@@ -121,13 +123,21 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
         console.log('component:wizard:Onboarding:nextStep', step);
         if (step === steps.length - 1) {
             // onComplete should close out wizard
-            onComplete(playerSettings);
-            // open telegram for them to join group
-            Linking.openURL('https://t.me/+fkqlrBc4YYczM2Mx');
+            // TODO set loading
+            onComplete(playerSettings)
+                .then((res) => {
+                    console.log('success saving onboarding wizard', res);
+                    Linking.openURL('https://t.me/+fkqlrBc4YYczM2Mx');
+                })
+                .catch((err) => {
+                    console.log('error saving onboarding wizard', err);
+                });
+            // on .then open telegram for them to join group
+            // on .catch set error and render non-wizard screen
         } else {
             changeStep(step + 1);
         }
-    }, [step, changeStep, onComplete, playerSettings]);
+    }, [step, playerSettings, changeStep, onComplete]);
 
     const onSettingSaved = useCallback(
         (options) => {
@@ -160,6 +170,8 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
                     setSettings({
                         ...playerSettings,
+                        // TODO huamn readable causing issues with widget config
+                        // need to convert back to stat-
                         stats: entries(options)
                             .filter(([, v]) => v)
                             .map(([k]) => k),
@@ -180,6 +192,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                             .filter(([, v]) => v)
                             .map(([k]) => k),
                     });
+                    // onComplete(playerSettings); and render error instead of next slide?
                     break;
                 default:
                     // no custom logic on non option

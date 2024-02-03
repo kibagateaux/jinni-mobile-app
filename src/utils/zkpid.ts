@@ -10,6 +10,8 @@ import {
     ID_PKEY_SLOT,
     ID_JINNI_SLOT,
     ID_ANON_SLOT,
+    PROOF_MALIKS_MAJIK_SLOT,
+    TRACK_ONBOARDING_STAGE,
 } from './config';
 import { ethers, Wallet, providers } from 'ethers';
 import { memoize } from 'lodash';
@@ -95,6 +97,9 @@ export const magicRug = () => {
         saveStorage(ID_PKEY_SLOT, '', false),
         saveStorage(ID_JINNI_SLOT, '', false),
         saveStorage(ID_ANON_SLOT, '', false),
+
+        saveStorage(PROOF_MALIKS_MAJIK_SLOT, '', false),
+        saveStorage(TRACK_ONBOARDING_STAGE, '', false),
     ]);
 };
 

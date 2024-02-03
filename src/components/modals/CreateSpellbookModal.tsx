@@ -9,7 +9,7 @@ export interface CreateSpellbookModalProps {
     dialogueData: object; // params for modal text
 }
 
-const CreateSpellbookModal = ({ dialogueData = {} }: CreateSpellbookModalProps) => {
+const CreateSpellbookModal = ({ dialogueData = {}, ...props }: CreateSpellbookModalProps) => {
     const content = useGameContent().onboarding.modals['create-spellbook'];
     if (!content) return null;
 
@@ -20,7 +20,7 @@ const CreateSpellbookModal = ({ dialogueData = {} }: CreateSpellbookModalProps) 
         typeof dialogueTemplate === 'function' ? dialogueTemplate(dialogueData) : dialogueTemplate;
 
     return (
-        <BaseModal size="md">
+        <BaseModal size="md" {...props}>
             <View>
                 <Text style={styles.text}>{title}</Text>
                 <Text style={styles.text}>{dialogue}</Text>

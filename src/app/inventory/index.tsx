@@ -10,7 +10,9 @@ import { InventoryItem } from 'types/GameMechanics';
 
 const InventoryScreen: React.FC = () => {
     const { inventory, loading } = useInventory();
-    const [categorizedInventory, setCategories] = useState<InventoryItem[][]>([]);
+    const [categorizedInventory, setCategories] = useState<
+        { title: string; data: InventoryItem[] }[]
+    >([]);
 
     useMemo(async () => {
         if (inventory.length) {

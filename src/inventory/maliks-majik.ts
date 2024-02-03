@@ -21,6 +21,7 @@ import {
 } from 'types/GameMechanics';
 import { MU_ACTIVATE_JINNI, qu } from 'utils/api';
 import { debug, track } from 'utils/logging';
+import { obj } from 'types/UserConfig';
 
 export const ITEM_ID = 'MaliksMajik';
 export const ABILITY_ACTIVATE_JINNI = 'activate-jinni';
@@ -92,10 +93,17 @@ const item: InventoryItem = {
             symbol: '🧞‍♂️',
             description: 'Get access to the full game',
             canDo: async (status: ItemStatus) => {
+                // @dev implicit check for PROOF_MAJIK
+                if (status !== 'equipped') return 'unequipped';
+
                 const isBonded = await getStorage(ID_JINNI_SLOT);
-                if (isBonded) return 'complete';
-                if (status === 'equipped') return 'doable';
-                return 'unequipped'; // if not curated then cant save
+                // written on activate_jinni success
+                if (isBonded) return 'equipped';
+
+                const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
+                if (!myProof) return 'unequipped';
+
+                return 'ethereal';
             },
             do: async () => {
                 const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
@@ -107,18 +115,18 @@ const item: InventoryItem = {
                         throw Error(
                             'You must to meet the Master Djinn before you can activate your jinni',
                         );
-                    const m = MU_ACTIVATE_JINNI;
                     console.log('Mani:Jinni:ActivateJinn:proof', myProof);
                     console.log('Mani:Jinni:ActivateJinn:ID', myId);
 
-                    const response = await qu({ mutation: m })({
+                    const response = await qu({ mutation: MU_ACTIVATE_JINNI })({
                         majik_msg: myProof.ether,
                         player_id: myId,
                     });
+                    console.log('Mani:Jinni:ActivateJinn:Response', response);
                     const uuid = response?.data ? response.data.activate_jinni : null;
                     // server shouldnt allow multiple jinnis yet. Just in case dont overwrite existing uuid
                     const result = uuid && (await saveStorage<string>(ID_JINNI_SLOT, uuid, false));
-                    console.log('Mani:Jinni:ActivateJinn:RES', result);
+                    console.log('Mani:Jinni:ActivateJinn:Result', result);
                     return async () => (uuid ? true : false);
                 } catch (e) {
                     console.error('Mani:Jinni:ActivateJinn:ERROR - ', e);
@@ -139,13 +147,13 @@ const item: InventoryItem = {
                 "Save game progress to your phone'scloud storage to restore account if you lose your phone",
             canDo: async (status: ItemStatus) => {
                 const pk = await getStorage(ID_PKEY_SLOT);
-                if (!pk) return 'unequipped';
-                if (status === 'equipped') return 'doable';
-                return 'notdoable';
+                if (!pk) return 'ethereal';
+                if (status === 'equipped') return 'unequipped';
+                return 'ethereal';
             },
             do: async () => {
                 try {
-                    const pk = await getStorage(ID_PKEY_SLOT);
+                    const pk = await getStorage<obj>(ID_PKEY_SLOT);
                     console.log('save pk mystic crypt', pk);
                     if (!pk) throw Error('No account to backup');
 
@@ -165,7 +173,7 @@ const item: InventoryItem = {
             id: 'stat-' + stat.name.toLowerCase(),
             provider: ITEM_ID,
             description: `Display your stat points for ${stat.name} so other jinn can see`,
-            canDo: async () => 'doable',
+            canDo: async () => 'unequipped',
             do: async () => async () => true,
         }),
     ),

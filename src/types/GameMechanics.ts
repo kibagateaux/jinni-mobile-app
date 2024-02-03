@@ -146,8 +146,8 @@ export type ItemIds =
 export type ItemStatus =
     | 'ethereal' // can be used by player but isnt installed or accessible at the moment
     | 'unequipped' // player can equip but hasnt yet
-    | 'unequipping' // in the process of removig from 'equipped' -> 'unequipped'
-    | 'equipping' // in the process of removig from 'unequipped' -> 'equipped'
+    | 'unequipping' // in the process of moving from 'equipped' -> 'unequipped'
+    | 'equipping' // in the process of moving from 'unequipped' -> 'equipped'
     | 'equipped' // player is actively using item in the game
     | 'post-equip' // player just equipped/used item. temporary effect until reverts to 'equipped'
     | 'bonding' // process of imbuing item with essence
@@ -156,7 +156,7 @@ export type ItemStatus =
 
 export type ItemTags = 'physical' | 'digital' | 'exercise' | 'social' | 'music' | 'productivity';
 
-export type AbilityStatus = 'unequipped' | 'notdoable' | 'doable' | 'complete';
+// export type AbilityStatus = 'unequipped' | 'notdoable' | 'doable' | 'complete';
 
 // TODO return null if successful or error string if failure instead of boolean
 // so we can give contextual UI updates based on error path.
@@ -201,8 +201,8 @@ export interface ItemAbility {
     provider: ItemIds;
     symbol: string;
     description: string;
-    status?: AbilityStatus; // if undefined, call canDo() to get value and store to local object
-    canDo: (status: ItemStatus) => Promise<AbilityStatus>; // checks if action can be done right now with current item status
+    status?: ItemStatus; // if undefined, call canDo() to get value and store to local object
+    canDo: (status: ItemStatus) => Promise<ItemStatus>; // checks if action can be done right now with current item status
     do: <T>(params?: T) => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
     getOptions?: <T>() => Promise<T[] | void>; // settings for player to select before calling do()
 }

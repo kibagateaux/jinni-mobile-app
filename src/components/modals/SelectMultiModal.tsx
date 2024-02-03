@@ -7,7 +7,6 @@ import { useGameContent } from 'contexts/GameContentContext';
 
 import BaseModal from './BaseModal';
 import { Button } from '@rneui/themed';
-import { useAuth } from 'contexts/AuthContext';
 
 type Options = { [id: string]: boolean }; // id = widget.id | resource.provider_id | human readable options
 export interface SelectWidgetSettingsModalProps {
@@ -15,7 +14,7 @@ export interface SelectWidgetSettingsModalProps {
     allowMultiple?: boolean; // if can check off multiple boxes
     options: Options; // can have preselected options
     onFinalize: (options: Options) => void;
-    onClose?: () => void;
+    onClose?: (data?: unknown) => Promise<void | boolean>;
     useModal?: boolean;
 }
 
@@ -26,9 +25,10 @@ const SelectModal = ({
     onClose,
     onFinalize,
     useModal = true,
+    ...props
 }: SelectWidgetSettingsModalProps) => {
     const content = useGameContent().modals['select-multi'];
-    const { player } = useAuth();
+    // const { player } = useAuth();
     const [checks, setChecks] = useState<Options>(options);
 
     const setCheck = (key: string, val: boolean) => {
@@ -39,9 +39,10 @@ const SelectModal = ({
         onFinalize(checks);
         // setChecks({});
     };
-    const close = () => {
+
+    const close = (data: unknown) => {
         // setChecks({});
-        onClose && onClose();
+        onClose && onClose(data);
     };
 
     console.log('Select options', checks);
@@ -52,14 +53,15 @@ const SelectModal = ({
     const dialogue =
         typeof dialogueTemplate === 'function' ? dialogueTemplate(dialogueData) : dialogueTemplate;
 
-    if (!player?.id)
-        return (
-            <BaseModal size="md">
-                <View>
-                    <Text style={styles.text}>You must have a jinni to customize their home</Text>
-                </View>
-            </BaseModal>
-        );
+    // if (!player?.id)
+    //     return (
+    //         <CreateSpellbookModal dialogueData={{
+    //             title: "A jinni is approaching",
+    //             text: "Wait for it to sniff you and say hi",
+    //         }} />
+
+    //     );
+
     const renderMultiSelect = () => (
         <>
             <Text style={styles.text}>{title}</Text>
@@ -93,6 +95,7 @@ const SelectModal = ({
     return useModal ? (
         <BaseModal
             size="md"
+            {...props} // overwrite with our close
             onClose={close}
             primaryButton={{
                 button: (

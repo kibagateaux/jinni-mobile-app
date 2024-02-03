@@ -10,7 +10,11 @@ export interface GeneralTimeWarpModalProps {
     dialogueData?: object; // params for modal text
 }
 
-const GeneralTimeWarpModal = ({ modalName, dialogueData = {} }: GeneralTimeWarpModalProps) => {
+const GeneralTimeWarpModal = ({
+    modalName,
+    dialogueData = {},
+    ...props
+}: GeneralTimeWarpModalProps) => {
     const content = useGameContent().modals[modalName];
     if (!content) return null;
 
@@ -21,7 +25,7 @@ const GeneralTimeWarpModal = ({ modalName, dialogueData = {} }: GeneralTimeWarpM
         typeof dialogueTemplate === 'function' ? dialogueTemplate(dialogueData) : dialogueTemplate;
 
     return (
-        <BaseModal size="md">
+        <BaseModal size="md" {...props}>
             <View>
                 <Text style={styles.text}>{title}</Text>
                 <Text style={styles.text}>{dialogue}</Text>
