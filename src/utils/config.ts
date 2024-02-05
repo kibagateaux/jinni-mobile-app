@@ -88,7 +88,10 @@ interface AppConfig {
 export const getAppConfig = (): AppConfig => ({
     NODE_ENV: process.env.NODE_ENV || 'development',
     API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8888',
-    REDIRECT_URL: process.env.EXPO_PUBLIC_REDIRECT_URL || 'http://localhost:8888',
+    REDIRECT_URL:
+        process.env.EXPO_PUBLIC_REDIRECT_URL ||
+        process.env.EXPO_PUBLIC_API_URL ||
+        'http://localhost:8888',
 
     ETH_NETWORK: process.env.EXPO_PUBLIC_ETH_NETWORK || 'optimism',
     ETH_API_PROVIDER_URI: process.env.EXPO_PUBLIC_ETH_API_PROVIDER_URI || 'test-api-key',

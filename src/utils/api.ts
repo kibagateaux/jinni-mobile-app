@@ -188,6 +188,7 @@ export const saveHomeConfig = async ({
 
     console.log('!!! new home config saved!!!', newConfig);
     const playerId = await getStorage(ID_PLAYER_SLOT);
+    console.log('utils:api:saveHomeConifg:playerId', playerId);
     if (!playerId) return true;
 
     // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
