@@ -144,6 +144,7 @@ export type ItemIds =
     | ('AndroidHealthConnect' & OAuthProviderIds);
 
 export type ItemStatus =
+    | void
     | 'ethereal' // can be used by player but isnt installed or accessible at the moment
     | 'unequipped' // player can equip but hasnt yet
     | 'unequipping' // in the process of moving from 'equipped' -> 'unequipped'

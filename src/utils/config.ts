@@ -289,8 +289,8 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
         console.log(
             'get storage 1 - {slot, useCrypt} + cached',
             JSON.stringify({ slot, secure: useMysticCrypt }),
+            cached,
         );
-        console.log(cached);
         if (cached) return cached;
         const val = useMysticCrypt
             ? await getItemAsync(slot, { requireAuthentication: !__DEV__ })

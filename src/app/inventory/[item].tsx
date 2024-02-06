@@ -36,20 +36,45 @@ interface ItemPageProps {
 const ItemPage: React.FC<ItemPageProps> = () => {
     const { item: id }: { item: string } = useLocalSearchParams();
     const { inventory, loading, setItemStatus } = useInventory();
-    const { player, getSpellBook } = useAuth();
-    // const item = inventory.find((i) => i.id === id);
-    const [item, setItem] = useState<InventoryItem | null>(null);
-    const status = item?.status;
-    // const [status, setItemStatus] = useState<ItemStatus | null>(null);
-    // const [activeModal, setActiveModal] = useState<string | null>(null);
-    const { setActiveModal } = useGameContent();
-    const { inventory: content } = useGameContent();
-    // hooks for items that require 3rd party authentication
-    const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
-    const [activeAbilities, setActiveAbilities] = useState<ItemAbility[]>([]);
+    const [activeAbilities, setActiveAbilities] = useState<ItemAbility[] | void>(undefined);
 
+    const item = inventory.find((i) => i.id === id);
+    const status: ItemStatus = item?.status;
     console.log('pg:inventory:item:Load', id, status, item?.tags);
+    useMemo(async () => {
+        // we cant store item status in config so compute and store in store
+        console.log('Item: check status?', item?.id && !status, item?.id, !status);
+        if (item?.id && !status) {
+            console.log('Item: setting status!!!');
+            const newStatus = await item!.checkStatus();
+            console.log('pg:Inv:Item check item status', newStatus);
+            setItemStatus(item.id, newStatus);
+        }
+    }, [item, status, setItemStatus]);
 
+    useMemo(async () => {
+        console.log(
+            'Item: check active abiliti?',
+            item?.abilities?.length && !activeAbilities,
+            item?.abilities?.length,
+            !activeAbilities,
+        );
+        if (item?.abilities?.length && !activeAbilities) {
+            const activeAbs = await Promise.all(
+                item.abilities?.filter(async (ability) => {
+                    (await ability.canDo(status)) === 'ethereal';
+                }) ?? [],
+            );
+            console.log('pb:Inv:Item post item status abilitiy check', activeAbs);
+            setActiveAbilities(activeAbs);
+        }
+    }, [item, status, activeAbilities]);
+
+    // hooks for items that require 3rd party authentication
+    // TODO break functionality into actual separate components to shard state and prevent rerenders
+    // primarly <ItemActionbutton>, <ItemActiveAbilities>, <ItemWidgets> all have completely separate data reqs
+    const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
+    // console.log('Item: oauth', itemOauthConfig, request, response);
     const [request, response, promptAsync] = useAuthRequest(
         {
             clientId: itemOauthConfig.clientId,
@@ -60,37 +85,6 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         },
         itemOauthConfig,
     );
-    // console.log('Item: oauth', itemOauthConfig, request, response);
-
-    useMemo(() => {
-        // we cant store item status in config so compute and store in store
-        if (item?.id && !status)
-            item!.checkStatus().then((newStatus: ItemStatus) => {
-                console.log('pg:Inv:Item check item status', newStatus);
-                setItemStatus(item.id, newStatus);
-            });
-
-        if (item?.abilities?.length && status) {
-            Promise.all(
-                item.abilities?.filter(async (ability) => {
-                    (await ability.canDo(status!)) === 'ethereal';
-                }) ?? [],
-            ).then((active) => {
-                console.log('pb:Inv:Item post item status abilitiy check', active);
-                setActiveAbilities(active);
-            });
-        }
-    }, [item, status, setItemStatus]);
-
-    // console.log('Item: item', id, item);
-    // console.log('Item: status & modal', status, activeModal);
-
-    useMemo(() => {
-        const newItem = inventory.find((item) => item.id === id);
-        if (!newItem) return; // invalid id
-        if (id && !item) setItem(newItem); // first render
-        if (newItem.status !== item?.status) setItem(newItem); // status update
-    }, [id, item, inventory]);
 
     useMemo(async () => {
         if (item?.id) {
@@ -107,6 +101,15 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             }
         }
     }, [item]);
+
+    const { player, getSpellBook } = useAuth();
+    const { setActiveModal } = useGameContent();
+    const { inventory: content } = useGameContent();
+    // console.log('Item: status & modal', status, activeModal);
+
+    // TODO render loading screen when oauth items are generating redirect.
+    // OR ideally delay oauth state generation until equip()
+    // if (itemOauthConfig && !itemOauthConfig.state) setActiveModal({ name: 'create-spellbook' })
 
     if (loading) return <ActivityIndicator animating size="large" />;
 
@@ -253,7 +256,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const renderActiveItemAbilities = () => (
         <View>
             <Text style={styles.sectionTitle}>Active Abilities</Text>
-            {activeAbilities.length ? (
+            {activeAbilities?.length ? (
                 <ScrollView horizontal style={{ flex: 1 }}>
                     {activeAbilities.map((ability) => (
                         // TODO check if canDo. yes? do(), no? checkStatus == equipped yes? nothin, no? pop up modal to equip.

@@ -46,12 +46,10 @@ const equip: HoF = async () => {
             return true;
         } else {
             throw Error('Enchanter is not a Master Djinn');
-            // TODO return error message. "Wrong maji for ritual"
-            return false;
         }
     } catch (e) {
         console.log('Inv:MaliksMajik:equip:ERR', e);
-        return false;
+        throw e;
     }
 };
 

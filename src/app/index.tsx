@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { isEmpty } from 'lodash/fp';
 
 import { useHomeConfig } from 'hooks';
-// import { useAuth, useGameContent } from 'contexts';
+import { useAuth, useGameContent } from 'contexts';
 import { WidgetConfig, WidgetIds, obj } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
@@ -25,8 +25,8 @@ import { magicRug } from 'utils/zkpid';
 
 const HomeScreen = () => {
     const { config: homeConfig, save: saveHomeConfig } = useHomeConfig();
-    // const { setActiveModal } = useGameContent();
-    // const { player, getSpellBook } = useAuth();
+    const { setActiveModal } = useGameContent();
+    const { player, getSpellBook } = useAuth();
     const eggRollAngle = useSharedValue(30);
     const eggAnimatedStyles = useAnimatedStyle(() => ({
         transform: [{ rotate: `${eggRollAngle.value}deg` }],
@@ -123,16 +123,17 @@ const HomeScreen = () => {
                 onComplete={async (config) => {
                     try {
                         console.log('on avatar config wizard complete', config.stats);
-                        // if(!player?.id) setActiveModal({
-                        //     name: 'create-spellbook',
-                        //     dialogueData: {
-                        //         title: "A jinni is approaching",
-                        //         text: "Wait for it to sniff you and say hi",
-                        //     }
-                        // });
-                        // await getSpellBook();
+                        if (!player?.id)
+                            setActiveModal({
+                                name: 'create-spellbook',
+                                dialogueData: {
+                                    title: 'A jinni is approaching',
+                                    text: 'Wait for it to sniff you and say hi',
+                                },
+                            });
+                        await getSpellBook();
+                        setActiveModal(undefined);
 
-                        // setActiveModal(undefined);
                         await Promise.all([
                             finalizeRenovation(
                                 [
