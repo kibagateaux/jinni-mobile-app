@@ -4,11 +4,9 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { isEmpty } from 'lodash/fp';
 
 import { useHomeConfig } from 'hooks';
-// import { useAuth } from 'contexts';
+// import { useAuth, useGameContent } from 'contexts';
 import { WidgetConfig, WidgetIds, obj } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
-import { saveHomeConfig } from 'utils/api';
-// import { getActivityData } from 'inventory/android-health-connect';
 
 import { AvatarViewer, WidgetIcon } from 'components/index';
 import DefaultAvatar from 'assets/avatars/red-yellow-egg';
@@ -26,7 +24,7 @@ import { debug } from 'utils/logging';
 import { magicRug } from 'utils/zkpid';
 
 const HomeScreen = () => {
-    const homeConfig = useHomeConfig();
+    const { config: homeConfig, save: saveHomeConfig } = useHomeConfig();
     // const { setActiveModal } = useGameContent();
     // const { player, getSpellBook } = useAuth();
     const eggRollAngle = useSharedValue(30);
@@ -77,14 +75,9 @@ const HomeScreen = () => {
 
     const finalizeRenovation = useCallback(
         (widgets?: WidgetConfig[], merge: boolean = true) => {
-            // TODO widgetConfig is not updated when adding/removing widgets
-            saveHomeConfig({
-                widgets: widgets ?? widgetConfig,
-                merge,
-            });
+            saveHomeConfig(widgets ?? widgetConfig, merge);
         },
-
-        [widgetConfig],
+        [widgetConfig, saveHomeConfig],
     );
 
     const completeWizardStage = useCallback(

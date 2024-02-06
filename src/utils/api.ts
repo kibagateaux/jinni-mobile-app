@@ -157,7 +157,7 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
 export const saveHomeConfig = async ({
     widgets,
     merge,
-}: UpdateWidgetConfigParams): Promise<boolean> => {
+}: UpdateWidgetConfigParams): Promise<HomeConfig> => {
     console.log('home config deduped 1!!!', merge, widgets);
     const config = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
     // merge new and existing widget configs. only one widget per id allowed (eventually uniq by id + target_uuid)
@@ -189,7 +189,7 @@ export const saveHomeConfig = async ({
     console.log('!!! new home config saved!!!', newConfig);
     const playerId = await getStorage(ID_PLAYER_SLOT);
     console.log('utils:api:saveHomeConifg:playerId', playerId);
-    if (!playerId) return true;
+    if (!playerId) return newConfig!;
 
     // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
     // jest.mock('utils/config').mockResolvedValue(noConnection)
@@ -207,11 +207,10 @@ export const saveHomeConfig = async ({
     })
         .then((res) => {
             console.log('utils:api:saveHomeConfig:response', res);
-            return true;
+            return newConfig!;
         })
         .catch((err) => {
             console.log('utils:api:saveHomeConfig:ERR', err);
-            return false;
+            return newConfig!;
         });
-    return Promise.resolve(true);
 };

@@ -14,7 +14,7 @@ import { WidgetConfig } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
 export default function HomeLayout() {
-    const homeConfig = useHomeConfig();
+    const { config: homeConfig } = useHomeConfig();
     const [tabConfig, setTabConfig] = useState<WidgetConfig[]>([]);
 
     useEffect(() => {
