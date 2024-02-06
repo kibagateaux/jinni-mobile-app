@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { reduce } from 'lodash/fp';
 
-import { InventoryItem, ItemAbility } from 'types/GameMechanics';
+import { InventoryItem, ItemAbility, ItemStatus, ItemIds } from 'types/GameMechanics';
 import utils from 'inventory';
 import { useAuth } from 'contexts/AuthContext';
 
@@ -45,5 +45,17 @@ export const useInventory = () => {
         }
     }, [player?.name, inventory.length]);
 
-    return { inventory, loading, widgets };
+    const setItemStatus = (itemId: ItemIds, status: ItemStatus) => {
+        console.log('hooks:useInventory:setStatus', itemId, status);
+        // return setInventory(inventory.map(i => i.id !== itemId ? i : {...i, status}))
+        return setInventory(
+            inventory.map((i) => {
+                if (i.id !== itemId) return i;
+                console.log('hooks:useInventory:setStatus:i', { ...i, status });
+                return { ...i, status };
+            }),
+        );
+    };
+
+    return { inventory, loading, widgets, setItemStatus };
 };

@@ -35,11 +35,12 @@ interface ItemPageProps {
 
 const ItemPage: React.FC<ItemPageProps> = () => {
     const { item: id }: { item: string } = useLocalSearchParams();
-    const { inventory, loading } = useInventory();
+    const { inventory, loading, setItemStatus } = useInventory();
     const { player, getSpellBook } = useAuth();
-
+    // const item = inventory.find((i) => i.id === id);
     const [item, setItem] = useState<InventoryItem | null>(null);
-    const [status, setStatus] = useState<ItemStatus | null>(null);
+    const status = item?.status;
+    // const [status, setItemStatus] = useState<ItemStatus | null>(null);
     // const [activeModal, setActiveModal] = useState<string | null>(null);
     const { setActiveModal } = useGameContent();
     const { inventory: content } = useGameContent();
@@ -47,7 +48,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
     const [activeAbilities, setActiveAbilities] = useState<ItemAbility[]>([]);
 
-    console.log('pg:inventory:item:Load', id, item?.tags);
+    console.log('pg:inventory:item:Load', id, status, item?.tags);
 
     const [request, response, promptAsync] = useAuthRequest(
         {
@@ -66,41 +67,44 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         if (item?.id && !status)
             item!.checkStatus().then((newStatus: ItemStatus) => {
                 console.log('pg:Inv:Item check item status', newStatus);
-                setStatus(newStatus);
+                setItemStatus(item.id, newStatus);
             });
 
         if (item?.abilities?.length && status) {
             Promise.all(
                 item.abilities?.filter(async (ability) => {
-                    (await ability.canDo(status!)) === 'doable';
+                    (await ability.canDo(status!)) === 'ethereal';
                 }) ?? [],
             ).then((active) => {
                 console.log('pb:Inv:Item post item status abilitiy check', active);
                 setActiveAbilities(active);
             });
         }
-    }, [item, status]);
+    }, [item, status, setItemStatus]);
 
     // console.log('Item: item', id, item);
     // console.log('Item: status & modal', status, activeModal);
 
     useMemo(() => {
-        if (id && !item) {
-            const item = inventory.find((item) => item.id === id);
-            if (item) setItem(item);
-        }
+        const newItem = inventory.find((item) => item.id === id);
+        if (!newItem) return; // invalid id
+        if (id && !item) setItem(newItem); // first render
+        if (newItem.status !== item?.status) setItem(newItem); // status update
     }, [id, item, inventory]);
 
     useMemo(async () => {
         if (item?.id) {
-            // configure oauth if required for item equip/unequip
             const oauth = oauthConfigs[item.id];
+            // configure oauth if required for item equip/unequip
             console.log('page:inv:item:oauth', oauth);
-            if (oauth)
+            if (oauth) {
                 setItemOauth({
                     ...oauth,
+                    // TODO see if we can add state later in promptAsync.
+                    // can pass url as option to promptAsync e.g. promptAsync(oauthConfig, { url:  getredirectUri + generateRedirectState })
                     state: await generateRedirectState(item.id as OAuthProviderIds),
                 });
+            }
         }
     }, [item]);
 
@@ -112,7 +116,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     const onItemEquipPress = async () => {
         if (item.equip) {
-            setStatus('equipping'); // hide equip button
+            setItemStatus(item.id, 'equipping'); // hide equip button
 
             // console.log('modal to render', ItemEquipWizardModal, Modals);
             // TODO check if player.id first.
@@ -137,23 +141,23 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 console.log('Oauth request/response', request, response);
 
                 if (result) {
-                    // setStatus('post-equip');
+                    // setItemStatus(item.id, 'post-equip');
                     // TODO api request to add item to their avatar (:DataProvider or :Resource?)
-                    setStatus('equipped');
+                    setItemStatus(item.id, 'equipped');
                 } else {
                     // assume failure
-                    setStatus('unequipped');
+                    setItemStatus(item.id, 'unequipped');
                 }
             } catch (e) {
                 console.log('Error Equipping:', e);
-                setStatus('unequipped');
+                setItemStatus(item.id, 'unequipped');
             }
         }
     };
 
     const onItemUnequipPress = () => {
         if (item.unequip) item.unequip();
-        setStatus('unequipping');
+        setItemStatus(item.id, 'unequipping');
     };
 
     const renderItemButton = () => {
@@ -167,18 +171,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 </Link>
             );
 
-        if (status === 'ethereal' && item.installLink)
-            return (
-                <Link to={item.installLink} trackingId="item-page-install-cta">
-                    <Button
-                        title="Install"
-                        style={[styles.activeItemStatusButton, styles.equipButton]}
-                    />
-                </Link>
-            );
-
         // dont render if oauth request going out already.
         // TODO is that redundant if we set status to 'equipping' tho?
+        console.log('item action button');
+
         if (status === 'unequipped' && item.equip && (!itemOauthConfig || request))
             return (
                 <Button
@@ -202,6 +198,15 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             return (
                 <Button
                     title="Equipped"
+                    disabled
+                    style={[styles.activeItemStatusButton, styles.unequipButton]}
+                />
+            );
+
+        if (status === 'unequipped')
+            return (
+                <Button
+                    title="Equip"
                     disabled
                     style={[styles.activeItemStatusButton, styles.unequipButton]}
                 />
@@ -273,7 +278,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     );
 
     const renderAllItemAbilities = () => (
-        <View>
+        <>
             <Text style={styles.sectionTitle}>All Abilities</Text>
             {item?.abilities?.length ? (
                 <ScrollView horizontal style={{ flex: 1 }}>
@@ -291,29 +296,31 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                     </Text>
                 </Link>
             )}
-        </View>
+        </>
     );
 
     const renderItemWidgets = () => (
-        <ScrollView>
+        <>
             <Text style={styles.sectionTitle}>Widgets</Text>
-            {item?.widgets?.length ? (
-                item.widgets.map((widgy) => (
-                    <TouchableOpacity key={widgy.id} onPress={() => widgy.do()}>
-                        <View key={widgy.id} style={{ marginRight: 24, alignItems: 'center' }}>
-                            <Text style={styles.sectionTitle}>{widgy.symbol}</Text>
-                            <Text style={styles.sectionBody}>{widgy.name}</Text>
-                        </View>
-                    </TouchableOpacity>
-                ))
-            ) : (
-                <Link to="https://nootype.substack.com/subscribe">
-                    <Text>
-                        No Widgets Available For This Item Yet. Stay Tuned For Game Updates!!
-                    </Text>
-                </Link>
-            )}
-        </ScrollView>
+            <ScrollView horizontal>
+                {item?.widgets?.length ? (
+                    item.widgets.map((widgy) => (
+                        <TouchableOpacity key={widgy.id} onPress={() => widgy.do()}>
+                            <View key={widgy.id} style={{ marginRight: 24, alignItems: 'center' }}>
+                                <Text style={styles.sectionTitle}>{widgy.symbol}</Text>
+                                <Text style={styles.sectionBody}>{widgy.name}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))
+                ) : (
+                    <Link to="https://nootype.substack.com/subscribe">
+                        <Text>
+                            No Widgets Available For This Item Yet. Stay Tuned For Game Updates!!
+                        </Text>
+                    </Link>
+                )}
+            </ScrollView>
+        </>
     );
 
     const renderItemContent = () => (

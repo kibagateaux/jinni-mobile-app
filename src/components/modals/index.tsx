@@ -14,7 +14,10 @@ interface ModalRendererProps {
 
 const ModalRenderer = (props: ModalRendererProps) => {
     const { activeModal, setActiveModal } = useGameContent();
+    console.log('comp:modal:index:renderer', activeModal);
+
     if (!activeModal || !activeModal.name) return null;
+
     const onClose = (data: unknown) => {
         props.onClose && props.onClose(data);
         setActiveModal(undefined);
