@@ -17,7 +17,7 @@ import { itemAbilityToWidgetConfig } from 'utils/config';
 interface WidgetContainerProps {
     widgets: WidgetConfig[];
     saveWidgets?: (widgets: WidgetConfig[]) => void;
-    finalizeRenovation?: () => void; // send to server
+    finalizeRenovation?: (widgets?: WidgetConfig[], merge?: boolean) => void; // send to server
     WidgetRenderer: React.FC<WidgetConfig>;
     renovationConfig?: object; // options for DraggableFlatList
 }
@@ -76,7 +76,6 @@ const WidgetContainer = ({
         console.log('widgets selected for homepage', newSettings);
         if (finalizeRenovation) {
             onRenovateEnd({ data: newSettings });
-            finalizeRenovation();
         }
 
         setAddMode(false);
@@ -91,7 +90,8 @@ const WidgetContainer = ({
 
     const onEditModeEnd = () => {
         setEditMode(false);
-        if (finalizeRenovation) finalizeRenovation();
+        // undefined = use widgetConfig in homepage, false = overwrite storage
+        if (finalizeRenovation) finalizeRenovation(undefined, false);
     };
 
     const renderRenovationMode = () => {
