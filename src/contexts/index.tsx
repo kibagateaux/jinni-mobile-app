@@ -4,6 +4,12 @@ import { ThemeProvider } from './ThemeContext';
 import { GameContentProvider } from './GameContentContext';
 import { ExternalServicesProvider } from './ExternalServicesContext';
 
+// granular exports for specific usages
+export * from './AuthContext';
+export * from './ThemeContext';
+export * from './GameContentContext';
+export * from './ExternalServicesContext';
+
 type Props = {
     children?: React.ReactNode;
 };
@@ -18,8 +24,5 @@ export const ContextProvider: React.FC<Props> = ({ children }) => {
         </ExternalServicesProvider>
     );
 };
-// granular exports for specific usages
-export * from './AuthContext';
-export * from './ThemeContext';
 
 export default ContextProvider;

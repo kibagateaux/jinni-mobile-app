@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, View } from 'react-native';
+import { Text, StyleSheet, View, ScrollView } from 'react-native';
 import { capitalize, isEmpty } from 'lodash';
 import { CheckBox, Icon } from '@rneui/themed';
 
@@ -66,20 +66,22 @@ const SelectModal = ({
         <>
             <Text style={styles.text}>{title}</Text>
             <Text style={styles.text}>{dialogue}</Text>
-            {Object.keys(options).map((id) => {
-                //  TODO make scroll list. pushes button off screen when > 8 options
-                return (
-                    <CheckBox
-                        key={id}
-                        center
-                        title={id.split('-').map(capitalize).join(' ')}
-                        checkedIcon="dot-circle-o"
-                        uncheckedIcon="circle-o"
-                        checked={checks[id]}
-                        onPress={() => setCheck(id, !checks[id])}
-                    />
-                );
-            })}
+            <ScrollView>
+                {Object.keys(options).map((id) => {
+                    //  TODO make scroll list. pushes button off screen when > 8 options
+                    return (
+                        <CheckBox
+                            key={id}
+                            center
+                            title={id.split('-').map(capitalize).join(' ')}
+                            checkedIcon="dot-circle-o"
+                            uncheckedIcon="circle-o"
+                            checked={checks[id]}
+                            onPress={() => setCheck(id, !checks[id])}
+                        />
+                    );
+                })}
+            </ScrollView>
             <View style={styles.buttonContainer}>
                 <Button onPress={complete}>
                     {' '}

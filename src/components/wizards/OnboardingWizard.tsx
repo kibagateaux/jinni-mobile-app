@@ -41,21 +41,22 @@ const intentions = {
 };
 
 const steps = [
+    // TODO move to assets/game-content/onboarding
     {
         dialogueData: {
             title: 'Welcome To Jinni',
-            text: 'A self-actualization game that you play in real life. Take care of your tomogatchi (a.k.a jinni) and watch it evolved based on your actions and the data your feed it.',
+            text: 'A self-actualization game that you play in real life. Take care of your tomogatchi (a.k.a jinni) and watch it evolve based on your actions and the data you feed it.',
         },
     },
     {
         dialogueData: {
             title: 'Customize Your Game',
-            text: "Jinni is about making life fun. Everyone's life is different and they learn in different ways. Decide on your jinni's, your intentions for developing during the game, and how your jinni will evolve based onyour progress towards your intentions.",
+            text: "Jinni is about making life fun. Everyone's life is different and they learn in different ways. Decide on your jinni's intentions, attitude, and skill tree for developing during the game to influence how it evolves over time.",
         },
     },
     {
         dialogueData: {
-            title: 'What kind of atitude do you want your jinni to have?',
+            title: 'What kind of attitude do you want your jinni to have?',
             text: '',
         },
         options: avatarMoods,
@@ -77,7 +78,7 @@ const steps = [
     {
         dialogueData: {
             title: 'You Bonded With Your Jinni',
-            text: 'Now your bestest of buddies and they will help you with maical spells throughout your day',
+            text: 'Now you are bestest of buddies and they will help you with majikal spells throughout your day',
         },
     },
     {
