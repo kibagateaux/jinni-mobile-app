@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Button } from 'react-native';
+
+import { View, StyleSheet, Share } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { isEmpty } from 'lodash/fp';
 
@@ -22,6 +23,7 @@ import {
 } from 'utils/config';
 import { debug } from 'utils/logging';
 import { magicRug } from 'utils/zkpid';
+import { Button } from '@rneui/themed';
 
 const HomeScreen = () => {
     const { config: homeConfig, save: saveHomeConfig } = useHomeConfig();
@@ -182,6 +184,22 @@ const HomeScreen = () => {
         <View style={{ flex: 1 }}>
             <View style={styles.container}>
                 <View style={styles.avatarContainer}>
+                    {!player?.id ? null : (
+                        <Button
+                            title={player?.id.slice(0, 18)}
+                            type="clear"
+                            onPress={async () =>
+                                await Share.share({
+                                    title: 'Share your 🧞‍♂️ name with your friends',
+                                    message:
+                                        'Here is my Jinni id. Add me to your summoning circle 😇' +
+                                        '\n`' +
+                                        player?.id +
+                                        '`',
+                                })
+                            }
+                        />
+                    )}
                     <Animated.View style={[styles.avatar, eggAnimatedStyles]}>
                         <AvatarViewer uri={homeConfig?.jinniImage} SVG={DefaultAvatar} />
                     </Animated.View>
