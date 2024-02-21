@@ -20,7 +20,7 @@ export const useHomeConfig = () => {
     };
 
     useEffect(() => {
-        getHomeConfig(player?.name).then((config) => setHomeConfig(config));
+        getHomeConfig(player?.id).then((config) => setHomeConfig(config));
     }, [player, isLoadingNetwork]);
 
     return { config, save };

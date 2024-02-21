@@ -36,6 +36,7 @@ const HomeScreen = () => {
 
     useMemo(() => {
         if (isEmpty(widgetConfig) && homeConfig?.widgets) {
+            console.log('page:home:setInitWidgi', homeConfig.widgets);
             setWidgetConfig(homeConfig.widgets);
         }
     }, [homeConfig, widgetConfig]);
@@ -68,9 +69,21 @@ const HomeScreen = () => {
 
     const saveWidgets = useCallback(
         (widgets: WidgetConfig[]) => {
-            setWidgetConfig(widgets);
+            // if saved from widget container then default widgets are filtered out for display and need to be re-added before saving
+            const isFiltered = !widgets.find((w) => w.id === 'maliksmajik-avatar-viewer');
+            const allWidgi = !isFiltered
+                ? widgets
+                : [
+                      ...widgets,
+                      ...(widgetConfig.filter(
+                          (w) =>
+                              w.id === 'maliksmajik-avatar-viewer' ||
+                              w.id === 'maliksmajik-speak-intention',
+                      ) ?? []),
+                  ];
+            setWidgetConfig(allWidgi);
         },
-        [setWidgetConfig],
+        [widgetConfig, setWidgetConfig],
     );
 
     const finalizeRenovation = useCallback(

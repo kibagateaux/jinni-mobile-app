@@ -60,6 +60,8 @@ export type GameWidgetIds =
 // player action portals
 export type ItemWidgetIds =
     | 'maliksmajik-leaderboard'
+    | 'maliksmajik-speak-intention'
+    | 'maliksmajik-avatar-viewer'
     // identity
     | 'spotify-profile'
     | 'spotify-most-played'
