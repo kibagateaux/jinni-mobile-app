@@ -20,10 +20,12 @@ const AvatarViewer = ({ SVG, uri, is3d }: AvatarViewerProps) => {
     if (!SVG && !uri) {
         return <Text>Spiritual connection lost. Cannot display your Jinni</Text>;
     }
+
     // console.log('AvatarViewer', { SVG, uri, is3d });
 
     const SvgComponent = () => (!SVG ? null : <SVG />);
-
+    // TODO add suppoort for rendering base64 encoded images
+    //  https://stackoverflow.com/questions/29380265/does-react-native-support-base64-encoded-images
     return (
         <View
             {...panResponder.panHandlers}

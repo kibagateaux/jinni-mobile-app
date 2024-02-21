@@ -174,7 +174,7 @@ const item: InventoryItem = {
                     if (action === Share.sharedAction) {
                         track(TRACK_SHARE_CONTENT, {
                             spell: ABILITY_SHARE_PROFILE,
-                            activityType: activityType ?? 'shared',
+                            activityType: activityType ?? 'success',
                             providerId,
                             success: true,
                         });

@@ -197,7 +197,7 @@ const item: InventoryItem = {
                     })({ player_id: pid, provider: ITEM_ID });
                     track(ABILITY_TRACK_COMMITS, {
                         spell: ABILITY_TRACK_COMMITS,
-                        activityType: 'completed',
+                        activityType: 'success',
                         provider: providerId,
                     });
                     console.log('inv;Github:sync-repos:res', response);

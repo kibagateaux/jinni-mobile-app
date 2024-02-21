@@ -104,15 +104,29 @@ const item: InventoryItem = {
                 return 'ethereal';
             },
             do: async () => {
+                track(ABILITY_ACTIVATE_JINNI, {
+                    spell: ABILITY_ACTIVATE_JINNI,
+                    activityType: 'initiated',
+                });
                 const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
                 const myId = await getStorage(ID_PLAYER_SLOT);
                 try {
-                    track(ABILITY_ACTIVATE_JINNI, { ability: ABILITY_ACTIVATE_JINNI });
-                    if (!myId) throw Error('You need to create an magic ID first');
-                    if (!myProof)
+                    if (!myId) {
+                        track(ABILITY_ACTIVATE_JINNI, {
+                            spell: ABILITY_ACTIVATE_JINNI,
+                            activityType: 'unauthenticated',
+                        });
+                        throw Error('You need to create an magic ID first');
+                    }
+                    if (!myProof) {
+                        track(ABILITY_ACTIVATE_JINNI, {
+                            spell: ABILITY_ACTIVATE_JINNI,
+                            activityType: 'unequipped',
+                        });
                         throw Error(
                             'You must to meet the Master Djinn before you can activate your jinni',
                         );
+                    }
                     console.log('Mani:Jinni:ActivateJinn:proof', myProof);
                     console.log('Mani:Jinni:ActivateJinn:ID', myId);
 
@@ -120,17 +134,22 @@ const item: InventoryItem = {
                         majik_msg: myProof.ether,
                         player_id: myId,
                     });
+
                     console.log('Mani:Jinni:ActivateJinn:Response', response);
                     const uuid = response?.data ? response.data.activate_jinni : null;
                     // server shouldnt allow multiple jinnis yet. Just in case dont overwrite existing uuid
                     const result = uuid && (await saveStorage<string>(ID_JINNI_SLOT, uuid, false));
                     console.log('Mani:Jinni:ActivateJinn:Result', result);
+                    track(ABILITY_ACTIVATE_JINNI, {
+                        spell: ABILITY_ACTIVATE_JINNI,
+                        activityType: 'success',
+                    });
                     return async () => (uuid ? true : false);
                 } catch (e) {
                     console.error('Mani:Jinni:ActivateJinn:ERROR - ', e);
                     debug(e, {
                         tags: { api: true },
-                        extra: { ability: ABILITY_ACTIVATE_JINNI },
+                        extra: { spell: ABILITY_ACTIVATE_JINNI },
                     });
                     return async () => false;
                 }
@@ -156,7 +175,7 @@ const item: InventoryItem = {
                     if (!pk) throw Error('No account to backup');
 
                     const success = await saveMysticCrypt(ID_PKEY_SLOT, pk);
-                    track(ABILITY_MYSTIC_CRYPT, { ability: ABILITY_MYSTIC_CRYPT });
+                    track(ABILITY_MYSTIC_CRYPT, { spell: ABILITY_MYSTIC_CRYPT });
                     return async () => success;
                 } catch (e) {
                     console.error('Mani:Jinni:MysticCrypt:ERROR --', e);
