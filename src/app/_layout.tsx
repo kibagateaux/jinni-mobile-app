@@ -6,6 +6,7 @@ import 'utils/polyfills';
  */
 import React, { useEffect, useState } from 'react';
 import { Tabs } from 'expo-router';
+// import * as Sentry from '@sentry/react-native';
 
 import { useHomeConfig } from 'hooks';
 import { ContextProvider } from 'contexts';
@@ -23,7 +24,6 @@ export default function HomeLayout() {
         }
     }, [homeConfig, tabConfig]);
 
-    console.log('pg:home:layout: no deep links');
     return (
         <ContextProvider>
             <Tabs
@@ -46,3 +46,7 @@ export default function HomeLayout() {
         </ContextProvider>
     );
 }
+
+// TODO migrate sentry to Expo v51
+// https://docs.expo.dev/guides/using-sentry/
+// export default Sentry.wrap(HomeLayout);

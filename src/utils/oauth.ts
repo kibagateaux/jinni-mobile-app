@@ -100,7 +100,7 @@ export const createOauthRedirectURI = memoize(() => {
 export const generateRedirectState = async (provider: OAuthProviderIds): Promise<string> => {
     const nonce = randomUUID();
     const player = await getStorage(ID_PLAYER_SLOT);
-    if (!player) return Promise.resolve(nonce);
+    if (!player) return Promise.resolve(nonce); // TODO shoul this return null since we check for sig on backend?
 
     const sig = await (await getSpellBook()).signMessage(`${player}.${provider}.${nonce}`);
     console.log('gen oauth state', nonce, sig);

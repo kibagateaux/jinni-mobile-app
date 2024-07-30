@@ -22,15 +22,21 @@ export default {
         scheme: 'jinni-health',
         plugins: [
             'react-native-health',
-            'react-native-health-connect',
             'react-native-nfc-manager',
+            'react-native-health-connect',
+            ['expo-health-connect'],
             [
                 'expo-build-properties',
                 {
                     ios: {
+                        // crypto and health libs probably all incompatible but ideall move over to it
+                        // if I need to do the migration focus on - rn-health-connect, @arx/lib-halo
+                        // https://docs.expo.dev/guides/new-architecture/#known-issues-in-third-party-libraries
+                        // "newArchEnabled": true,
                         deploymentTarget: '16.0',
                     },
                     android: {
+                        // "newArchEnabled": true,
                         compileSdkVersion: 34,
                         targetSdkVersion: 34,
                         minSdkVersion: 26,
@@ -53,21 +59,14 @@ export default {
                 },
             ],
             'expo-router',
-            'sentry-expo',
-        ],
-        hooks: {
-            postPublish: [
-                !isProd
-                    ? {}
-                    : {
-                          file: 'sentry-expo/upload-sourcemaps',
-                          config: {
-                              organization: '${EXPO_PUBLIC_SENTRY_ORG}',
-                              project: '${EXPO_PUBLIC_SENTRY_PROJECT}',
-                          },
-                      },
+            [
+                '@sentry/react-native/expo',
+                {
+                    organization: 'jinni',
+                    project: 'mobile-app',
+                },
             ],
-        },
+        ],
         ios: {
             supportsTablet: false,
             infoPlist: {

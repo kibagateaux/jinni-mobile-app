@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
-import * as Sentry from 'sentry-expo';
+import * as Sentry from '@sentry/react-native';
 import { JsonMap, SegmentClient as Segment, createClient } from '@segment/analytics-react-native';
 import Constants from 'expo-constants';
 import { ScopeContext } from '@sentry/types';
@@ -29,7 +29,7 @@ export const getSentry = (): SentryClient => {
                 ? [
                       // https://github.com/expo/sentry-expo/issues/368
                       // https://docs.expo.dev/guides/using-sentry/#troubleshooting
-                      new Sentry.Native.ReactNativeTracing({
+                      new Sentry.ReactNativeTracing({
                           enableAppStartTracking: __DEV__,
                           shouldCreateSpanForRequest: (url) => {
                               return (

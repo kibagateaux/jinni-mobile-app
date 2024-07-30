@@ -38,8 +38,10 @@ interface Mutation {
     query?: string;
 }
 type GqlReq = Query | Mutation;
-// server has issues converting \n + \t to bytes and fucks with ecrecover verification
+
+// java/clojure server has issues converting \n + \t to bytes and fucks with ecrecover verification
 export const cleanGql = (q: string) => q.replace(/[\n\t]/g, ' ').replace(/[\s]{2,}/g, ' ');
+
 export const qu =
     <T>({ query, mutation }: GqlReq) =>
     async (variables: object): Promise<T> => {
