@@ -15,7 +15,7 @@ export default {
         userInterfaceStyle: 'light',
         splash: {
             image: './public/splash.png',
-            resizeMode: 'fill',
+            // resizeMode: 'fill', / doesnt work on ios apparently
             backgroundColor: '#ffc1cb',
         },
         assetBundlePatterns: ['**/*'],

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { View, StyleSheet, Share } from 'react-native';
+import { View, StyleSheet, Share, Image } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { isEmpty } from 'lodash/fp';
 
@@ -35,6 +35,18 @@ const HomeScreen = () => {
     }));
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
     const [onboardingStage, setOnboardingStage] = useState<string>();
+
+    const [appReady, setAppReady] = useState<boolean>(false);
+    console.log('loading app....', player, appReady);
+
+    useMemo(async () => {
+        if (!appReady && !player) {
+            console.log('loading wallet....', player);
+            await getSpellBook();
+            console.log('wallet loaded!');
+            setAppReady(true);
+        }
+    }, [appReady, player, getSpellBook]);
 
     useMemo(() => {
         if (isEmpty(widgetConfig) && homeConfig?.widgets) {
@@ -129,8 +141,13 @@ const HomeScreen = () => {
         // await getActivityData({ startTime, endTime });
     };
 
-    console.log('eggroll ', eggRollAngle.value);
+    if (!appReady) {
+        console.log('waiting for wallet....');
+        return <Image source={{ uri: '/public/splash.png' }} />;
+    }
+
     // console.log('home onboarding ', onboardingStage);
+    // TODO abstrzct into onboarding component systemization
     if (onboardingStage === STAGE_AVATAR_CONFIG)
         return (
             <OnboardingWizard
@@ -180,6 +197,7 @@ const HomeScreen = () => {
                 }}
             />
         );
+
     return (
         <View style={{ flex: 1 }}>
             <View style={styles.container}>
