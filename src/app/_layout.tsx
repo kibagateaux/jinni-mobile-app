@@ -6,7 +6,7 @@ import 'utils/polyfills';
  */
 import React, { useEffect, useState } from 'react';
 import { Tabs } from 'expo-router';
-// import * as Sentry from '@sentry/react-native';
+import * as Sentry from '@sentry/react-native';
 
 import { useHomeConfig } from 'hooks';
 import { ContextProvider } from 'contexts';
@@ -14,7 +14,8 @@ import { ContextProvider } from 'contexts';
 import { WidgetConfig } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
-export default function HomeLayout() {
+// export default function HomeLayout() {
+const HomeLayout = () => {
     const { config: homeConfig } = useHomeConfig();
     const [tabConfig, setTabConfig] = useState<WidgetConfig[]>([]);
 
@@ -45,8 +46,8 @@ export default function HomeLayout() {
             </Tabs>
         </ContextProvider>
     );
-}
+};
 
 // TODO migrate sentry to Expo v51
 // https://docs.expo.dev/guides/using-sentry/
-// export default Sentry.wrap(HomeLayout);
+export default Sentry.wrap(HomeLayout);
