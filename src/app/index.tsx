@@ -16,7 +16,6 @@ import OnboardingWizard from 'components/wizards/OnboardingWizard';
 import {
     STAGE_AVATAR_CONFIG,
     TRACK_ONBOARDING_STAGE,
-    filterOutDefaultWidgets,
     getStorage,
     itemAbilityToWidgetConfig,
     saveStorage,
@@ -83,21 +82,9 @@ const HomeScreen = () => {
 
     const saveWidgets = useCallback(
         (widgets: WidgetConfig[]) => {
-            // if saved from widget container then default widgets are filtered out for display and need to be re-added before saving
-            const isFiltered = !widgets.find((w) => w.id === 'maliksmajik-avatar-viewer');
-            const allWidgi = !isFiltered
-                ? widgets
-                : [
-                      ...widgets,
-                      ...(widgetConfig.filter(
-                          (w) =>
-                              w.id === 'maliksmajik-avatar-viewer' ||
-                              w.id === 'maliksmajik-speak-intention',
-                      ) ?? []),
-                  ];
-            setWidgetConfig(allWidgi);
+            setWidgetConfig(widgets);
         },
-        [widgetConfig, setWidgetConfig],
+        [setWidgetConfig],
     );
 
     const finalizeRenovation = useCallback(
@@ -224,7 +211,7 @@ const HomeScreen = () => {
                     <Button color="purple" title="Speak Intention" onPress={onIntentionPress} />
                 </View>
                 <WidgetContainer
-                    widgets={filterOutDefaultWidgets(widgetConfig) as WidgetConfig[]}
+                    widgets={widgetConfig}
                     WidgetRenderer={HomeWidget}
                     saveWidgets={saveWidgets}
                     finalizeRenovation={finalizeRenovation}

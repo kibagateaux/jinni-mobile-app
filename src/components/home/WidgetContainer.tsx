@@ -125,7 +125,9 @@ const WidgetContainer = ({
             // <gesture={longPress}>
             <FlatList
                 data={widgets}
-                renderItem={({ item }: { item: WidgetConfig }) => <WidgetRenderer {...item} />}
+                renderItem={({ item }: { item: WidgetConfig }) =>
+                    item.displayType === 'home' ? <WidgetRenderer {...item} /> : null
+                }
                 keyExtractor={(item) => item.id}
             />
             // <
@@ -157,8 +159,8 @@ const WidgetContainer = ({
             {addMode ? renderAddWidgetModal() : null}
             {editMode ? ( // TODO use icons not buttons
                 <>
+                    <Button title="Edit" onPress={showSelectedWigets} />
                     <Button title="Close" onPress={onEditModeEnd} />
-                    <Button title="Add Widget" onPress={showSelectedWigets} />
                 </>
             ) : (
                 <Button title="Renovate" onPress={() => setEditMode(true)} />

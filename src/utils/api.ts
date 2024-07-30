@@ -172,6 +172,7 @@ export const saveHomeConfig = async ({
               ...widgets,
               ...(config?.widgets.filter((w) => !_.find(widgets, { id: w.id })) ?? []), // dedupe widgets that are already in saved config
           ];
+
     console.log(
         'home config deduped 2!!!',
         merged,
@@ -185,6 +186,7 @@ export const saveHomeConfig = async ({
         merge,
         // defaultHomeConfig,
     );
+    // TODO if merged === newConfig. Dont send API request
 
     console.log('!!! new home config saved!!!', newConfig);
     const playerId = await getStorage(ID_PLAYER_SLOT);

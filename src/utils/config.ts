@@ -131,6 +131,7 @@ export const filterOutDefaultWidgets = (widgets: WidgetConfig[] | ItemAbility[])
     widgets.filter(
         (w) => w.id !== 'maliksmajik-avatar-viewer' && w.id !== 'maliksmajik-speak-intention',
     );
+
 export const itemAbilityToWidgetConfig = (
     provider: ItemIds,
     widgetId: WidgetIds,
@@ -139,6 +140,7 @@ export const itemAbilityToWidgetConfig = (
     provider,
     routeName: `/inventory/${provider}?widget=${widgetId}`,
     path: `/inventory/${provider}?widget=${widgetId}`,
+    displayType: 'home', // TODO i think assuming widget not ability is right here but might need to refactor. Wdigrets are getting sloppy af
     title:
         widgetId.split('-').length === 1
             ? widgetId
@@ -156,6 +158,7 @@ const defaultWidgetConfig: WidgetConfig[] = [
         title: 'Strength',
         routeName: '/stats/strength',
         path: '/stats/strength',
+        displayType: 'home',
     },
     {
         id: 'stat-intelligence',
@@ -163,6 +166,7 @@ const defaultWidgetConfig: WidgetConfig[] = [
         title: 'Intelligence',
         routeName: '/stats/intelligence',
         path: '/stats/intelligence',
+        displayType: 'home',
     },
     {
         id: 'stat-stamina',
@@ -170,6 +174,7 @@ const defaultWidgetConfig: WidgetConfig[] = [
         title: 'Stamina',
         routeName: '/stats/stamina',
         path: '/stats/stamina',
+        displayType: 'home',
     },
     {
         id: 'stat-spirit',
@@ -177,6 +182,7 @@ const defaultWidgetConfig: WidgetConfig[] = [
         title: 'Spirit',
         routeName: '/stats/spirit',
         path: '/stats/spirit',
+        displayType: 'home',
     },
 ];
 
@@ -187,6 +193,7 @@ const defaultTabConfig: WidgetConfig[] = [
         routeName: 'index',
         title: 'Home',
         path: '/',
+        displayType: 'nav',
     },
     {
         id: 'inventory',
@@ -194,6 +201,7 @@ const defaultTabConfig: WidgetConfig[] = [
         routeName: 'inventory',
         title: 'inventory',
         path: '/inventory',
+        displayType: 'nav',
     },
     // {
     //     title: 'tzolkin',

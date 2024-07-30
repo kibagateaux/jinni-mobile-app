@@ -10,7 +10,7 @@ export interface Avatar {
  */
 export type ModalContentProps = {
     wizard: {
-        // key 0-indexed  order
+        // key 0-indexed order
         [key: number]: {
             title: string | ((dialogueData: object) => string);
             text: string | ((dialogueData: object) => string);
@@ -146,6 +146,7 @@ export type ItemIds =
 export type ItemStatus =
     | void
     | 'ethereal' // can be used by player but isnt installed or accessible at the moment
+    | 'idle' // can be used by player immediately
     | 'unequipped' // player can equip but hasnt yet
     | 'unequipping' // in the process of moving from 'equipped' -> 'unequipped'
     | 'equipping' // in the process of moving from 'unequipped' -> 'equipped'

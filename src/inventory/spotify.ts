@@ -89,7 +89,8 @@ const item: InventoryItem = {
             symbol: '🎶',
             description: 'Share a playlist on Spotify with another player',
             provider: ITEM_ID,
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
+            displayType: 'none',
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
             do: async () => {
                 // const pid = await getStorage(ID_PLAYER_SLOT);
                 // if (!pid) return async () => false;
@@ -130,7 +131,8 @@ const item: InventoryItem = {
             symbol: '🦹‍♂️',
             description: 'Share your Spotfiy profile with another player',
             provider: ITEM_ID,
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
+            displayType: 'none',
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
                 track(TRACK_SHARE_CONTENT, {
@@ -210,7 +212,7 @@ const item: InventoryItem = {
         //     name: 'Silent Disco',
         //     symbol: '🪩',
         //     description: 'Create an IRL rave right now!',
-        //     canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'unequipped'),
+        //     canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
         //     do: async () => {
 
         //         // TODO cant just return func, need to return initial data + follow up. follow up neds to take object of data
@@ -226,7 +228,8 @@ const item: InventoryItem = {
             description:
                 'Add a playlist to your homepage that will autoplay when people visit your profile',
             provider: ITEM_ID,
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'doable' : 'notdoable'),
+            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'notdoable'),
+            displayType: 'none',
             do: async <WidgetSettingInput>(params: WidgetSettingInput): Promise<HoF> => {
                 console.log('playlist to pin', params);
                 // TODO need a func for when widget pressed on profile which is diff then setting up widget

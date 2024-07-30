@@ -25,6 +25,7 @@ const AvatarViewer = ({ SVG, uri, is3d }: AvatarViewerProps) => {
 
     const SvgComponent = () => (!SVG ? null : <SVG />);
     // TODO add suppoort for rendering base64 encoded images
+    // <Image style={styles.image} source={{uri: `data:image/png;base64,${encodedBase64}`}} />
     //  https://stackoverflow.com/questions/29380265/does-react-native-support-base64-encoded-images
     return (
         <View

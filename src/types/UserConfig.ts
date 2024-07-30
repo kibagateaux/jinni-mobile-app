@@ -19,10 +19,12 @@ export interface HomeConfig {
     tabs: WidgetConfig[];
 }
 
+type WidgetDisplayTypes = 'none' | 'avatar' | 'nav' | 'home';
 export interface WidgetConfig {
     id: WidgetIds;
     provider: ItemIds;
     priority?: number;
+    displayType: WidgetDisplayTypes; // 'none' for Abilities, nav ior home for Widgets
     // navigation
     routeName: string; // Expo route navigation name
     title: string;

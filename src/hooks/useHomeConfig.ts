@@ -11,6 +11,7 @@ export const useHomeConfig = () => {
     const { loading: isLoadingNetwork } = useNetworkState();
     const [config, setHomeConfig] = useState<HomeConfig | null>(null);
 
+    // TODO useCallback
     const save = async (widgets: WidgetConfig[], merge: boolean = true) => {
         const newConfig = await saveHomeConfig({
             widgets: widgets,
@@ -19,6 +20,7 @@ export const useHomeConfig = () => {
         setHomeConfig(newConfig);
     };
 
+    // TODO useMemo
     useEffect(() => {
         getHomeConfig(player?.id).then((config) => setHomeConfig(config));
     }, [player, isLoadingNetwork]);
