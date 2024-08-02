@@ -381,6 +381,8 @@ export const saveStorage: <T>(
                 const newVal = existingVal
                     ? concat(existingVal, value)
                     : concat(defaultVal ?? [], value);
+
+                // TODO need to store in secure cookies on web not local storage
                 await AsyncStorage.setItem(key, JSON.stringify(newVal));
                 updateCache({ slot: key }, value);
                 return newVal;
@@ -394,6 +396,7 @@ export const saveStorage: <T>(
                     ? merge(existingVal, value)
                     : merge(defaultVal ?? {}, value);
 
+                // TODO need to store in secure cookies on web not local storage
                 await AsyncStorage.setItem(key, JSON.stringify(newVal));
                 updateCache({ slot: key }, value);
                 return newVal;
