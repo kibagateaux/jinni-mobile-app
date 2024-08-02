@@ -12,6 +12,16 @@ export interface ItemEquipWizardModalProps {
     status: ItemStatus;
 }
 
+const IconForStatus = (status: ItemStatus) => {
+    switch (status) {
+        case 'equipped':
+            return <Text style={styles.text}>🫡 </Text>;
+        case 'equipping':
+        default:
+            return <ActivityIndicator size="large" />;
+    }
+};
+
 const ItemEquipWizardModal = ({
     item,
     dialogueData = {},
@@ -38,7 +48,7 @@ const ItemEquipWizardModal = ({
             <View>
                 <Text style={styles.text}>{title}</Text>
                 <Text style={styles.text}>{dialogue}</Text>
-                <ActivityIndicator size="large" />
+                {IconForStatus(status)}
             </View>
         </BaseModal>
     );

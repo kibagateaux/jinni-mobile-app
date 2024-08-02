@@ -56,7 +56,7 @@ const PERMISSIONS = [
 const checkEligibility = async (): Promise<boolean> => {
     // cant test anything in file if we run this.
     if (!__DEV__ && Platform.OS !== 'android') return false;
-    if ((Platform.Version as number) >= 14) return false; // android Version always returns a numbe
+    // if ((Platform.Version as number) >= 14) return false; // android Version always returns a numbe
 
     const status = await getSdkStatus();
     console.log(

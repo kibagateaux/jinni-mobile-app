@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react';
 import {
     Text,
     View,
+    ScrollView,
     Image,
     Button,
     StyleSheet,
     TouchableOpacity,
     ActivityIndicator,
 } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+// import { ScrollView } from 'react-native-gesture-handler';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useAuthRequest } from 'expo-auth-session';
 
@@ -103,8 +104,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     }, [item]);
 
     const { player, getSpellBook } = useAuth();
-    const { setActiveModal } = useGameContent();
-    const { inventory: content } = useGameContent();
+    const { inventory: content, setActiveModal } = useGameContent();
     // console.log('Item: status & modal', status, activeModal);
 
     // TODO render loading screen when oauth items are generating redirect.
@@ -136,17 +136,22 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
                 // TODO should we add tags to items for different callback types and UI filtering?
                 // or just a single, optional callback func that handles everything for equip?
+                console.log('Oauth request/response', request);
                 const result =
                     itemOauthConfig.authorizationEndpoint && request
                         ? await item.equip(promptAsync)
                         : await item.equip();
+                console.log('Oauth request/response', response);
                 // if result.error = "transceive fail" try majik ritual again
-                console.log('Oauth request/response', request, response);
 
+                // TODO potential false positive if someone cancels the OAuth login in popup
+                // make oauth equip() return false and then set to equipped when deep link redirected back to inventory page
+                // not a huge deal bc "equipped" doesnt bc permanent state
+                console.log('Oauth result', result);
                 if (result) {
                     // setItemStatus(item.id, 'post-equip');
-                    // TODO api request to add item to their avatar (:DataProvider or :Resource?)
                     setItemStatus(item.id, 'equipped');
+                    // TODO api request to add item to their avatar (:DataProvider or :Resource?)
                 } else {
                     // assume failure
                     setItemStatus(item.id, 'unequipped');

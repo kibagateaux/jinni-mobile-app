@@ -2,6 +2,8 @@
 ### 0.
 First try cleaning and rebuilding to see if that fixes errors
 ```sh
+npx expo prebuild --clean
+OR 
 cd android
 ./gradlew clean
 ./gradlew build
@@ -30,8 +32,6 @@ android {
     }
 }
 ```
-
-
 
 ### 2.
 Follow instructions for adding Health Connect to the app. May have been updated since these docs were written but orignally we used
