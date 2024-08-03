@@ -22,7 +22,7 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
     const textStyles = {
         color: theme.primaryTextColor,
     };
-    const renderButton = (config) => {
+    const renderButton = (config, color) => {
         console.log('base modal button', config);
 
         if (!config) return null;
@@ -30,7 +30,7 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
         if (config.title && config.onPress)
             return (
                 <TouchableOpacity
-                    style={[styles.button, { backgroundColor: theme.primaryBackgroundColor }]}
+                    style={[styles.button, { backgroundColor: color }]}
                     onPress={config.onPress}
                 >
                     <Text style={[styles.text, textStyles]}>{config.title}</Text>
@@ -48,17 +48,9 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
                 {children}
                 <View>
                     <View style={styles.ctaContainer}>
-                        {renderButton(primaryButton)}
-                        {secondaryButton && (
-                            <TouchableOpacity
-                                style={[styles.button, { backgroundColor: theme.secondaryColor }]}
-                                onPress={secondaryButton.onPress}
-                            >
-                                <Text style={[styles.text, textStyles]}>
-                                    {secondaryButton.title}
-                                </Text>
-                            </TouchableOpacity>
-                        )}
+                        {renderButton(primaryButton, theme.primaryBackgroundColor)}
+                        {secondaryButton &&
+                            renderButton(secondaryButton, theme.secondaryBackgroundColor)}
                     </View>
                     <Button title="Close" color="purple" onPress={closeModal} />
                 </View>

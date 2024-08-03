@@ -292,6 +292,8 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
     slot,
     useMysticCrypt,
 ) => {
+    console.log('get storage 0', Platform.OS, Platform.OS === 'web', slot);
+
     try {
         if (!slot) return null;
         const cached = await getCached.cache.get(JSON.stringify({ slot, secure: useMysticCrypt }));
