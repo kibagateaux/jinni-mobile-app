@@ -1,9 +1,7 @@
 // add React Native NodeJS polyfills
 import 'utils/polyfills';
 
-/**
- * Normal RN imports
- */
+import { Platform } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { Tabs } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
@@ -49,7 +47,7 @@ const HomeLayout = () => {
     );
 };
 
-if (window) {
+if (Platform.OS === 'web') {
     // If you want your app to work offline and load faster, you can change
     // unregister() to register() below. Note this comes with some pitfalls.
     // Learn more about service workers: https://cra.link/PWA

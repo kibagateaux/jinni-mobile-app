@@ -2,6 +2,7 @@ import React, { createContext, useState, useMemo } from 'react';
 import { getAppConfig } from 'utils/config';
 
 import { ApolloProvider } from '@apollo/client';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { getGqlClient } from 'utils/api';
 import { SentryClient, SegmentClient, getSegment, getSentry } from 'utils/logging';
 
@@ -41,7 +42,12 @@ export const ExternalServicesProvider: React.FC<Props> = ({ children }) => {
 
     return (
         <ExternalServicesContext.Provider value={{ sentry, segment }}>
-            <ApolloProvider client={getGqlClient()}>{children}</ApolloProvider>
+            <HelmetProvider>
+                <Helmet>
+                    <link rel="manifest" href="manifest.json"></link>
+                </Helmet>
+                <ApolloProvider client={getGqlClient()}>{children}</ApolloProvider>
+            </HelmetProvider>
         </ExternalServicesContext.Provider>
     );
 };
