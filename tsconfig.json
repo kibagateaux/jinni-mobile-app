@@ -47,8 +47,8 @@
       ],
       "utils/*": [
         "utils/*"
-      ],
-      "stream": ["./node_modules/readable-stream"]
+      ]
+      // "stream": ["./node_modules/readable-stream"]
     },
     "target": "es2021",
     "module": "ESNext",

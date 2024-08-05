@@ -10,7 +10,7 @@ module.exports = {
         ...config.resolver,
         extraNodeModules: {
             ...config.resolver.extraNodeModules,
-            stream: require.resolve('react-native-stream'),
+            // stream: require.resolve('react-native-stream'),
         },
     },
 };

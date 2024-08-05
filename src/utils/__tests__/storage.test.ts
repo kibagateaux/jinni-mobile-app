@@ -35,6 +35,8 @@ beforeEach(() => {
 // failing tests are because of mcoking getStorage but it hits the cache
 // create test that mockStorage will cause cahce to be out of sync
 // + update tests to set cache instead of mock storage (acutally reduces external dependencies on native systems so good thing
+
+// TODO add .ios and .android to file name. Create storage.test.web.ts, copy tests, and check against cookies not local storage
 describe('Storage caching', () => {
     it('updates cache on local storage save', async () => {
         expect(await getCached({ slot: 'test' })).toBe(null);
