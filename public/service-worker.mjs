@@ -7,11 +7,19 @@
 // You can also remove this file if you'd prefer not to use a
 // service worker, and the Workbox build step will be skipped.
 
+// import {Workbox} from 'https://storage.googleapis.com/workbox-cdn/releases/6.2.0/workbox-window.prod.mjs';
+// importScripts(
+//     'https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js'
+//   );
+
+
+const url = process.env.EXPO_PUBLIC_URL || 'http://localhost:8081'
 import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+
 
 clientsClaim();
 
@@ -43,7 +51,7 @@ registerRoute(
 
         return true;
     },
-    createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html'),
+    createHandlerBoundToURL(url + '/index.html'),
 );
 
 // An example runtime caching route for requests that aren't handled by the
@@ -70,3 +78,4 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
+

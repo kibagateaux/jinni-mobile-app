@@ -1,3 +1,6 @@
+const url = process.env.EXPO_PUBLIC_URL || 'http://localhost:8081';
+const swUrl = `${url}/service-worker.mjs`;
+
 // This optional code is used to register a service worker.
 // register() is not called by default.
 
@@ -22,7 +25,7 @@ const isLocalhost = Boolean(
 export function register(config) {
     if (process.env.NODE_ENV !== 'test' && 'serviceWorker' in navigator) {
         // The URL constructor is available in all browsers that support SW.
-        const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
+        const publicUrl = new URL(url, window.location.href);
         if (publicUrl.origin !== window.location.origin) {
             // Our service worker won't work if PUBLIC_URL is on a different origin
             // from what our page is served on. This might happen if a CDN is used to
@@ -30,9 +33,7 @@ export function register(config) {
             return;
         }
 
-        const scheme = window.location.hostname === 'localhost' ? 'http' : 'https';
         window.addEventListener('load', () => {
-            const swUrl = `${scheme}://${window.location.host}/service-worker.js`;
             console.log('service worker url', swUrl);
 
             if (isLocalhost) {
