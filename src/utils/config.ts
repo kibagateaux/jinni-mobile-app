@@ -429,7 +429,8 @@ export const saveStorage: <T>(
 };
 
 const _saveStorage = async (slot: string, val: string): Promise<void> => {
-    // cookies are forever Mostly so priavte keys dont get deleted. here bc gets hoisted anywauy
+    // cookies are forever Mostly so priavte keys dont get deleted. here bc gets hoisted anyway
+    // TODO chrome lets max 400 dahs. add in getStorage() or somewhere if timeLeft < 30 days -> reset cookie val
     const expirationDate = new Date(2100, 0, 1).toUTCString();
     switch (Platform.OS) {
         case 'web':
