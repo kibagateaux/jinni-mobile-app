@@ -19,13 +19,14 @@ import {
     InventoryItem,
     StatsConfig,
 } from 'types/GameMechanics';
-import { MU_ACTIVATE_JINNI, qu } from 'utils/api';
+import { MU_ACTIVATE_JINNI, MU_JOIN_CIRCLE, qu } from 'utils/api';
 import { debug, track } from 'utils/logging';
 import { obj } from 'types/UserConfig';
 
 export const ITEM_ID = 'MaliksMajik';
 export const ABILITY_ACTIVATE_JINNI = 'activate-jinni';
 export const ABILITY_MYSTIC_CRYPT = 'create-mystic-crypt';
+export const ABILITY_JOIN_CIRCLE = 'join-summoning-circle';
 
 const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
@@ -37,12 +38,15 @@ const equip: HoF = async () => {
             : await signWithId((await getSpellBook()).address);
 
         console.log('verified address signature: ', result);
-        if (result && result.etherAddress === MALIKS_MAJIK_CARD) {
+        if (!result) throw Error('Majik not found');
+        if (result.etherAddress) {
             console.log('Inv:MaliksMajik:equip:SUCC', result.signature);
-            // ensure result is valid ?
-            // send to our server for storage or some
-            // save result to local storage for later authentication
-            await saveStorage(PROOF_MALIKS_MAJIK_SLOT, result.signature);
+            // save result to local storage for p2p auth
+            await saveStorage(
+                PROOF_MALIKS_MAJIK_SLOT,
+                { [result.etherAddress]: result.signature },
+                true,
+            );
             return true;
         } else {
             throw Error('Enchanter is not a Master Djinn');
@@ -98,8 +102,9 @@ const item: InventoryItem = {
                 // written on activate_jinni success
                 if (isBonded) return 'equipped';
 
-                const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
-                if (!myProof) return 'unequipped';
+                const myCircles = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
+                // This means people can have Identity and contribute to communal jinn but not have personal jinn. Interesting
+                if (!myCircles[MALIKS_MAJIK_CARD]) return 'unequipped';
 
                 return 'ethereal';
             },
@@ -123,10 +128,19 @@ const item: InventoryItem = {
                             spell: ABILITY_ACTIVATE_JINNI,
                             activityType: 'unequipped',
                         });
+                        throw Error('You have not been jumped into any Jinni gangs yet');
+                    }
+
+                    if (!myProof[MALIKS_MAJIK_CARD]) {
+                        track(ABILITY_ACTIVATE_JINNI, {
+                            spell: ABILITY_ACTIVATE_JINNI,
+                            activityType: 'unequipped',
+                        });
                         throw Error(
                             'You must to meet the Master Djinn before you can activate your jinni',
                         );
                     }
+
                     console.log('Mani:Jinni:ActivateJinn:proof', myProof);
                     console.log('Mani:Jinni:ActivateJinn:ID', myId);
 
@@ -151,6 +165,53 @@ const item: InventoryItem = {
                         tags: { api: true },
                         extra: { spell: ABILITY_ACTIVATE_JINNI },
                     });
+                    return async () => false;
+                }
+            },
+        },
+        {
+            id: ABILITY_JOIN_CIRCLE,
+            name: 'Join Summoning Circle',
+            provider: ITEM_ID,
+            symbol: '㊙',
+            description: 'Join a community and contribute to a joint jinni with your friends',
+            canDo: async (status: ItemStatus) => {
+                const pk = await getStorage(ID_PKEY_SLOT);
+                if (!pk) return 'ethereal';
+                if (status === 'equipped') return 'unequipped';
+                return 'ethereal';
+            },
+            do: async () => {
+                // TODO should have circle's jinni-id as param
+                // rn hack it by having each summoner only have 1 circle and handle proof -> jinn mapping on backend
+                try {
+                    track(ABILITY_JOIN_CIRCLE, {
+                        spell: ABILITY_JOIN_CIRCLE,
+                        activityType: 'initiated',
+                    });
+                    const address = await getStorage<string>(ID_PLAYER_SLOT);
+                    console.log('address to join circle: ', address);
+
+                    // TODO signWithID(address + jinni-id)
+                    const result = address
+                        ? await signWithId(address)
+                        : await signWithId((await getSpellBook()).address);
+
+                    const response = await qu({ mutation: MU_JOIN_CIRCLE })({
+                        majik_msg: result.ether,
+                        player_id: address,
+                        jinni_id: null, // TODO
+                    });
+
+                    track(ABILITY_JOIN_CIRCLE, {
+                        spell: ABILITY_JOIN_CIRCLE,
+                        activityType: 'success',
+                    });
+
+                    console.log('maliksmajik:join-circle:res', response);
+                    return async () => (response ? true : false);
+                } catch (e) {
+                    console.error('Mani:Jinni:MysticCrypt:ERROR --', e);
                     return async () => false;
                 }
             },

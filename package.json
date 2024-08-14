@@ -127,17 +127,8 @@
     }
   },
   "jest": {
-    "projects": [
-      {
-        "preset": "jest-expo/ios"
-      },
-      {
-        "preset": "jest-expo/android"
-      },
-      {
-        "preset": "jest-expo/web"
-      }
-    ],
+    "preset": "jest-expo",
+
     "setupFiles": [
       "<rootDir>/setupTests.js"
     ],

@@ -104,6 +104,22 @@ export const MU_ACTIVATE_JINNI = `
     }
 `;
 
+export const MU_JOIN_CIRCLE = `
+    mutation join_circle(
+        $verification: SignedRequest!,
+        $majik_msg: String!,
+        $player_id: String!,
+        $jinni_id: String
+    ) {
+        join_circle(
+            verification: $verification, 
+            majik_msg: $majik_msg, 
+            player_id: $player_id,
+            jinni_id: $jinni_id
+        )
+    }
+`;
+
 export const MU_SUBMIT_DATA = `
     mutation submit_data(
         $verification: SignedRequest!,

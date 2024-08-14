@@ -1,7 +1,8 @@
+import { Platform } from 'react-native';
 import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
-import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
+import { execHaloCmdRN, execHaloCmdWeb } from '@arx-research/libhalo/api/react-native.js';
 import {
     getAppConfig,
     getStorage,
@@ -103,24 +104,49 @@ export const magicRug = () => {
     ]);
 };
 
-/** TODO figure out return types from HaLo lib  */
+/** TODO figure out return types from HaLo lib
+ * + add callback fn to handle succ/err
+ *
+ */
 export const signWithId = async (id: string | Identity): Promise<object | null> => {
     console.log('sign anon id with majik', id, typeof id);
-
+    // https://github.com/cursive-team/jubmoji.quest/blob/2f0ccb203d432c40d2f26410d6a695f2de4feddc/apps/jubmoji-quest/src/components/modals/ForegroundTapModal.tsx#L2
     try {
         const msg = typeof id === 'string' ? id : id._commitment;
-        await NfcManager.requestTechnology(NfcTech.IsoDep);
-        const tag = await NfcManager.getTag();
-        console.log('ZK:HaLo: NFC tag reader: ', tag);
-        console.log('ZK:HaLo: Id to sign with card: ', msg);
-        const result = await execHaloCmdRN(NfcManager, {
+        const command = {
             name: 'sign',
             message: msg,
             format: 'text',
             keyNo: 1,
-        });
-        console.log('ZK:HaLo: signature response: ', result);
-        return !result ? null : result;
+        };
+
+        if (Platform.OS === 'web') {
+            const result = await execHaloCmdWeb(command, {
+                statusCallback: (cause: string) => {
+                    if (cause === 'init') {
+                        //   callback("Please tap the tag to the back of your smartphone and hold it...")
+                        throw Error('time');
+                    } else if (cause === 'retry') {
+                        // callback("Something went wrong, please try to tap the tag again...")
+                    } else if (cause === 'scanned') {
+                        // callback("Tag scanned successfully, post-processing the result...");
+                    } else {
+                        // callback(cause)
+                    }
+                },
+            });
+
+            return !result ? null : result;
+        } else {
+            await NfcManager.requestTechnology(NfcTech.IsoDep);
+            const tag = await NfcManager.getTag();
+            console.log('ZK:HaLo: NFC tag reader: ', tag);
+            console.log('ZK:HaLo: Id to sign with card: ', msg);
+
+            const result = await execHaloCmdRN(NfcManager, command);
+            console.log('ZK:HaLo: signature response: ', result);
+            return !result ? null : result;
+        }
     } catch (err) {
         console.warn('ZK:HaLo: signing error', err);
         debug(err, { tags: { hardware: true } });

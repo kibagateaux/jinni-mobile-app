@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Platform } from 'react-native';
+import { Platform, Dimensions } from 'react-native';
 // import { reduce } from 'lodash/fp';
 // import { readDirectoryAsync } from 'expo-file-system';
 
@@ -71,11 +71,16 @@ export const androidInventory = [...mobileInventory, androidHealth.item];
 
 // pulled into its own function instead of Platform.select because thats a bitch to stub in tests
 export const getPlatformItems = (platform: string): InventoryItem[] => {
+    const screenDimensions = Dimensions.get('screen');
+
     switch (platform) {
         case 'ios':
             return iosInventory;
         case 'android':
             return androidInventory;
+        case 'web':
+            // assume mobile browser based on screen size and allow non-native phone items e.g. NFC cards
+            return screenDimensions.width < 900 ? mobileInventory : coreInventory;
         default:
             return coreInventory;
     }

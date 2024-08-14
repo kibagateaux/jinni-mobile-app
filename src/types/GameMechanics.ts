@@ -4,6 +4,10 @@ export interface Avatar {
     image?: string;
 }
 
+export interface SummoningProofs {
+    [summonerAddress: string]: string; // 0x signature from summoner
+}
+
 /**
  * @notice - all text content for guiding users through the game
  * @TODO - integrate i18n
