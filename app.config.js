@@ -62,6 +62,7 @@ export default {
             [
                 '@sentry/react-native/expo',
                 {
+                    note: 'Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.',
                     organization: 'jinni',
                     project: 'mobile-app',
                 },

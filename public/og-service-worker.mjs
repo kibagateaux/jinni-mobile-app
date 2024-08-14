@@ -14,12 +14,24 @@
 
 
 const url = process.env.EXPO_PUBLIC_URL || 'http://localhost:8081'
-import { clientsClaim } from 'workbox-core';
-import { ExpirationPlugin } from 'workbox-expiration';
-import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
+// import { clientsClaim } from 'workbox-core';
+// import { ExpirationPlugin } from 'workbox-expiration';
+// import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
+// import { registerRoute } from 'workbox-routing';
+// import { StaleWhileRevalidate } from 'workbox-strategies';
 
+// Import Workbox libraries from CDN
+// import { clientsClaim } from 'https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-core.js';
+// import { ExpirationPlugin } from 'https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-expiration.js';
+// import { precacheAndRoute, createHandlerBoundToURL } from 'https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-precaching.js';
+// import { registerRoute } from 'https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-routing.js';
+// import { StaleWhileRevalidate } from 'https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-strategies.js';
+
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-core.js');
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-precaching.js');
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-routing.js');
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-strategies.js');
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-expiration.js');
 
 clientsClaim();
 

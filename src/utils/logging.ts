@@ -1,9 +1,12 @@
 import { Platform } from 'react-native';
 import { loadErrorMessages, loadDevMessages } from '@apollo/client/dev';
-import * as Sentry from '@sentry/react-native';
+import * as SentryNative from '@sentry/react-native';
+import * as SentryBrowser from '@sentry/react';
 import { JsonMap, SegmentClient as Segment, createClient } from '@segment/analytics-react-native';
 import Constants from 'expo-constants';
 import { ScopeContext } from '@sentry/types';
+
+import { getAppConfig } from 'utils/config';
 
 if (__DEV__) {
     // Adds messages only in a dev environment
@@ -13,36 +16,52 @@ if (__DEV__) {
 
 const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
 
-export type SentryClient = typeof Sentry.Native | typeof Sentry.Browser | null;
+export type SentryClient = typeof SentryNative | typeof SentryBrowser | null;
 let sentryClient: SentryClient;
+const commonConfig = {
+    dsn: getAppConfig().SENTRY_DSN,
+    environment: __DEV__ ? 'development' : 'production',
+    release: Constants.version,
+    dist: Constants.revisionId,
+    enabled: !__DEV__, // Typically disable Sentry in development
+    debug: __DEV__, // If `true`, Sentry prints debugging information if error sending the event.
+    tracesSampleRate: 1.0,
+};
+
 export const getSentry = (): SentryClient => {
-    if (!sentryClient && process.env.EXPO_PUBLIC_SENTRY_DSN) {
-        Sentry.init({
-            dsn: process.env.EXPO_PUBLIC_SENTRY_DSN!,
-            environment: process.env.NODE_ENV,
-            //   release: 'my release name',
-            //   dist: 'my dist',
-            tracesSampleRate: 1.0,
-            enableInExpoDevelopment: !__DEV__, // dont issue sentry events if local development
-            debug: __DEV__, // If `true`, Sentry prints debugging information if error sending the event.
-            integrations: isNativeApp
-                ? [
-                      // https://github.com/expo/sentry-expo/issues/368
-                      // https://docs.expo.dev/guides/using-sentry/#troubleshooting
-                      new Sentry.ReactNativeTracing({
-                          enableAppStartTracking: __DEV__,
-                          shouldCreateSpanForRequest: (url) => {
-                              return (
-                                  !__DEV__ ||
-                                  !url.startsWith(`http://${Constants?.expoConfig?.hostUri}/logs`)
-                              );
-                          },
-                      }),
-                  ]
-                : [],
+    if (sentryClient) return sentryClient;
+    if (!getAppConfig().SENTRY_DSN) return null;
+    const client = isNativeApp ? SentryNative : SentryBrowser;
+    // TODO review native vs web compatibility https://docs.sentry.io/platforms/react-native/migration/sentry-expo/#review-react-native-web-compatibility
+    if (isNativeApp) {
+        client.init({
+            ...commonConfig,
+            enableNative: true, // Enable native crash reporting
+            enableNativeCrashHandling: true,
         });
-        sentryClient = isNativeApp ? Sentry.Native : Sentry.Browser;
+    } else {
+        client.init({
+            ...commonConfig,
+            integrations: [],
+        });
     }
+    client.setTag('deviceId', Constants.sessionId);
+    client.setTag('appOwnership', Constants.appOwnership || 'N/A');
+    if (Constants.appOwnership === 'expo' && Constants.expoVersion) {
+        client.setTag('expoAppVersion', Constants.expoVersion);
+    }
+    // TODO track hot updates} in sentry
+    // client.setExtras({
+    //     manifest: Updates.manifest,
+    //     deviceYearClass: Device.deviceYearClass,
+    //     linkingUri: Constants.linkingUri,
+    // });
+    // client.setTag("expoReleaseChannel", Updates.manifest.releaseChannel);
+    // client.setTag("appVersion", Updates.manifest.version);
+    // client.setTag("appPublishedTime", Updates.manifest.publishedTime);
+    // client.setTag("expoSdkVersion", Updates.manifest.sdkVersion);
+    // client.setTag("expoChannel", Updates.channel);
+    sentryClient = client;
 
     return sentryClient;
 };

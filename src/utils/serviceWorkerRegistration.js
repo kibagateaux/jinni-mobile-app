@@ -1,5 +1,5 @@
 const url = process.env.EXPO_PUBLIC_URL || 'http://localhost:8081';
-const swUrl = `${url}/service-worker.mjs`;
+const swUrl = `${url}/service-worker.js`;
 
 // This optional code is used to register a service worker.
 // register() is not called by default.
