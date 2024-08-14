@@ -1,0 +1,22 @@
+{
+    "short_name": "Jinni",
+    "name": "Jinni Health",
+    "description": "A self-actualiation game based on tamagotchis",
+    "icons": [
+      {
+        "src": "favicon.png",
+        "sizes": "48x48",
+        "type": "image/png"
+      },
+      {
+        "src": "icon.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "id": "/?source=pwa",
+    "start_url": "/?source=pwa",
+    "display": "fullscreen",
+    "theme_color": "pink",
+    "background_color": "pink"
+}

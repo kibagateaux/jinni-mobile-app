@@ -62,6 +62,7 @@ export default {
             [
                 '@sentry/react-native/expo',
                 {
+                    note: 'Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.',
                     organization: 'jinni',
                     project: 'mobile-app',
                 },
@@ -80,7 +81,7 @@ export default {
         },
         android: {
             package: packageName,
-            versionCode: 6,
+            versionCode: 7,
             adaptiveIcon: {
                 foregroundImage: './public/adaptive-icon.png',
                 backgroundColor: '#ffffff',

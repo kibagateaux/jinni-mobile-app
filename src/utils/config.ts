@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setItemAsync, getItemAsync } from 'expo-secure-store';
 
@@ -291,6 +292,8 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
     slot,
     useMysticCrypt,
 ) => {
+    console.log('get storage 0', Platform.OS, Platform.OS === 'web', slot);
+
     try {
         if (!slot) return null;
         const cached = await getCached.cache.get(JSON.stringify({ slot, secure: useMysticCrypt }));
@@ -300,10 +303,8 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
             cached,
         );
         if (cached) return cached;
-        const val = useMysticCrypt
-            ? await getItemAsync(slot, { requireAuthentication: !__DEV__ })
-            : await AsyncStorage.getItem(slot);
 
+        const val = await _getStorage(slot, useMysticCrypt);
         console.log('get storage 2 - slot + val', slot, val);
         return val ? JSON.parse(val) : null;
     } catch (e: unknown) {
@@ -314,6 +315,27 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
         return null;
     }
 };
+
+const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
+    if (Platform.OS === 'web') {
+        // all web storage is secure cookies
+        return getCookie(slot);
+    }
+
+    // on mobile could be secure cloud storage or local app storage
+    return useMysticCrypt
+        ? await getItemAsync(slot, { requireAuthentication: !__DEV__ })
+        : await AsyncStorage.getItem(slot);
+};
+
+const getCookie = (slot: string) => {
+    const allCookies = document.cookie.split('; ');
+    return allCookies.find((c) => {
+        const [name, value] = c.split('=');
+        return name === slot ? decodeURIComponent(value) : null;
+    });
+};
+
 /**
  * @function
  * @name saveMysticCrypt
@@ -359,7 +381,7 @@ export const saveStorage: <T>(
 
     // do not merge if not requested or primitive types
     if (!shouldMerge || typeof value === 'string' || typeof value === 'number') {
-        await AsyncStorage.setItem(key, JSON.stringify(value));
+        await _saveStorage(key, JSON.stringify(value));
         updateCache({ slot: key }, value);
         return value;
     }
@@ -381,7 +403,8 @@ export const saveStorage: <T>(
                 const newVal = existingVal
                     ? concat(existingVal, value)
                     : concat(defaultVal ?? [], value);
-                await AsyncStorage.setItem(key, JSON.stringify(newVal));
+
+                await _saveStorage(key, JSON.stringify(newVal));
                 updateCache({ slot: key }, value);
                 return newVal;
             } else {
@@ -394,7 +417,7 @@ export const saveStorage: <T>(
                     ? merge(existingVal, value)
                     : merge(defaultVal ?? {}, value);
 
-                await AsyncStorage.setItem(key, JSON.stringify(newVal));
+                await _saveStorage(key, JSON.stringify(newVal));
                 updateCache({ slot: key }, value);
                 return newVal;
             }
@@ -402,6 +425,23 @@ export const saveStorage: <T>(
     } catch (e) {
         console.log('Failed to save locally k/v : ', key, value);
         return existingVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
+    }
+};
+
+const _saveStorage = async (slot: string, val: string): Promise<void> => {
+    // cookies are forever Mostly so priavte keys dont get deleted. here bc gets hoisted anyway
+    // TODO chrome lets max 400 dahs. add in getStorage() or somewhere if timeLeft < 30 days -> reset cookie val
+    const expirationDate = new Date(2100, 0, 1).toUTCString();
+    switch (Platform.OS) {
+        case 'web':
+            // Fully secured to this domain to prevent XSS/etc. attacks.
+            document.cookie = `${slot}=${val};expires=${expirationDate};path=/;secure;samesite=strict`;
+            return;
+        case 'ios':
+        case 'android':
+        default:
+            await AsyncStorage.setItem(slot, val);
+            return;
     }
 };
 

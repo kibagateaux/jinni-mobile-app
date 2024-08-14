@@ -1,9 +1,7 @@
 // add React Native NodeJS polyfills
 import 'utils/polyfills';
 
-/**
- * Normal RN imports
- */
+import { Platform } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { Tabs } from 'expo-router';
 import * as Sentry from '@sentry/react-native';
@@ -14,7 +12,8 @@ import { ContextProvider } from 'contexts';
 import { WidgetConfig } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
-// export default function HomeLayout() {
+import * as serviceWorkerRegistration from 'utils/serviceWorkerRegistration';
+
 const HomeLayout = () => {
     const { config: homeConfig } = useHomeConfig();
     const [tabConfig, setTabConfig] = useState<WidgetConfig[]>([]);
@@ -48,6 +47,12 @@ const HomeLayout = () => {
     );
 };
 
-// TODO migrate sentry to Expo v51
+if (Platform.OS === 'web') {
+    // If you want your app to work offline and load faster, you can change
+    // unregister() to register() below. Note this comes with some pitfalls.
+    // Learn more about service workers: https://cra.link/PWA
+    serviceWorkerRegistration.register();
+}
+
 // https://docs.expo.dev/guides/using-sentry/
 export default Sentry.wrap(HomeLayout);

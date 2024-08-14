@@ -90,7 +90,6 @@ const item: InventoryItem = {
             provider: ITEM_ID,
             symbol: '🧞‍♂️',
             description: 'Get access to the full game',
-            displayType: 'none',
             canDo: async (status: ItemStatus) => {
                 // @dev implicit check for PROOF_MAJIK
                 if (status !== 'equipped') return 'unequipped';
@@ -161,7 +160,6 @@ const item: InventoryItem = {
             name: 'Create Mystic Crypt',
             provider: ITEM_ID,
             symbol: '🏦',
-            displayType: 'none',
             description:
                 "Save game progress to your phone'scloud storage to restore account if you lose your phone",
             canDo: async (status: ItemStatus) => {
@@ -196,6 +194,7 @@ const item: InventoryItem = {
             canDo: async () => 'unequipped',
             do: async () => async () => true,
         }),
+        // TODO add speak intentions as widget. displayType 'avatar'
     ),
 };
 

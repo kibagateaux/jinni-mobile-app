@@ -82,7 +82,6 @@ const item: InventoryItem = {
             description: 'Give your jinni access to your code repos to learn from your daily adds',
             provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
-            displayType: 'none',
             do: async () => {
                 track(ABILITY_SYNC_REPOS, {
                     spell: ABILITY_SYNC_REPOS,
@@ -154,7 +153,6 @@ const item: InventoryItem = {
             description: 'Jinni will learn from what you have been working on',
             provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
-            displayType: 'none',
             do: async () => {
                 track(ABILITY_TRACK_COMMITS, {
                     spell: ABILITY_TRACK_COMMITS,

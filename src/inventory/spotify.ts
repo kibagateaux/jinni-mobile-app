@@ -89,7 +89,6 @@ const item: InventoryItem = {
             symbol: '🎶',
             description: 'Share a playlist on Spotify with another player',
             provider: ITEM_ID,
-            displayType: 'none',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
             do: async () => {
                 // const pid = await getStorage(ID_PLAYER_SLOT);
@@ -132,7 +131,6 @@ const item: InventoryItem = {
             description: 'Share your Spotfiy profile with another player',
             provider: ITEM_ID,
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
-            displayType: 'none',
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
                 track(TRACK_SHARE_CONTENT, {
