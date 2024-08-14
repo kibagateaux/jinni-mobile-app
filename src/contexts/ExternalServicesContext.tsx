@@ -45,7 +45,12 @@ export const ExternalServicesProvider: React.FC<Props> = ({ children }) => {
             <HelmetProvider>
                 <Helmet>
                     <link rel="manifest" href="manifest.json"></link>
-                    <script type="module" src="service-worker.mjs"></script>
+                    {/* <script type="module" src='https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-core.js'></script> */}
+                    {/* <script type="module" src='https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-expiration.js'></script> */}
+                    {/* <script type="module" src='https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-precaching.js'></script> */}
+                    {/* <script type="module" src='https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-routing.js'></script> */}
+                    {/* <script type="module" src='https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-strategies.js'></script> */}
+                    <script type="module" src="./service-worker.js"></script>
                     {/* <script type="module">
                         import {Workbox} from 'https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-window.prod.mjs';
 

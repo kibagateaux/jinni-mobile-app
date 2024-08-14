@@ -69,7 +69,7 @@
     "react-native-stream": "^0.1.9",
     "react-native-svg": "15.2.0",
     "react-native-web": "~0.19.10",
-    "readable-stream": "^1.0.33",
+    "readable-stream": "^4.5.2",
     "stream-browserify": "^1.0.0",
     "util": "^0.10.4",
     "workbox-background-sync": "^6.6.0",
@@ -131,6 +131,9 @@
     "setupFiles": [
       "<rootDir>/setupTests.js"
     ],
+    "moduleNameMapper": {
+      "^stream$": "<rootDir>/node_modules/readable-stream"
+    },
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|native-base|react-native-svg)"
     ]
