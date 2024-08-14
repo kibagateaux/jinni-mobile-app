@@ -18,20 +18,20 @@ const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
 
 export type SentryClient = typeof SentryNative | typeof SentryBrowser | null;
 let sentryClient: SentryClient;
-const commonConfig = {
-    dsn: getAppConfig().SENTRY_DSN,
-    environment: __DEV__ ? 'development' : 'production',
-    release: Constants.version,
-    dist: Constants.revisionId,
-    enabled: !__DEV__, // Typically disable Sentry in development
-    debug: __DEV__, // If `true`, Sentry prints debugging information if error sending the event.
-    tracesSampleRate: 1.0,
-};
 
 export const getSentry = (): SentryClient => {
     if (sentryClient) return sentryClient;
     if (!getAppConfig().SENTRY_DSN) return null;
     const client = isNativeApp ? SentryNative : SentryBrowser;
+    const commonConfig = {
+        dsn: getAppConfig().SENTRY_DSN,
+        environment: __DEV__ ? 'development' : 'production',
+        release: Constants.version,
+        dist: Constants.revisionId,
+        enabled: !__DEV__, // Typically disable Sentry in development
+        debug: __DEV__, // If `true`, Sentry prints debugging information if error sending the event.
+        tracesSampleRate: 1.0,
+    };
     // TODO review native vs web compatibility https://docs.sentry.io/platforms/react-native/migration/sentry-expo/#review-react-native-web-compatibility
     if (isNativeApp) {
         client.init({
