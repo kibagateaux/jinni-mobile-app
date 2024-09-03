@@ -4,7 +4,7 @@
 // storage slot must start with 0x
 // unequip must delete storage slot
 
-import { getStorage, saveStorage, PROOF_MALIKS_MAJIK_SLOT } from 'utils/config';
+import { getStorage, saveStorage, PROOF_MALIKS_MAJIK_SLOT, MALIKS_MAJIK_CARD } from 'utils/config';
 import maliksMajik from '../maliks-majik';
 
 describe('item inventory', () => {
@@ -14,10 +14,42 @@ describe('item inventory', () => {
             expect(hasProof).toBeFalsy();
             expect(await maliksMajik.item.checkStatus()).toEqual('unequipped');
         });
-        test('is equipped if anything stored in proof local storage', async () => {
-            const hasProof = await saveStorage(PROOF_MALIKS_MAJIK_SLOT, 'meythingy');
+        test('is equipped only if MALIKS_MAJIK whitelisted id stored in proof local storage', async () => {
+            const hasProof = await saveStorage(PROOF_MALIKS_MAJIK_SLOT, {
+                [MALIKS_MAJIK_CARD]: 'heythingy',
+            });
             expect(hasProof).toBeTruthy();
             expect(await maliksMajik.item.checkStatus()).toEqual('equipped');
+        });
+
+        test('can store proof for any majik card', async () => {
+            const testCard = 'jusnuais';
+            const hasProof = await saveStorage(PROOF_MALIKS_MAJIK_SLOT, {
+                [testCard]: 'heythingy',
+            });
+            expect(hasProof).toBeTruthy();
+            expect(hasProof[testCard]).toEqual('heythingy');
+        });
+
+        test('can store multiple card proofs in majik storage slot', async () => {
+            const testCard = 'jusnuais';
+            const hasProof = await saveStorage(
+                PROOF_MALIKS_MAJIK_SLOT,
+                { [testCard]: 'heythingy' },
+                true,
+            );
+            const hasProof2 = await saveStorage(
+                PROOF_MALIKS_MAJIK_SLOT,
+                { [MALIKS_MAJIK_CARD]: 'heythingy2' },
+                true,
+            );
+
+            expect(hasProof).toBeTruthy();
+            expect(hasProof2).toBeTruthy();
+            expect(hasProof2).not.toEqual(hasProof);
+            expect(hasProof2).not.toEqual(hasProof);
+            expect(hasProof2[testCard]).toEqual('heythingy');
+            expect(hasProof2[MALIKS_MAJIK_CARD]).toEqual('heythingy2');
         });
     });
 });
