@@ -319,7 +319,8 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
 const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
     if (Platform.OS === 'web') {
         // all web storage is secure cookies
-        return getCookie(slot);
+        const result = getCookie(slot);
+        return result;
     }
 
     // on mobile could be secure cloud storage or local app storage
@@ -330,10 +331,11 @@ const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
 
 const getCookie = (slot: string) => {
     const allCookies = document.cookie.split('; ');
-    return allCookies.find((c) => {
-        const [name, value] = c.split('=');
-        return name === slot ? decodeURIComponent(value) : null;
+    const cookie = allCookies.find((c) => {
+        const [name] = c.split('=');
+        return name === slot;
     });
+    return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
 };
 
 /**

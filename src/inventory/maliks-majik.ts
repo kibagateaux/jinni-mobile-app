@@ -18,6 +18,7 @@ import {
     CommunityStat,
     InventoryItem,
     StatsConfig,
+    SummoningProofs,
 } from 'types/GameMechanics';
 import { MU_ACTIVATE_JINNI, MU_JOIN_CIRCLE, qu } from 'utils/api';
 import { debug, track } from 'utils/logging';
@@ -57,6 +58,7 @@ const equip: HoF = async () => {
     }
 };
 
+/// @notice DELETES ALL SUMMONING CIRCLES
 const unequip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
@@ -78,10 +80,10 @@ const item: InventoryItem = {
         { ...CommunityStat, value: 10 },
     ],
     checkStatus: async () => {
-        const proof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
+        const proof = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
         console.log('maliks majik check status', proof);
 
-        if (proof) return 'equipped';
+        if (proof?.[MALIKS_MAJIK_CARD]) return 'equipped';
         return 'unequipped';
     },
     canEquip: async () => true,
@@ -102,9 +104,9 @@ const item: InventoryItem = {
                 // written on activate_jinni success
                 if (isBonded) return 'equipped';
 
-                const myCircles = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
+                const myCircles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
                 // This means people can have Identity and contribute to communal jinn but not have personal jinn. Interesting
-                if (!myCircles[MALIKS_MAJIK_CARD]) return 'unequipped';
+                if (!myCircles?.[MALIKS_MAJIK_CARD]) return 'unequipped';
 
                 return 'ethereal';
             },
@@ -113,7 +115,7 @@ const item: InventoryItem = {
                     spell: ABILITY_ACTIVATE_JINNI,
                     activityType: 'initiated',
                 });
-                const myProof = await getStorage(PROOF_MALIKS_MAJIK_SLOT);
+                const myProof = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
                 const myId = await getStorage(ID_PLAYER_SLOT);
                 try {
                     if (!myId) {
@@ -123,6 +125,7 @@ const item: InventoryItem = {
                         });
                         throw Error('You need to create an magic ID first');
                     }
+
                     if (!myProof) {
                         track(ABILITY_ACTIVATE_JINNI, {
                             spell: ABILITY_ACTIVATE_JINNI,

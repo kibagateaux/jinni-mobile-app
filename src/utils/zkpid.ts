@@ -2,7 +2,8 @@ import { Platform } from 'react-native';
 import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
-import { execHaloCmdRN, execHaloCmdWeb } from '@arx-research/libhalo/api/react-native.js';
+import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
+
 import {
     getAppConfig,
     getStorage,
@@ -121,11 +122,12 @@ export const signWithId = async (id: string | Identity): Promise<object | null> 
         };
 
         if (Platform.OS === 'web') {
+            const { execHaloCmdWeb } = require('@arx-research/libhalo/api/web.js');
             const result = await execHaloCmdWeb(command, {
                 statusCallback: (cause: string) => {
                     if (cause === 'init') {
                         //   callback("Please tap the tag to the back of your smartphone and hold it...")
-                        throw Error('time');
+                        // throw Error('time');
                     } else if (cause === 'retry') {
                         // callback("Something went wrong, please try to tap the tag again...")
                     } else if (cause === 'scanned') {

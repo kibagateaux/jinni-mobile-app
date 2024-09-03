@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
             getStorage<string>(ID_PLAYER_SLOT).then((id) => id && login(id));
             // magicRug();
         } else {
-            //  hydrate spellbook manually once required to prevent slow app start
+            // we hydrate spellbook manually once required to prevent slow app start
         }
     }, [player?.id, login]);
 
