@@ -298,4 +298,8 @@ describe('Saving to secure storage', () => {
         mockMysticCrypt.getItemAsync.mockResolvedValueOnce('test2');
         expect(await getStorage('test', true)).toEqual('test2');
     });
+
+    describe('Web local first functionality', () => {
+        describe('uses cookies instead of local storage', () => {});
+    });
 });

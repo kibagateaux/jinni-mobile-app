@@ -3,6 +3,7 @@ import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
+export * from './zkpid.ts';
 
 import {
     getAppConfig,
@@ -30,6 +31,12 @@ const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvid
 let spellbook: Wallet | undefined;
 export const getSpellBook = memoize(async (): Promise<Wallet> => {
     if (spellbook) return spellbook;
+    // TODO
+    // if(Platform.OS === 'web' && getAppConfig().NODE_ENV === 'development') {
+    //     // try connecting to wallet for manually signing api requests and putt
+    //     // can use this as first integration point for passkeys
+    // }
+
     const pk = await getStorage(ID_PKEY_SLOT);
     if (!pk) {
         // no spellbook yet. generate random seed and save to storage
@@ -122,23 +129,22 @@ export const signWithId = async (id: string | Identity): Promise<object | null> 
         };
 
         if (Platform.OS === 'web') {
-            const { execHaloCmdWeb } = require('@arx-research/libhalo/api/web.js');
-            const result = await execHaloCmdWeb(command, {
-                statusCallback: (cause: string) => {
-                    if (cause === 'init') {
-                        //   callback("Please tap the tag to the back of your smartphone and hold it...")
-                        // throw Error('time');
-                    } else if (cause === 'retry') {
-                        // callback("Something went wrong, please try to tap the tag again...")
-                    } else if (cause === 'scanned') {
-                        // callback("Tag scanned successfully, post-processing the result...");
-                    } else {
-                        // callback(cause)
-                    }
-                },
-            });
-
-            return !result ? null : result;
+            // const { execHaloCmdWeb } = require('@arx-research/libhalo/api/web.js');
+            // const result = await execHaloCmdWeb(command, {
+            //     statusCallback: (cause: string) => {
+            //         if (cause === 'init') {
+            //             //   callback("Please tap the tag to the back of your smartphone and hold it...")
+            //             // throw Error('time');
+            //         } else if (cause === 'retry') {
+            //             // callback("Something went wrong, please try to tap the tag again...")
+            //         } else if (cause === 'scanned') {
+            //             // callback("Tag scanned successfully, post-processing the result...");
+            //         } else {
+            //             // callback(cause)
+            //         }
+            //     },
+            // });
+            // return !result ? null : result;
         } else {
             await NfcManager.requestTechnology(NfcTech.IsoDep);
             const tag = await NfcManager.getTag();

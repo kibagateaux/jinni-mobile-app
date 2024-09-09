@@ -329,7 +329,7 @@ const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
         : await AsyncStorage.getItem(slot);
 };
 
-const getCookie = (slot: string) => {
+export const getCookie = (slot: string) => {
     const allCookies = document.cookie.split('; ');
     const cookie = allCookies.find((c) => {
         const [name] = c.split('=');
