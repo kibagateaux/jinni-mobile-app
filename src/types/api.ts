@@ -7,7 +7,11 @@ export interface ApiAuthParams {
     }; // cryptographic signature that proves user owns/controls an anonymous zero-knowledge identity
 }
 
+export interface ApiResponse<format> {
+    data: format;
+}
 export interface UpdateWidgetConfigParams {
+    jinniId: string;
     widgets: WidgetConfig[];
     merge?: boolean;
 }

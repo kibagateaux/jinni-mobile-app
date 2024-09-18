@@ -1,9 +1,10 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import _, { isEmpty } from 'lodash';
 import { HomeConfig } from 'types/UserConfig';
-import { UpdateWidgetConfigParams } from 'types/api';
+import { ApiResponse, UpdateWidgetConfigParams } from 'types/api';
 import {
     HOME_CONFIG_STORAGE_SLOT,
+    ID_JINNI_SLOT,
     ID_PLAYER_SLOT,
     defaultHomeConfig,
     getAppConfig,
@@ -62,16 +63,9 @@ export const qu =
                 },
             },
         };
-        console.log('api:qu:(player, vars)', spellbook.address, variables);
-        console.log('api:qu:verification ', `'${cleaned}'`, '---', majikMsg);
         console.log('api:qu:qu/mu', !!query, !!mutation);
-
-        // getGqlClient().mutate({
-        //     ...baseRequest,
-        //     //   fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
-        //     mutation: gql`${cleaned}`,
-        // }).then((req) => console.log("sample qu res", req))
-        // .catch((err) => console.log("sample qu err", err))
+        console.log('api:qu:vars', variables);
+        console.log('api:qu:verification ', `'${cleaned}'`, '---', majikMsg);
 
         return query
             ? getGqlClient().query({
@@ -89,6 +83,16 @@ export const qu =
                   `,
               });
     };
+
+export const MU_WAITLIST_NPC = `
+    mutation jinni_waitlist_npc(
+        $verification: SignedRequest!
+    ) {
+        jinni_waitlist_npc(
+            verification: $verification
+        )
+    }
+`;
 
 export const MU_ACTIVATE_JINNI = `
     mutation jinni_activate(
@@ -139,10 +143,12 @@ export const MU_SUBMIT_DATA = `
 export const MU_SET_WIDGET = `
     mutation jinni_set_widget(
         $verification: SignedRequest!,
+        $jinni_id: String!,
         $widgets: [WidgetSettingInput]!
     ) {
         jinni_set_widget(
             verification: $verification, 
+            jinni_id: $jinni_id,
             widgets: $widgets
         )
     }
@@ -158,13 +164,19 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
     // if no internet connection, return default config
     if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
 
-    return qu({ query: 'TODO' })({ player_id: await getStorage(ID_PLAYER_SLOT) })
+    const jid = await getStorage<string>(ID_JINNI_SLOT);
+    if (!jid) defaultHomeConfig;
+
+    return qu<HomeConfig>({ query: 'TODO' })({ jinni_id: jid })
         .then((response) => {
-            if (response?.data) {
-                saveHomeConfig({ widgets: response.data.widgets });
+            // TODO standardize return format for API e.g. nested in all top level or { :data }?
+            if (response?.widgets) {
+                saveHomeConfig({ jinniId: jid!, widgets: response.widgets });
                 // console.log("Home:config:get: SUCC", response)
-                return response.data as HomeConfig;
+                return response as HomeConfig;
             }
+
+            return defaultHomeConfig;
         })
         .catch((error) => {
             console.error('Home:config:get: ERR ', error);
@@ -172,7 +184,21 @@ export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
         });
 };
 
+export const joinWaitlist = (): Promise<string | null> => {
+    return qu<ApiResponse<{ jinni_waitlist_npc: string }>>({ mutation: MU_WAITLIST_NPC })({})
+        .then((newJid) => {
+            const parsedJid = newJid.data.jinni_waitlist_npc;
+            if (newJid) return saveStorage<string>(ID_JINNI_SLOT, parsedJid);
+            return null;
+        })
+        .catch((e) => {
+            console.log('utils:api:joinWaitlist: Error', e);
+            return null;
+        });
+};
+
 export const saveHomeConfig = async ({
+    jinniId,
     widgets,
     merge,
 }: UpdateWidgetConfigParams): Promise<HomeConfig> => {
@@ -218,7 +244,8 @@ export const saveHomeConfig = async ({
     // }
 
     return qu<string>({ mutation: MU_SET_WIDGET })({
-        widgets: merged.map(({ id, provider, priority = 0, config }) => ({
+        jinni_id: jinniId,
+        widgets: merged.map(({ id, provider, priority = 5, config }) => ({
             id,
             provider,
             priority,

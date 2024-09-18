@@ -26,7 +26,9 @@ beforeEach(() => {
 
 describe('Storage caching', () => {
     describe('Web local first functionality', () => {
-        describe('uses cookies instead of local storage', () => {});
+        describe('uses cookies instead of local storage', () => {
+            it('is a placeholder test', async () => {});
+        });
 
         describe('saves value to correct slot in cookies', () => {});
 

@@ -24,7 +24,7 @@ import { ItemAbility, ItemIds } from 'types/GameMechanics';
 // Storage slots for different config items
 export const HOME_CONFIG_STORAGE_SLOT = 'home.widgets';
 
-export const MALIKS_MAJIK_CARD = '0x46C79830a421038E75853eD0b476Ae17bFeC289A';
+export const MALIKS_MAJIK_CARD = '0x46C79830a421038E75853eD0b476Ae17bFeC289A'; // angel
 export const MAJIK_CARDS = [MALIKS_MAJIK_CARD];
 
 // cross provider analytics eventrs

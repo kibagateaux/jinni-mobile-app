@@ -157,6 +157,9 @@ const item: InventoryItem = {
                     // server shouldnt allow multiple jinnis yet. Just in case dont overwrite existing uuid
                     const result = uuid && (await saveStorage<string>(ID_JINNI_SLOT, uuid, false));
                     console.log('Mani:Jinni:ActivateJinn:Result', result);
+
+                    // TODO also upload settings again. just incase didnt work during onboarding for whatever reason
+
                     track(ABILITY_ACTIVATE_JINNI, {
                         spell: ABILITY_ACTIVATE_JINNI,
                         activityType: 'success',
@@ -178,11 +181,11 @@ const item: InventoryItem = {
             provider: ITEM_ID,
             symbol: '㊙',
             description: 'Join a community and contribute to a joint jinni with your friends',
-            canDo: async (status: ItemStatus) => {
-                const pk = await getStorage(ID_PKEY_SLOT);
-                if (!pk) return 'ethereal';
-                if (status === 'equipped') return 'unequipped';
-                return 'ethereal';
+            canDo: async () => {
+                const addy = await getStorage(ID_PLAYER_SLOT);
+                if (!addy) return 'ethereal';
+                // only require spellbook, dont need master djinn equipped
+                return 'equipped';
             },
             do: async () => {
                 // TODO should have circle's jinni-id as param
@@ -192,22 +195,26 @@ const item: InventoryItem = {
                         spell: ABILITY_JOIN_CIRCLE,
                         activityType: 'initiated',
                     });
-                    const address = await getStorage<string>(ID_PLAYER_SLOT);
+                    const address =
+                        (await getStorage<string>(ID_PLAYER_SLOT)) ||
+                        (await getSpellBook()).address;
                     console.log('address to join circle: ', address);
 
                     // TODO signWithID(address + jinni-id)
-                    const result = address
-                        ? await signWithId(address)
-                        : await signWithId((await getSpellBook()).address);
+                    const result = await signWithId(`summon:${address}`); // TODO `summon:${jinni-id}.${address}`
 
+                    console.log('result', result);
+                    // also used to create circle. If no circle for card that signs then generates with current player as the owner
                     const response = await qu({ mutation: MU_JOIN_CIRCLE })({
                         majik_msg: result.ether,
                         player_id: address,
-                        jinni_id: null, // TODO
+                        jinni_id: null, // TODO only null if create
                     });
 
                     track(ABILITY_JOIN_CIRCLE, {
                         spell: ABILITY_JOIN_CIRCLE,
+                        summoner: result.address,
+                        circle: result.address, // TODO jinni-id || result.address
                         activityType: 'success',
                     });
 
