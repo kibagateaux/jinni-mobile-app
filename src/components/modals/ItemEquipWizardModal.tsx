@@ -17,8 +17,9 @@ const IconForStatus = (status: ItemStatus) => {
         case 'equipped':
             return <Text style={styles.text}>🫡 </Text>;
         case 'equipping':
-        default:
             return <ActivityIndicator size="large" />;
+        default:
+            return <Text style={styles.text}>Item Status: {status!}</Text>;
     }
 };
 

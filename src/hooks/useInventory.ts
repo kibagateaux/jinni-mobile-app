@@ -46,12 +46,12 @@ export const useInventory = () => {
     }, [player?.name, inventory.length]);
 
     const setItemStatus = (itemId: ItemIds, status: ItemStatus) => {
-        console.log('hooks:useInventory:setStatus', itemId, status);
+        // console.log('hooks:useInventory:setStatus', itemId, status);
         // return setInventory(inventory.map(i => i.id !== itemId ? i : {...i, status}))
         return setInventory(
             inventory.map((i) => {
                 if (i.id !== itemId) return i;
-                console.log('hooks:useInventory:setStatus:i', { ...i, status });
+                // console.log('hooks:useInventory:setStatus:i', { ...i, status });
                 return { ...i, status };
             }),
         );

@@ -1,14 +1,7 @@
 import { memoize } from 'lodash';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 
-import {
-    // exchangeCodeAsync,
-    makeRedirectUri,
-    // TokenResponse,
-} from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-const SCHEME = Constants.expoConfig?.scheme ?? 'jinni-health';
 // const useProxy = Constants.appOwnership === 'expo' && Platform.OS !== 'web';
 import { OAuthProvider, OAuthProviderIds } from 'types/GameMechanics';
 import {
@@ -23,6 +16,7 @@ import { cleanGql, qu } from './api';
 import { getSpellBook } from './zkpid';
 import { obj } from 'types/UserConfig';
 import { randomUUID } from 'expo-crypto';
+import { ApiResponse } from 'types/api';
 
 // allows the web browser to close correctly when using universal login on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -77,19 +71,8 @@ export const oauthConfigs: { [key: string]: OAuthProvider } = {
 };
 
 export const createOauthRedirectURI = memoize(() => {
-    console.log('util:oauth:DeepLinkScheme', SCHEME, getAppConfig().REDIRECT_URL);
-
-    if (Platform.OS !== 'web') {
-        return makeRedirectUri({
-            native: Platform.select({
-                // android: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
-                // ios: `https://d12f-31-217-248-130.ngrok-free.app/oauth/callback`,
-                android: `${getAppConfig().REDIRECT_URL}/oauth/callback`,
-                ios: `${getAppConfig().REDIRECT_URL}/oauth/callback`,
-            }),
-        });
-    }
-    return null;
+    const callbackSuffix = '/oauth/callback';
+    return getAppConfig().REDIRECT_URL + callbackSuffix;
 });
 
 /**
@@ -100,11 +83,11 @@ export const createOauthRedirectURI = memoize(() => {
 export const generateRedirectState = async (provider: OAuthProviderIds): Promise<string> => {
     const nonce = randomUUID();
     const player = await getStorage(ID_PLAYER_SLOT);
-    if (!player) return Promise.resolve(nonce); // TODO shoul this return null since we check for sig on backend?
+    if (!player) return Promise.resolve(`.${provider}.${nonce}`); // TODO shoul this return null since we check for sig on backend?
 
     const sig = await (await getSpellBook()).signMessage(`${player}.${provider}.${nonce}`);
     console.log('gen oauth state', nonce, sig);
-    const state = `${player}.${nonce}.${sig}`;
+    const state = `${player}.${Platform.OS}.${nonce}.${sig}`;
     saveStorage(ID_OAUTH_NONCE_SLOT, { [provider]: state }, true).then((store) => {
         console.log('util:oauth:genState:nonce-saved', provider, store);
     });
@@ -124,7 +107,7 @@ export const QU_PROVIDER_ID = cleanGql(`
         )
     }
 `);
-const quProviderId = qu<{ data: { sync_provider_id: string } }>({ mutation: QU_PROVIDER_ID });
+const quProviderId = qu<ApiResponse<{ sync_provider_id: string }>>({ mutation: QU_PROVIDER_ID });
 
 // frequent helper functions + extra caching
 /**

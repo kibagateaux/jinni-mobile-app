@@ -16,14 +16,19 @@ import { useAuthRequest } from 'expo-auth-session';
 import {
     InventoryItem,
     ItemAbility,
-    ItemStatus,
+    ItemIds,
     OAuthProvider,
     OAuthProviderIds,
     StatsAttribute,
 } from 'types/GameMechanics';
 import ModalRenderer from 'components/modals';
 
-import { createOauthRedirectURI, oauthConfigs, generateRedirectState } from 'utils/oauth';
+import {
+    createOauthRedirectURI,
+    oauthConfigs,
+    generateRedirectState,
+    getProviderId,
+} from 'utils/oauth';
 import { useInventory } from 'hooks/useInventory';
 import { useGameContent } from 'contexts/GameContentContext';
 
@@ -35,23 +40,24 @@ interface ItemPageProps {
 }
 
 const ItemPage: React.FC<ItemPageProps> = () => {
-    const { item: id }: { item: string } = useLocalSearchParams();
+    const { item: id }: { item: ItemIds } = useLocalSearchParams();
+    const { player, getSpellBook } = useAuth();
     const { inventory, loading, setItemStatus } = useInventory();
+    const { inventory: content, setActiveModal } = useGameContent();
     const [activeAbilities, setActiveAbilities] = useState<ItemAbility[] | void>(undefined);
 
     const item = inventory.find((i) => i.id === id);
-    const status: ItemStatus = item?.status;
-    console.log('pg:inventory:item:Load', id, status, item?.tags);
+    console.log('pg:inventory:item:Load', id, item?.status, item?.tags);
     useMemo(async () => {
         // we cant store item status in config so compute and store in store
-        console.log('Item: check status?', item?.id && !status, item?.id, !status);
-        if (item?.id && !status) {
+        console.log('Item: check status?', item?.id && !item?.status, item?.id, !item?.status);
+        if (item?.id && !item?.status) {
             console.log('Item: setting status!!!');
             const newStatus = await item!.checkStatus();
             console.log('pg:Inv:Item check item status', newStatus);
             setItemStatus(item.id, newStatus);
         }
-    }, [item, status, setItemStatus]);
+    }, [item, setItemStatus]);
 
     useMemo(async () => {
         console.log(
@@ -63,20 +69,20 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         if (item?.abilities?.length && !activeAbilities) {
             const activeAbs = await Promise.all(
                 item.abilities?.filter(async (ability) => {
-                    (await ability.canDo(status)) === 'ethereal';
+                    (await ability.canDo(item?.status)) === 'ethereal';
                 }) ?? [],
             );
             console.log('pb:Inv:Item post item status abilitiy check', activeAbs);
             setActiveAbilities(activeAbs);
         }
-    }, [item, status, activeAbilities]);
+    }, [item, activeAbilities]);
 
     // hooks for items that require 3rd party authentication
     // TODO break functionality into actual separate components to shard state and prevent rerenders
     // primarly <ItemActionbutton>, <ItemActiveAbilities>, <ItemWidgets> all have completely separate data reqs
     const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
     // console.log('Item: oauth', itemOauthConfig, request, response);
-    const [request, response, promptAsync] = useAuthRequest(
+    const [request /* response */, , promptAsync] = useAuthRequest(
         {
             clientId: itemOauthConfig.clientId,
             scopes: itemOauthConfig.scopes,
@@ -103,8 +109,6 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         }
     }, [item]);
 
-    const { player, getSpellBook } = useAuth();
-    const { inventory: content, setActiveModal } = useGameContent();
     // console.log('Item: status & modal', status, activeModal);
 
     // TODO render loading screen when oauth items are generating redirect.
@@ -117,9 +121,31 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     if (!item) return <Text> Item Not Currently Available For Gameplay </Text>;
 
+    // we make redirect url the server directly so no frontend code exchange to our API
+    // simplifies code so dont have web vs native impl here
+    // retrieve provider ID to ensure flow was successful and use for item status/abilities
+    const onOauthFlowComplete = () =>
+        setTimeout(
+            () =>
+                getProviderId({ playerId: player!.id, provider: id })
+                    .then((providerId) => {
+                        if (providerId) {
+                            console.log('oauth flow success. player id on provider', providerId);
+                            setItemStatus(id, 'equipped');
+                        } else {
+                            setItemStatus(id, 'unequipped');
+                        }
+                    })
+                    .catch((e) => {
+                        console.log('oauth flow error', e);
+                        setItemStatus(id, 'unequipped');
+                    }),
+            1000,
+        );
+
     const onItemEquipPress = async () => {
         if (item.equip) {
-            setItemStatus(item.id, 'equipping'); // hide equip button
+            setItemStatus(id, 'equipping'); // hide equip button
 
             // console.log('modal to render', ItemEquipWizardModal, Modals);
             // TODO check if player.id first.
@@ -136,40 +162,42 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
                 // TODO should we add tags to items for different callback types and UI filtering?
                 // or just a single, optional callback func that handles everything for equip?
-                console.log('Oauth request/response', request);
-                const result =
-                    itemOauthConfig.authorizationEndpoint && request
-                        ? await item.equip(promptAsync)
-                        : await item.equip();
-                console.log('Oauth request/response', response);
-                // if result.error = "transceive fail" try majik ritual again
-
-                // TODO potential false positive if someone cancels the OAuth login in popup
-                // make oauth equip() return false and then set to equipped when deep link redirected back to inventory page
-                // not a huge deal bc "equipped" doesnt bc permanent state
-                console.log('Oauth result', result);
-                if (result) {
-                    // setItemStatus(item.id, 'post-equip');
-                    setItemStatus(item.id, 'equipped');
-                    // TODO api request to add item to their avatar (:DataProvider or :Resource?)
+                if (itemOauthConfig.authorizationEndpoint && request) {
+                    const result = await item.equip(promptAsync);
+                    // on web oauth handled in response effect separately bc more granular info by expo-auth
+                    console.log('oauth equip result', result);
+                    // if(Platform.OS === 'web') return;
+                    // on native assume success
+                    onOauthFlowComplete();
                 } else {
+                    // non-oauth item e.g. maliks majik
+
+                    const result = await item.equip();
+                    console.log('non-oauth equip result', result);
+                    if (result) {
+                        // TODO api request to add item to their avatar (:DataProvider or :Resource?)
+                        setItemStatus(id, 'equipped');
+                    }
+
                     // assume failure
-                    setItemStatus(item.id, 'unequipped');
+                    // if result.error = "transceive fail" try majik ritual again
+                    setItemStatus(id, 'unequipped');
                 }
             } catch (e) {
                 console.log('Error Equipping:', e);
-                setItemStatus(item.id, 'unequipped');
+                setItemStatus(id, 'unequipped');
             }
         }
     };
 
-    const onItemUnequipPress = () => {
-        if (item.unequip) item.unequip();
-        setItemStatus(item.id, 'unequipping');
+    const onItemUnequipPress = async () => {
+        setItemStatus(id, 'unequipping');
+        if (item.unequip) await item.unequip();
+        setItemStatus(id, 'unequipped');
     };
 
     const renderItemButton = () => {
-        if (status === 'ethereal' && item.installLink)
+        if (item?.status === 'ethereal' && item.installLink)
             return (
                 <Link to={item.installLink} trackingId="item-page-install-cta">
                     <Button
@@ -183,7 +211,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         // TODO is that redundant if we set status to 'equipping' tho?
         console.log('item action button');
 
-        if (status === 'unequipped' && item.equip && (!itemOauthConfig || request))
+        if (item?.status === 'unequipped' && item.equip && (!itemOauthConfig || request))
             return (
                 <Button
                     title="Equip"
@@ -192,7 +220,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 />
             );
 
-        if (status === 'equipped' && item.unequip)
+        if (item?.status === 'equipped' && item.unequip)
             return (
                 <Button
                     title="Unequip"
@@ -202,7 +230,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             );
 
         // if equipped but not actions then disable button
-        if (status === 'equipped')
+        if (item?.status === 'equipped')
             return (
                 <Button
                     title="Equipped"
@@ -211,7 +239,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 />
             );
 
-        if (status === 'unequipped')
+        if (item?.status === 'unequipped')
             return (
                 <Button
                     title="Equip"
@@ -224,10 +252,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const renderDefaultItemInfo = () => (
         <View style={styles.defaultInfoContainer}>
             <View style={{ flexDirection: 'row', flex: 0.1 }}>
-                <Pill size="sm" text={status ?? 'unequipped'} />
+                <Pill size="sm" text={item?.status ?? 'unequipped'} />
                 {!item?.installLink ? null : (
                     // TODO open app if equipped else open app store and change trackingId
-                    <Link to={item.installLink} trackingId={'inventory-item-install:' + item.id}>
+                    <Link to={item.installLink} trackingId={'inventory-item-install:' + id}>
                         <Pill size="sm" text="Open" theme="secondary" />
                     </Link>
                 )}

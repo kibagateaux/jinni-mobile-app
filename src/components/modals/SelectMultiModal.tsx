@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, View, ScrollView } from 'react-native';
 import { capitalize, isEmpty } from 'lodash';
-import { CheckBox, Icon } from '@rneui/themed';
+import { CheckBox } from '@rneui/themed';
 
 import { useGameContent } from 'contexts/GameContentContext';
 
@@ -83,13 +83,7 @@ const SelectModal = ({
                 })}
             </ScrollView>
             <View style={styles.buttonContainer}>
-                <Button onPress={complete}>
-                    {' '}
-                    <Text>
-                        {' '}
-                        Save <Icon name="asl" color="white" type="foundation" />
-                    </Text>{' '}
-                </Button>
+                <Button onPress={complete}>Save</Button>
             </View>
         </>
     );
@@ -100,12 +94,7 @@ const SelectModal = ({
             {...props} // overwrite with our close
             onClose={close}
             primaryButton={{
-                button: (
-                    <Button onPress={complete}>
-                        {' '}
-                        Save <Icon name="asl" color="white" type="foundation" />{' '}
-                    </Button>
-                ),
+                button: <Button onPress={complete}>Save</Button>,
             }}
         >
             {renderMultiSelect()}
@@ -114,11 +103,9 @@ const SelectModal = ({
         <View style={styles.container}>
             {renderMultiSelect()}
             <Button onPress={onClose} color="black">
-                {' '}
                 <Text style={{ color: 'white' }}>
-                    {' '}
-                    Back <Icon name="blind" color="white" type="foundation" />
-                </Text>{' '}
+                    Back {/*  <Icon name="blind" color="white" type="foundation" /> */}
+                </Text>
             </Button>
         </View>
     );

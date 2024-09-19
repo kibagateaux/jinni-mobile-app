@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Text, StyleSheet, View } from 'react-native';
 
 import { useGameContent } from 'contexts/GameContentContext';
 
@@ -29,7 +29,7 @@ const GeneralTimeWarpModal = ({
             <View>
                 <Text style={styles.text}>{title}</Text>
                 <Text style={styles.text}>{dialogue}</Text>
-                <ActivityIndicator size="large" />
+                {/* <ActivityIndicator size="large" /> */}
             </View>
         </BaseModal>
     );
