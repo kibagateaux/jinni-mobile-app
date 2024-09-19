@@ -3,7 +3,6 @@ import { Identity } from '@semaphore-protocol/identity';
 import { Group } from '@semaphore-protocol/group';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
-export * from './zkpid.ts';
 
 import {
     getAppConfig,

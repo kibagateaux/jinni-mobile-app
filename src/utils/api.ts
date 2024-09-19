@@ -254,6 +254,8 @@ export const saveHomeConfig = async ({
     })
         .then((res) => {
             console.log('utils:api:saveHomeConfig:response', res);
+            // TODO save uuids? would help with eventual constistency with local state. if no uuid on wiget then havent saved
+            // distributed system principle: only ever pull. Never know if they updated through another UI. At ods with local first/self-hosted to an degree tho
             return newConfig!;
         })
         .catch((err) => {

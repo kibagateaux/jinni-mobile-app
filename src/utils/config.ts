@@ -16,7 +16,7 @@ import {
     StorageValue,
     WidgetIds,
 } from 'types/UserConfig';
-import { debug, track } from './logging';
+// import { debug, track } from './logging';
 import { ItemAbility, ItemIds } from 'types/GameMechanics';
 
 // import { qu } from './api';
@@ -43,14 +43,6 @@ export const ID_JINNI_SLOT = '_jinni_uuid';
 export const ID_PROVIDER_IDS_SLOT = '_provider_ids';
 export const ID_OAUTH_NONCE_SLOT = '_oauth_nonces';
 export const PROOF_MALIKS_MAJIK_SLOT = 'MaliksMajik';
-
-export const getCached = memoize(
-    <T>({ slot, secure }: StorageKey) => getStorage<StorageValue & T>(slot, secure),
-    JSON.stringify,
-);
-
-const updateCache = (key: StorageKey, val: StorageValue) =>
-    getCached.cache.set(JSON.stringify(key), val);
 
 /**
  * This is the description of the interface
@@ -84,7 +76,11 @@ interface AppConfig {
     SEGMENT_API_KEY: string | undefined;
 }
 
-// console.log('Config:env', process.env);
+console.log(
+    'Config:env:api/redirect_urls',
+    process.env.EXPO_PUBLIC_API_URL,
+    process.env.EXPO_PUBLIC_REDIRECT_URL,
+);
 
 export const getAppConfig = (): AppConfig => ({
     NODE_ENV: process.env.NODE_ENV || 'development',
@@ -288,6 +284,14 @@ export const parseNetworkState = (networkState: NetworkState) => {
     }
 };
 
+export const getCached = memoize(
+    <T>({ slot, secure }: StorageKey) => getStorage<StorageValue & T>(slot, secure),
+    JSON.stringify,
+);
+
+const updateCache = (key: StorageKey, val: StorageValue) =>
+    getCached.cache.set(JSON.stringify(key), val);
+
 export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<T | null> = async (
     slot,
     useMysticCrypt,
@@ -308,10 +312,11 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
         console.log('get storage 2 - slot + val', slot, val);
         return val ? JSON.parse(val) : null;
     } catch (e: unknown) {
-        debug(e, {
-            tags: { storage: true },
-            extra: { slot },
-        });
+        console.log('storage:get:err', e);
+        // debug(e, {
+        //     tags: { storage: true },
+        //     extra: { slot },
+        // });
         return null;
     }
 };
@@ -354,10 +359,10 @@ export const saveMysticCrypt = async (key: string, value: StorageValue): Promise
         return true;
     } catch (e: unknown) {
         console.log('Store:MystCrypt:ERROR', key, e);
-        debug(e, {
-            tags: { storage: true },
-            extra: { key },
-        });
+        // debug(e, {
+        //     tags: { storage: true },
+        //     extra: { key },
+        // });
         return false;
     }
 };
@@ -425,7 +430,8 @@ export const saveStorage: <T>(
             }
         }
     } catch (e) {
-        console.log('Failed to save locally k/v : ', key, value);
+        console.log('storage:save:err: ', key, value);
+        console.log('storage:save:err: ', e);
         return existingVal; // TODO return bool but this ensures that newVal conforms to dynamic type <T> after merge
     }
 };
@@ -457,17 +463,20 @@ export const logLastDataQuery = ({
     // .any bc local storage will always be first, want to ensure it succeeds, but not block thread with await
     return Promise.any([
         saveStorage<object>(`${LAST_QUERIED_SLOT}_${itemId}`, acts, true),
-        track(TRACK_DATA_QUERIED, {
-            itemId,
-            activities: acts,
-        }),
+        // track(TRACK_DATA_QUERIED, {
+        //     itemId,
+        //     activities: acts,
+        // }),
     ])
         .then((success) => success)
         .catch((errs) =>
-            errs.map(async (err: unknown) =>
-                debug(err, {
-                    tags: { analytics: true },
-                }),
+            errs.map(
+                async (err: unknown) => {
+                    console.log('storage:save:err: ', err);
+                },
+                // debug(err, {
+                //     tags: { analytics: true },
+                // }),
             ),
         );
 };
