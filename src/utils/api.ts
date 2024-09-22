@@ -1,12 +1,11 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import _, { isEmpty } from 'lodash';
-import { HomeConfig } from 'types/UserConfig';
+import { HomeConfigMap } from 'types/UserConfig';
 import { ApiResponse, UpdateWidgetConfigParams } from 'types/api';
 import {
     HOME_CONFIG_STORAGE_SLOT,
     ID_JINNI_SLOT,
     ID_PLAYER_SLOT,
-    defaultHomeConfig,
     getAppConfig,
     getNetworkState,
     getStorage,
@@ -84,6 +83,32 @@ export const qu =
               });
     };
 
+export const QU_GET_PLAYER_CONFIG = `
+    query get_home_config(
+        $verification: SignedRequest!
+        $player_id: String!
+    ) {
+        get_home_config(
+            verification: $verification,
+            player_id: $player_id
+        ) {
+            summoner
+            jinni_type
+            last_divi_ts
+            widgets {
+                id
+                priority
+                provider
+                provider_id
+
+                mood
+                stats
+                intentions
+            }
+        }
+    }
+`;
+
 export const MU_WAITLIST_NPC = `
     mutation jinni_waitlist_npc(
         $verification: SignedRequest!
@@ -154,36 +179,6 @@ export const MU_SET_WIDGET = `
     }
 `;
 
-export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
-    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
-    // console.log("custom config ", customConfig)
-    // can only login from app so all changes MUST be saved locally if they exist on db
-    if (!isEmpty(customConfig)) return customConfig!;
-    // if not logged in then no reason to fetch custom config
-    if (!username) return defaultHomeConfig;
-    // if no internet connection, return default config
-    if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
-
-    const jid = await getStorage<string>(ID_JINNI_SLOT);
-    if (!jid) defaultHomeConfig;
-
-    return qu<HomeConfig>({ query: 'TODO' })({ jinni_id: jid })
-        .then((response) => {
-            // TODO standardize return format for API e.g. nested in all top level or { :data }?
-            if (response?.widgets) {
-                saveHomeConfig({ jinniId: jid!, widgets: response.widgets });
-                // console.log("Home:config:get: SUCC", response)
-                return response as HomeConfig;
-            }
-
-            return defaultHomeConfig;
-        })
-        .catch((error) => {
-            console.error('Home:config:get: ERR ', error);
-            return defaultHomeConfig;
-        });
-};
-
 export const joinWaitlist = (): Promise<string | null> => {
     return qu<ApiResponse<{ jinni_waitlist_npc: string }>>({ mutation: MU_WAITLIST_NPC })({})
         .then((newJid) => {
@@ -197,45 +192,85 @@ export const joinWaitlist = (): Promise<string | null> => {
         });
 };
 
+export const localSaveHomeConfig = async (jinniConfig: HomeConfigMap) =>
+    saveStorage<HomeConfigMap>(HOME_CONFIG_STORAGE_SLOT, jinniConfig, true);
+
+export const getHomeConfig = async (pid?: string): Promise<HomeConfigMap> => {
+    const customConfig = await getStorage<HomeConfigMap>(HOME_CONFIG_STORAGE_SLOT);
+    console.log('getHomeConfig local config', customConfig);
+    // console.log("custom config ", customConfig)
+    // can only login from app so all changes MUST be saved locally if they exist on db
+    if (!isEmpty(customConfig)) return customConfig!;
+    // if not logged in then no reason to fetch custom config
+
+    // no local config and no internet to make request. return nil
+    // TODO doesnt work on web
+    console.log('getHomeConfig local config', await getNetworkState());
+    if (!(await getNetworkState()).isNoosphere) return {};
+
+    console.log('getHomeConfig pid', pid);
+    if (!pid) return {};
+
+    return qu<ApiResponse<HomeConfigMap>>({ query: QU_GET_PLAYER_CONFIG })({ player_id: pid })
+        .then((response) => {
+            console.log('Home:config:get: SUCC', pid, response.data);
+            if (response?.data) {
+                return localSaveHomeConfig(response.data).then((config) => config);
+            }
+
+            return {}; // no player. return nil
+        })
+        .catch((error) => {
+            console.error('Home:config:get: ERR ', error);
+            return {}; // no player. return nil
+        });
+};
+
 export const saveHomeConfig = async ({
     jinniId,
     widgets,
     merge,
-}: UpdateWidgetConfigParams): Promise<HomeConfig> => {
+    ...otherVals
+}: UpdateWidgetConfigParams): Promise<HomeConfigMap> => {
     console.log('home config deduped 1!!!', merge, widgets);
-    const config = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
-    // merge new and existing widget configs. only one widget per id allowed (eventually uniq by id + target_uuid)
-    // const deduped = _(config?.widgets ?? []) // start sequence
-    //     .keyBy('id') // create map
-    //     .merge(_.keyBy(widgets, 'id')) // create map of existing config and merge it to new configs
-    //     .values() // merged map back to array
-    //     .value()
-    const merged = !merge
-        ? widgets
-        : [
-              ...widgets,
-              ...(config?.widgets.filter((w) => !_.find(widgets, { id: w.id })) ?? []), // dedupe widgets that are already in saved config
-          ];
+    const config = await getStorage<HomeConfigMap>(HOME_CONFIG_STORAGE_SLOT);
+
+    // TODO need better if branching if jid in config already to handle widget merge and initJinniConfig
+
+    const mergedWidgets =
+        !merge && widgets
+            ? widgets
+            : [
+                  ...(widgets ?? []),
+                  // remove any widgets in existing storage that are in new config list too
+                  // dont have map of widgetId=>config bc might want multiple widgets of same ID e.g. spotify-share-playlist
+                  ...(config?.[jinniId]?.widgets.filter((w) => !_.find(widgets, { id: w.id })) ??
+                      []),
+              ];
 
     console.log(
         'home config deduped 2!!!',
-        merged,
+        mergedWidgets,
         // deduped.find((w) => w.id === 'maliksmajik-avatar-viewer'),
     );
-    // const deduped2 = _.uniqBy([...config?.widgets ?? [], ...widgets], '')
 
-    const newConfig = await saveStorage<HomeConfig>(
-        HOME_CONFIG_STORAGE_SLOT,
-        { ...config, widgets: merged },
-        merge,
-        // defaultHomeConfig,
-    );
-    // TODO if merged === newConfig. Dont send API request
+    // remove UI display stuff for simplified API data requirements
+    const finalWidgi = mergedWidgets.map(({ id, provider, priority = 5, config }) => ({
+        id,
+        provider,
+        priority,
+        ...(config ?? {}),
+    }));
+
+    const newConfig = (await localSaveHomeConfig({
+        [jinniId]: { ...(config?.[jinniId] ?? {}), widgets: mergedWidgets },
+    }))!;
+    // TODO if mergedWidgets === newConfig. Dont send API request
 
     console.log('!!! new home config saved!!!', newConfig);
     const playerId = await getStorage(ID_PLAYER_SLOT);
     console.log('utils:api:saveHomeConifg:playerId', playerId);
-    if (!playerId) return newConfig!;
+    if (!playerId) return newConfig; // should always exist now
 
     // TODO figure out how to stub NetworkState in testing so we can test api calls/logic paths properly
     // jest.mock('utils/config').mockResolvedValue(noConnection)
@@ -245,12 +280,8 @@ export const saveHomeConfig = async ({
 
     return qu<string>({ mutation: MU_SET_WIDGET })({
         jinni_id: jinniId,
-        widgets: merged.map(({ id, provider, priority = 5, config }) => ({
-            id,
-            provider,
-            priority,
-            ...(config ?? {}),
-        })),
+        widgets: finalWidgi,
+        ...otherVals,
     })
         .then((res) => {
             console.log('utils:api:saveHomeConfig:response', res);
@@ -260,6 +291,6 @@ export const saveHomeConfig = async ({
         })
         .catch((err) => {
             console.log('utils:api:saveHomeConfig:ERR', err);
-            return newConfig!;
+            return null!;
         });
 };

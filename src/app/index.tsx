@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
-import { View, StyleSheet, Share, Image } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { View, StyleSheet, Share, Image, Linking } from 'react-native';
 import { isEmpty } from 'lodash/fp';
 
 import { useHomeConfig } from 'hooks';
@@ -9,13 +8,13 @@ import { useAuth, useGameContent } from 'contexts';
 import { WidgetConfig, WidgetIds, obj } from 'types/UserConfig';
 import { getIconForWidget } from 'utils/rendering';
 
-import { AvatarViewer, WidgetIcon } from 'components/index';
-import DefaultAvatar from 'assets/avatars/red-yellow-egg';
+import { AvatarViewer, AvatarViewerDefault, WidgetIcon } from 'components/index';
 import WidgetContainer from 'components/home/WidgetContainer';
 import OnboardingWizard from 'components/wizards/OnboardingWizard';
 import {
     STAGE_AVATAR_CONFIG,
     TRACK_ONBOARDING_STAGE,
+    getAppConfig,
     getStorage,
     itemAbilityToWidgetConfig,
     saveStorage,
@@ -23,17 +22,18 @@ import {
 import { debug } from 'utils/logging';
 import { magicRug } from 'utils/zkpid';
 import { Button } from '@rneui/themed';
+import { useActiveJinni } from 'hooks/useActiveJinni';
+import { UpdateWidgetConfigParams } from 'types/api';
+import ModalRenderer from 'components/modals';
 
 const HomeScreen = () => {
-    const { config: homeConfig, save: saveHomeConfig } = useHomeConfig();
-    const { setActiveModal } = useGameContent();
-    const { player, getSpellBook } = useAuth();
-    const eggRollAngle = useSharedValue(30);
-    const eggAnimatedStyles = useAnimatedStyle(() => ({
-        transform: [{ rotate: `${eggRollAngle.value}deg` }],
-    }));
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
     const [onboardingStage, setOnboardingStage] = useState<string>();
+
+    const { config: homeConfig, save: saveHomeConfig } = useHomeConfig();
+    const { setActiveModal } = useGameContent();
+    const { player, isNPC, getSpellBook } = useAuth();
+    const { jid } = useActiveJinni();
 
     const [appReady, setAppReady] = useState<boolean>(false);
     console.log('loading app....', player, appReady);
@@ -53,6 +53,7 @@ const HomeScreen = () => {
             setWidgetConfig(homeConfig.widgets);
         }
     }, [homeConfig, widgetConfig]);
+    console.log('page:home:widgi', widgetConfig);
 
     useMemo(async () => {
         const currentStage = await getStorage<obj>(TRACK_ONBOARDING_STAGE);
@@ -62,21 +63,6 @@ const HomeScreen = () => {
             setOnboardingStage(STAGE_AVATAR_CONFIG);
         }
     }, [onboardingStage]);
-
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            const otherSide = eggRollAngle.value < 0 ? 30 : -30;
-            eggRollAngle.value = withSpring(otherSide, {
-                duration: 2000, // 4 sec side to side,
-                dampingRatio: 0.4,
-                stiffness: 33,
-                overshootClamping: false,
-                restDisplacementThreshold: 0.01,
-                restSpeedThreshold: 15.58,
-            });
-        }, 2500);
-        return () => clearInterval(intervalId);
-    });
 
     // console.log('Home:widgi', widgetConfig);
 
@@ -88,10 +74,8 @@ const HomeScreen = () => {
     );
 
     const finalizeRenovation = useCallback(
-        (widgets?: WidgetConfig[], merge: boolean = true) => {
-            saveHomeConfig(widgets ?? widgetConfig, merge);
-        },
-        [widgetConfig, saveHomeConfig],
+        (updates: UpdateWidgetConfigParams) => saveHomeConfig(updates),
+        [saveHomeConfig],
     );
 
     const completeWizardStage = useCallback(
@@ -103,6 +87,78 @@ const HomeScreen = () => {
             );
         },
         [setOnboardingStage],
+    );
+
+    const finalizeOnboarding = useCallback(
+        async (config: object) => {
+            try {
+                // if (!player?.id) {
+                //     setActiveModal({
+                //         name: 'create-spellbook',
+                //         dialogueData: {
+                //             title: 'A jinni is approaching',
+                //             text: 'Wait for it to sniff you and say hi',
+                //         },
+                //     });
+                //     await getSpellBook();
+                //     setActiveModal(undefined);
+                // }
+
+                console.log('save config', player);
+                if (!player?.id || !jid) {
+                    throw new Error('Player NPC profile not initiated yet!');
+                }
+
+                const newConfig = await finalizeRenovation({
+                    jType: 'p2p',
+                    summoner: player.id,
+                    merge: true,
+                    widgets: [
+                        ...(config.stats?.map((widgetId: string) =>
+                            itemAbilityToWidgetConfig(
+                                'MaliksMajik',
+                                `stat-${widgetId.toLowerCase()}` as WidgetIds,
+                            ),
+                        ) ?? []),
+                        {
+                            id: 'maliksmajik-avatar-viewer',
+                            provider: 'MaliksMajik',
+                            routeName: 'index', // home page
+                            title: 'Avatar Viewer',
+                            path: '/',
+                            config,
+                            // They can't have registered yet so no jinni id to specify for config
+                            // eventually need to link with jiini. Could do in activate_jinni but :Widget wont be there if they start from desktop flow (github/facrcaster)
+                            // target_uuid: await getStorage(ID_JINNI_SLOT)
+                        },
+                    ],
+                });
+                console.log('app:home:finalizeOnboarding:saved-config', newConfig);
+
+                if (!newConfig) {
+                    // saving jinni config from onboarding failed. do not continue to home screen
+                    throw new Error(
+                        'Could not save settings to the Master Djinn. They have been stored locally so you dont need to fill them out again :)',
+                    );
+                }
+                // complete onboarding only if config successfully saved on server
+                await completeWizardStage(STAGE_AVATAR_CONFIG);
+
+                Linking.openURL('https://t.me/+fkqlrBc4YYczM2Mx');
+            } catch (e) {
+                console.log('app:home:finalizeOnboarding:error', e);
+                setActiveModal({
+                    name: 'api-error',
+                    dialogueData: {
+                        title: 'Majiq mesesage not sent over the cosmic wire',
+                        text: e as string,
+                    },
+                });
+                debug(e, { extra: { onboardingStage: STAGE_AVATAR_CONFIG } });
+                // throw(e);
+            }
+        },
+        [player, jid, finalizeRenovation, setActiveModal, completeWizardStage],
     );
 
     const HomeWidget = ({ id, title, path }: WidgetConfig) => {
@@ -137,52 +193,10 @@ const HomeScreen = () => {
     // TODO abstrzct into onboarding component systemization
     if (onboardingStage === STAGE_AVATAR_CONFIG)
         return (
-            <OnboardingWizard
-                startIndex={0}
-                onComplete={async (config) => {
-                    try {
-                        console.log('on avatar config wizard complete', config.stats);
-                        if (!player?.id)
-                            setActiveModal({
-                                name: 'create-spellbook',
-                                dialogueData: {
-                                    title: 'A jinni is approaching',
-                                    text: 'Wait for it to sniff you and say hi',
-                                },
-                            });
-                        await getSpellBook();
-                        setActiveModal(undefined);
-
-                        await Promise.all([
-                            finalizeRenovation(
-                                [
-                                    ...(config.stats?.map((widgetId: string) =>
-                                        itemAbilityToWidgetConfig(
-                                            'MaliksMajik',
-                                            `stat-${widgetId.toLowerCase()}` as WidgetIds,
-                                        ),
-                                    ) ?? []),
-                                    {
-                                        id: 'maliksmajik-avatar-viewer',
-                                        provider: 'MaliksMajik',
-                                        routeName: 'index', // home page
-                                        title: 'Avatar Viewer',
-                                        path: '/',
-                                        config,
-                                        // They can't have registered yet so no jinni id to specify for config
-                                        // eventually need to link with jiini. Could do in activate_jinni but :Widget wont be there if they start from desktop flow (github/facrcaster)
-                                        // target_uuid: await getStorage(ID_JINNI_SLOT)
-                                    },
-                                ],
-                                false,
-                            ), // overwrite current config with new onboarding config
-                            completeWizardStage(STAGE_AVATAR_CONFIG),
-                        ]);
-                    } catch (e) {
-                        debug(e, { extra: { onboardingStage } });
-                    }
-                }}
-            />
+            <>
+                <ModalRenderer />
+                <OnboardingWizard startIndex={0} onComplete={finalizeOnboarding} />
+            </>
         );
 
     return (
@@ -205,9 +219,19 @@ const HomeScreen = () => {
                             }
                         />
                     )}
-                    <Animated.View style={[styles.avatar, eggAnimatedStyles]}>
-                        <AvatarViewer uri={homeConfig?.jinniImage} SVG={DefaultAvatar} />
-                    </Animated.View>
+                    {/* TODO if not homeConfig.lastDiviTime then animated egg roll (no jinni evolution yet)
+                            dont use API url bc thats actual avatar, client side option to not display actual avatar image  
+                            uri = egg
+                        else normal avatar viewer. with uri = /avatars/{jid}
+                    */}
+                    <View style={styles.avatar}>
+                        {isNPC ? (
+                            <AvatarViewerDefault />
+                        ) : (
+                            <AvatarViewer uri={`${getAppConfig().API_URL}/avatars/${jid}`} />
+                        )}
+                    </View>
+
                     <Button color="purple" title="Speak Intention" onPress={onIntentionPress} />
                 </View>
                 <WidgetContainer

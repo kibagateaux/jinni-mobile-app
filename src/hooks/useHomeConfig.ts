@@ -1,35 +1,65 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
-import { getHomeConfig } from 'utils/config';
+import { getHomeConfig } from 'utils/api';
 import { useAuth } from 'contexts';
-import { HomeConfig, WidgetConfig } from 'types/UserConfig';
-import { useNetworkState } from './useNetworkState';
+import { HomeConfig, HomeConfigMap } from 'types/UserConfig';
 import { saveHomeConfig } from 'utils/api';
 import { useActiveJinni } from './useActiveJinni';
+import { defaultHomeConfig } from 'utils/config';
+// import { useNetworkState } from './useNetworkState';
+import { UpdateWidgetConfigParams } from 'types/api';
+
+const getActiveConfig = (activeJid: string, configs: HomeConfigMap): HomeConfig | undefined =>
+    Object.entries(configs).find(([jinniId, jConfig]: [string, HomeConfig]) => {
+        console.log('finding config for active jinni', activeJid, jinniId, jConfig);
+
+        if (jinniId === activeJid) return true;
+    })?.[1]; // return config but not jid
 
 export const useHomeConfig = () => {
     const { player } = useAuth();
     const { jid } = useActiveJinni();
-    const { loading: isLoadingNetwork } = useNetworkState();
-    const [config, setHomeConfig] = useState<HomeConfig | null>(null);
+    // const { loading: isLoadingNetwork } = useNetworkState();
+    const [activeConfig, setHomeConfig] = useState<HomeConfig | null>(null);
+    const [allJinniConfig, setAllConfigs] = useState<HomeConfigMap | null>(null);
 
     // TODO useCallback
-    const save = async (widgets: WidgetConfig[], merge: boolean = true) => {
+    const save = async (updates: Partial<UpdateWidgetConfigParams>): Promise<HomeConfigMap> => {
+        if (!jid) return {};
+        if (!updates.merge && !updates.widgets) {
+            throw new Error(
+                'On config save must Merge or Provide existing widget config to ensure profile permannce',
+            );
+        }
+
         const newConfig = await saveHomeConfig({
+            widgets: updates.widgets!,
             jinniId: jid,
-            widgets: widgets,
-            merge,
+            ...updates,
         });
-        setHomeConfig(newConfig);
+        if (newConfig?.[jid]) setHomeConfig(newConfig[jid]);
+        return newConfig as HomeConfigMap;
     };
 
     // TODO useMemo
-    useEffect(() => {
-        // TODO jid as param not player.id since widget refactor on backend
-        // API was low prio when single player but p2c jinni require pulling from remote so high prio
-        getHomeConfig(player?.id).then((config) => setHomeConfig(config));
-    }, [player, isLoadingNetwork]);
+    useMemo(() => {
+        // TODO figure out logic for when to pull config again once we get access to internet again
+        // if(!isLoadingNetwork && useNetworkState().connection.isNoosphere && activeConfig.lastDiviTime > 5 days);
+        if (!jid) return;
+        if (allJinniConfig) {
+            getActiveConfig(jid, allJinniConfig ?? defaultHomeConfig['undefined']);
+            return;
+        }
+
+        getHomeConfig(player?.id).then((configs) => {
+            const active = getActiveConfig(jid, configs);
+            // set basic home config if none saved by player yet
+            console.log('active config post api req: ', active);
+            if (active) setHomeConfig(active);
+            setAllConfigs(configs);
+        });
+    }, [jid, player, allJinniConfig]);
 
     // TODO feel like should return jid here since multi jinni per player now
-    return { config, save };
+    return { config: activeConfig, save };
 };

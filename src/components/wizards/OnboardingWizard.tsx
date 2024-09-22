@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Linking } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { entries } from 'lodash';
 
 import SelectMulti from 'components/modals/SelectMultiModal';
@@ -8,6 +8,7 @@ import BaseWizardScreen from './BaseScreen';
 import { track } from 'utils/logging';
 import { TRACK_ONBOARDING_STAGE } from 'utils/config';
 import { StatsConfig } from 'types/GameMechanics';
+import { AvatarViewerDefault } from '..';
 
 export interface OnboardingWizardProps {
     startIndex?: number;
@@ -121,14 +122,13 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
     }, [step, changeStep]);
 
     const nextStep = useCallback(() => {
-        console.log('component:wizard:Onboarding:nextStep', step);
+        console.log('component:wizard:Onboarding:nextStep', step, onComplete);
         if (step === steps.length - 1) {
             // onComplete should close out wizard
             // TODO set loading
             onComplete(playerSettings)
                 .then((res) => {
                     console.log('success saving onboarding wizard', res);
-                    Linking.openURL('https://t.me/+fkqlrBc4YYczM2Mx');
                 })
                 .catch((err) => {
                     console.log('error saving onboarding wizard', err);
@@ -219,7 +219,11 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
             />
         </View>
     ) : (
-        <BaseWizardScreen step={step} onBack={backStep} onNext={nextStep} {...screenData} />
+        <BaseWizardScreen step={step} onBack={backStep} onNext={nextStep} {...screenData}>
+            <View style={styles.avatarContainer}>
+                <AvatarViewerDefault />
+            </View>
+        </BaseWizardScreen>
     );
 };
 
@@ -228,6 +232,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'skyblue',
         height: '100%',
         width: ' 100%',
+    },
+    avatarContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     text: {
         fontSize: 24,

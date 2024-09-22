@@ -13,11 +13,12 @@ import { useInventory } from 'hooks/useInventory';
 import SelectMultiModal from 'components/modals/SelectMultiModal';
 import { WidgetConfig, WidgetIds } from 'types/UserConfig';
 import { itemAbilityToWidgetConfig } from 'utils/config';
+import { UpdateWidgetConfigParams } from 'types/api';
 
 interface WidgetContainerProps {
     widgets: WidgetConfig[];
     saveWidgets?: (widgets: WidgetConfig[]) => void;
-    finalizeRenovation?: (widgets?: WidgetConfig[], merge?: boolean) => void; // send to server
+    finalizeRenovation?: (updates: UpdateWidgetConfigParams) => void; // send to server
     WidgetRenderer: React.FC<WidgetConfig>;
     renovationConfig?: object; // options for DraggableFlatList
 }
@@ -91,7 +92,7 @@ const WidgetContainer = ({
     const onEditModeEnd = () => {
         setEditMode(false);
         // undefined = use widgetConfig in homepage, false = overwrite storage
-        if (finalizeRenovation) finalizeRenovation(undefined, false);
+        if (finalizeRenovation) finalizeRenovation({ widgets: [], merge: true });
     };
 
     const renderRenovationMode = () => {
@@ -121,6 +122,8 @@ const WidgetContainer = ({
 
     const renderBaseMode = () => {
         // console.log('Widgi:base');
+        console.log('WidgiContainer:RenderBase:widgi', widgets, allWidgets);
+
         return (
             // <gesture={longPress}>
             <FlatList

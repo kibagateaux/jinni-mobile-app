@@ -9,11 +9,13 @@ export interface ApiAuthParams {
 
 export interface ApiResponse<format> {
     data: format;
-}
+} // TODO || void
 export interface UpdateWidgetConfigParams {
-    jinniId: string;
+    jinniId?: string;
     widgets: WidgetConfig[];
     merge?: boolean;
+    // eslint-disable-next-line
+    [vals: string]: any; // allow arbitrary updates as well
 }
 
 export interface UploadRawActivityData {

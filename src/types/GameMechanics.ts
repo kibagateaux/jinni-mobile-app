@@ -139,6 +139,7 @@ export const StatsConfig = [
     // FaithStat,
 ];
 
+export type JinniTypes = 'p2p' | 'p2c';
 export type ItemIds =
     | 'MaliksMajik'
     | 'Spotify'

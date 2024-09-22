@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, PanResponder, Text } from 'react-native';
+import { View, PanResponder, Text, Image } from 'react-native';
 // import { GLView } from 'expo-gl';
 
 interface AvatarViewerProps {
@@ -23,7 +23,24 @@ const AvatarViewer = ({ SVG, uri, is3d }: AvatarViewerProps) => {
 
     // console.log('AvatarViewer', { SVG, uri, is3d });
 
-    const SvgComponent = () => (!SVG ? null : <SVG />);
+    // const SvgComponent = () => (!SVG ? null : <SVG />);
+    const renderImg = () => {
+        if (SVG) return <SVG />;
+        if (uri)
+            return (
+                <Image
+                    source={{ uri }}
+                    style={{
+                        // TODO unhardcode this and egg/avatar SVG height/width with Dimension.get('window')
+                        width: 150,
+                        height: 200,
+                        // width: width * 0.5,
+                        // height: height * 0.75,
+                        transform: [{ rotateZ: `${rotation}deg` }],
+                    }}
+                />
+            );
+    };
     // TODO add suppoort for rendering base64 encoded images
     // <Image style={styles.image} source={{uri: `data:image/png;base64,${encodedBase64}`}} />
     //  https://stackoverflow.com/questions/29380265/does-react-native-support-base64-encoded-images
@@ -40,7 +57,7 @@ const AvatarViewer = ({ SVG, uri, is3d }: AvatarViewerProps) => {
             }}
         >
             {!is3d ? (
-                <SvgComponent />
+                renderImg()
             ) : (
                 <Text>3d Avatar Model</Text>
                 // <GLView

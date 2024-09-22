@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { joinWaitlist } from 'utils/api';
 import { getStorage, ID_JINNI_SLOT } from 'utils/config';
 
@@ -35,5 +35,12 @@ export const useActiveJinni = () => {
 
     // TODO switchJinni(jid)
 
-    return { jid };
+    const switchJinni = useCallback(
+        (id: string) => {
+            setJinniId(id);
+        },
+        [setJinniId],
+    );
+
+    return { jid, switchJinni };
 };

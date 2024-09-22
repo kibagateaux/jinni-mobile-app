@@ -13,9 +13,16 @@ export interface BaseWizardScreenProps {
     onBack: () => void;
     backButtonStyle?: object;
     nextButtonStyle?: object;
+    children?: React.ReactElement;
 }
 
-const BaseWizardScreen = ({ dialogueData, step, onNext, onBack }: BaseWizardScreenProps) => {
+const BaseWizardScreen = ({
+    dialogueData,
+    step,
+    onNext,
+    onBack,
+    children,
+}: BaseWizardScreenProps) => {
     return (
         <View style={styles.container}>
             {!dialogueData ? null : (
@@ -27,6 +34,7 @@ const BaseWizardScreen = ({ dialogueData, step, onNext, onBack }: BaseWizardScre
                     ))}
                 </View>
             )}
+            {children}
             <View style={styles.buttonContainer}>
                 <Button
                     title="Back"

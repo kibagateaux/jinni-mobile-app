@@ -8,10 +8,15 @@ import {
 // import { Identity } from '@semaphore-protocol/identity';
 import { useExternalServices } from './ExternalServicesContext';
 import { Wallet } from 'ethers';
-import { /* ID_ANON_SLOT, */ ID_PLAYER_SLOT, getStorage } from 'utils/config';
+import {
+    /* ID_ANON_SLOT, */ ID_PLAYER_SLOT,
+    PROOF_MALIKS_MAJIK_SLOT,
+    getStorage,
+} from 'utils/config';
 
 interface AuthConsumables {
     player: Avatar | undefined;
+    isNPC: boolean;
     // anonId: Identity | undefined;
     spellbook: Wallet | undefined;
     getSpellBook: () => void;
@@ -19,6 +24,7 @@ interface AuthConsumables {
 
 export const AuthContext = createContext<AuthConsumables>({
     player: undefined,
+    isNPC: true,
     // anonId: undefined,
     spellbook: undefined,
     getSpellBook: () => undefined,
@@ -33,10 +39,18 @@ type Props = {
 };
 
 export const AuthProvider: React.FC<Props> = ({ children }) => {
+    const [isNPC, setIsNPC] = useState<boolean>(true);
+
     const { sentry, segment } = useExternalServices();
     const [player, setPlayer] = useState<Avatar | undefined>(undefined);
     // const [anonId, setAnonId] = useState<Identity | undefined>(undefined);
     const [spellbook, setSpellbook] = useState<Wallet | undefined>(undefined);
+
+    useMemo(async () => {
+        if (!player?.id) setIsNPC(true);
+        const isPlayer = await getStorage<string>(PROOF_MALIKS_MAJIK_SLOT);
+        if (isPlayer) setIsNPC(false);
+    }, [player]);
 
     const login = useCallback(
         (id: string) => {
@@ -93,7 +107,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }, [spellbook, player, login]);
 
     return (
-        <AuthContext.Provider value={{ player, spellbook, getSpellBook }}>
+        <AuthContext.Provider value={{ isNPC, player, spellbook, getSpellBook }}>
             {children}
         </AuthContext.Provider>
     );

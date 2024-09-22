@@ -1,6 +1,6 @@
 import { Identity } from '@semaphore-protocol/identity';
 import { RenderItemParams } from 'react-native-draggable-flatlist';
-import { ItemIds } from './GameMechanics';
+import { ItemIds, JinniTypes } from './GameMechanics';
 
 export interface UserSettings {
     defaultTheme: 'light' | 'dark';
@@ -12,13 +12,20 @@ export interface StorageKey {
 }
 
 export type obj = { [key: string]: string };
-export type StorageValue = string | number | obj | Identity | undefined | null;
+export type StorageValue = string | number | object | Identity | undefined | null;
+
 export interface HomeConfig {
-    jinniImage: string;
+    summoner: string; // 0x address
+    lastDiviTime?: string; // iso timestamp of last :Divination action
+
     widgets: WidgetConfig[];
-    tabs: WidgetConfig[];
+    jType: JinniTypes;
+    // tabs: WidgetConfig[]; // TODO super low priority for custom navigation bc requires custom  ui/widgets configs
 }
 
+export interface HomeConfigMap {
+    [jid: string]: HomeConfig;
+}
 type WidgetDisplayTypes = 'none' | 'avatar' | 'nav' | 'home';
 export interface WidgetConfig {
     id: WidgetIds;

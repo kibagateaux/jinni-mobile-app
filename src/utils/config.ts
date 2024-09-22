@@ -2,22 +2,21 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setItemAsync, getItemAsync } from 'expo-secure-store';
 
-import axios from 'axios';
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
 import { merge, concat } from 'lodash/fp';
-import { capitalize, isEmpty, memoize } from 'lodash';
+import { capitalize, memoize } from 'lodash';
 
 import { CurrentConnection } from 'types/SpiritWorld';
 import {
-    HomeConfig,
     WidgetConfig,
     LogDataQueryProps,
     StorageKey,
     StorageValue,
     WidgetIds,
+    HomeConfigMap,
 } from 'types/UserConfig';
 // import { debug, track } from './logging';
-import { ItemAbility, ItemIds } from 'types/GameMechanics';
+import { ItemIds } from 'types/GameMechanics';
 
 // import { qu } from './api';
 
@@ -100,49 +99,20 @@ export const getAppConfig = (): AppConfig => ({
     SEGMENT_API_KEY: process.env.EXPO_PUBLIC_SEGMENT_API_KEY || 'aaaaaaa',
 });
 
-// TODO deprecate for utils/api.getHomeConfig
-export const getHomeConfig = async (username?: string): Promise<HomeConfig> => {
-    const customConfig = await getStorage<HomeConfig>(HOME_CONFIG_STORAGE_SLOT);
-    // console.log("custom config ", customConfig)
-    // can only login from app so all changes MUST be saved locally if they exist on db
-    if (!isEmpty(customConfig)) return customConfig!;
-    // if not logged in then no reason to fetch custom config
-    if (!username) return defaultHomeConfig;
-    // if no internet connection, return default config
-    if (!(await getNetworkState()).isNoosphere) return defaultHomeConfig;
-
-    return axios
-        .get(`${getAppConfig().API_URL}/scry/${username}/home-config/`)
-        .then((response) => {
-            AsyncStorage.setItem(HOME_CONFIG_STORAGE_SLOT, JSON.stringify(response.data));
-            // console.log("Home:config:get: SUCC", response)
-            return response.data as HomeConfig;
-        })
-        .catch((error) => {
-            console.error('Home:config:get: ERR ', error);
-            return defaultHomeConfig;
-        });
+export const itemAbilityToWidgetConfig = (provider: ItemIds, widgetId: WidgetIds): WidgetConfig => {
+    console.log('ability->wiget', widgetId);
+    return {
+        id: widgetId,
+        provider,
+        routeName: `/inventory/${provider}?widget=${widgetId}`,
+        path: `/inventory/${provider}?widget=${widgetId}`,
+        displayType: 'home', // TODO i think assuming widget not ability is right here but might need to refactor. Wdigrets are getting sloppy af
+        title:
+            widgetId.split('-').length === 1
+                ? widgetId
+                : widgetId.split('-').slice(1).map(capitalize).join(' '), // slice removes provider prefix from widget id
+    };
 };
-
-export const filterOutDefaultWidgets = (widgets: WidgetConfig[] | ItemAbility[]) =>
-    widgets.filter(
-        (w) => w.id !== 'maliksmajik-avatar-viewer' && w.id !== 'maliksmajik-speak-intention',
-    );
-
-export const itemAbilityToWidgetConfig = (
-    provider: ItemIds,
-    widgetId: WidgetIds,
-): WidgetConfig => ({
-    id: widgetId,
-    provider,
-    routeName: `/inventory/${provider}?widget=${widgetId}`,
-    path: `/inventory/${provider}?widget=${widgetId}`,
-    displayType: 'home', // TODO i think assuming widget not ability is right here but might need to refactor. Wdigrets are getting sloppy af
-    title:
-        widgetId.split('-').length === 1
-            ? widgetId
-            : widgetId.split('-').slice(1).map(capitalize).join(' '), // slice removes provider prefix from widget id
-});
 
 // causes circular dependency with inventory item
 // const defaultWidgetConfig = maliksMajik.item.widgets?.map((w) =>
@@ -228,12 +198,6 @@ const defaultTabConfig: WidgetConfig[] = [
     // },
 ];
 
-export const defaultHomeConfig: HomeConfig = {
-    jinniImage: '',
-    widgets: defaultWidgetConfig,
-    tabs: defaultTabConfig,
-};
-
 export const noConnection = {
     type: NetworkStateType.NONE,
     isLocal: false,
@@ -243,6 +207,7 @@ export const noConnection = {
 export const getNetworkState = async (): Promise<CurrentConnection> => {
     try {
         const info = await getNetworkStateAsync();
+        console.log('network info   ', info);
         // console.log('network state info', info);
         return parseNetworkState(info);
     } catch (e) {
@@ -280,7 +245,11 @@ export const parseNetworkState = (networkState: NetworkState) => {
                 isNoosphere,
             };
         default:
-            return noConnection;
+            return {
+                type,
+                isLocal: undefined,
+                isNoosphere: networkState.isInternetReachable,
+            };
     }
 };
 
@@ -291,6 +260,15 @@ export const getCached = memoize(
 
 const updateCache = (key: StorageKey, val: StorageValue) =>
     getCached.cache.set(JSON.stringify(key), val);
+
+export const defaultHomeConfig: HomeConfigMap = {
+    undefined: {
+        summoner: '',
+        jType: 'p2p',
+        widgets: defaultWidgetConfig,
+        tabs: defaultTabConfig,
+    },
+};
 
 export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<T | null> = async (
     slot,
@@ -310,6 +288,7 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
 
         const val = await _getStorage(slot, useMysticCrypt);
         console.log('get storage 2 - slot + val', slot, val);
+        console.log('get storage 2 - slot + val', JSON.stringify(val));
         return val ? JSON.parse(val) : null;
     } catch (e: unknown) {
         console.log('storage:get:err', e);
@@ -417,6 +396,7 @@ export const saveStorage: <T>(
             } else {
                 console.log(
                     'Config:saveStorage:shouldMerge isObj?',
+                    value,
                     existingVal ? merge(existingVal, value) : merge(defaultVal ?? {}, value),
                 );
                 // assume its an object. technically could be a function but thats an object too
