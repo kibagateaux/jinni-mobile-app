@@ -291,6 +291,6 @@ export const saveHomeConfig = async ({
         })
         .catch((err) => {
             console.log('utils:api:saveHomeConfig:ERR', err);
-            return null!;
+            return config ?? {};
         });
 };

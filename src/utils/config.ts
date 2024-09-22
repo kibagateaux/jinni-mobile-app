@@ -207,7 +207,6 @@ export const noConnection = {
 export const getNetworkState = async (): Promise<CurrentConnection> => {
     try {
         const info = await getNetworkStateAsync();
-        console.log('network info   ', info);
         // console.log('network state info', info);
         return parseNetworkState(info);
     } catch (e) {
@@ -247,7 +246,7 @@ export const parseNetworkState = (networkState: NetworkState) => {
         default:
             return {
                 type,
-                isLocal: undefined,
+                isLocal: false,
                 isNoosphere: networkState.isInternetReachable,
             };
     }
@@ -303,7 +302,7 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
 const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
     if (Platform.OS === 'web') {
         // all web storage is secure cookies
-        const result = getCookie(slot);
+        const result = decodeURIComponent(getCookie(slot) ?? '');
         return result;
     }
 
@@ -319,7 +318,8 @@ export const getCookie = (slot: string) => {
         const [name] = c.split('=');
         return name === slot;
     });
-    return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+    // offset cookie vale by name + = to extract full cookie value include uris including '='
+    return cookie ? cookie.slice(cookie?.indexOf('=') + 1, cookie.length) : null;
 };
 
 /**
@@ -423,7 +423,9 @@ const _saveStorage = async (slot: string, val: string): Promise<void> => {
     switch (Platform.OS) {
         case 'web':
             // Fully secured to this domain to prevent XSS/etc. attacks.
-            document.cookie = `${slot}=${val};expires=${expirationDate};path=/;secure;samesite=strict`;
+            document.cookie = encodeURIComponent(
+                `${slot}=${val};expires=${expirationDate};path=/;secure;samesite=strict`,
+            );
             return;
         case 'ios':
         case 'android':

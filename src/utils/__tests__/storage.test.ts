@@ -2,17 +2,17 @@ import { NetworkStateType } from 'expo-network';
 import * as mockMysticCrypt from 'expo-secure-store';
 import mockAsyncStorage from '@react-native-async-storage/async-storage';
 import {
-    getHomeConfig,
     getCached,
     getStorage,
     saveStorage,
     saveMysticCrypt,
-    defaultHomeConfig,
     HOME_CONFIG_STORAGE_SLOT,
     getNetworkState,
     parseNetworkState,
     noConnection,
 } from 'utils/config';
+
+import { getHomeConfig } from 'utils/api';
 
 jest.mock('expo-secure-store');
 
@@ -82,7 +82,7 @@ describe('Offline first functionality', () => {
 
         it('returns default if not logged in', () => {
             return getHomeConfig().then((config) => {
-                expect(config).toEqual(defaultHomeConfig);
+                expect(config).toEqual({});
             });
         });
 
@@ -90,7 +90,7 @@ describe('Offline first functionality', () => {
             // TODO idk how to stub no network connection
             expect(await getNetworkState()).toEqual(noConnection);
             return getHomeConfig().then((config) => {
-                expect(config).toEqual(defaultHomeConfig);
+                expect(config).toEqual({});
             });
         });
 
