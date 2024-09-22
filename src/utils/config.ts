@@ -302,7 +302,7 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
 const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
     if (Platform.OS === 'web') {
         // all web storage is secure cookies
-        const result = decodeURIComponent(getCookie(slot) ?? '');
+        const result = getCookie(slot);
         return result;
     }
 
@@ -423,9 +423,7 @@ const _saveStorage = async (slot: string, val: string): Promise<void> => {
     switch (Platform.OS) {
         case 'web':
             // Fully secured to this domain to prevent XSS/etc. attacks.
-            document.cookie = encodeURIComponent(
-                `${slot}=${val};expires=${expirationDate};path=/;secure;samesite=strict`,
-            );
+            document.cookie = `${slot}=${val};expires=${expirationDate};path=/;secure;samesite=strict`;
             return;
         case 'ios':
         case 'android':

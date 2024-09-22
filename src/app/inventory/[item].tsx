@@ -177,11 +177,11 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                     if (result) {
                         // TODO api request to add item to their avatar (:DataProvider or :Resource?)
                         setItemStatus(id, 'equipped');
+                    } else {
+                        // assume failure
+                        // if result.error = "transceive fail" try majik ritual again
+                        setItemStatus(id, 'unequipped');
                     }
-
-                    // assume failure
-                    // if result.error = "transceive fail" try majik ritual again
-                    setItemStatus(id, 'unequipped');
                 }
             } catch (e) {
                 console.log('Error Equipping:', e);
@@ -374,7 +374,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     );
 
     const renderActiveItemInfo = () => {
-        switch (status) {
+        switch (item.status) {
             case 'equipped':
                 return (
                     <View>
@@ -403,7 +403,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                     title: item.name,
                 }}
             />
-            <ModalRenderer item={item} status={status} />
+            <ModalRenderer item={item} status={item.status} />
             <View style={styles.topContainer}>
                 <View style={styles.itemImageContainer}>
                     <Image source={{ uri: item.image }} style={styles.itemImage} />
