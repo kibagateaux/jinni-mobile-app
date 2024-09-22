@@ -39,11 +39,10 @@ const HomeScreen = () => {
     console.log('loading app....', player, appReady);
 
     useMemo(async () => {
+        if (player) setAppReady(true);
         if (!appReady && !player) {
             console.log('loading wallet....', player);
-            await getSpellBook();
-            console.log('wallet loaded!');
-            setAppReady(true);
+            getSpellBook();
         }
     }, [appReady, player, getSpellBook]);
 
@@ -186,7 +185,7 @@ const HomeScreen = () => {
 
     if (!appReady) {
         console.log('waiting for wallet....');
-        return <Image source={{ uri: '/public/splash.png' }} />;
+        return <Image source={{ uri: '/splash.png' }} />;
     }
 
     // console.log('home onboarding ', onboardingStage);

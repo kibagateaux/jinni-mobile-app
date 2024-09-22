@@ -9,7 +9,6 @@ import {
     ItemStatus,
     Resource,
 } from 'types/GameMechanics';
-import { obj } from 'types/UserConfig';
 import { cleanGql, qu } from 'utils/api';
 import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, getStorage } from 'utils/config';
 import { debug, track } from 'utils/logging';
@@ -65,8 +64,14 @@ const item: InventoryItem = {
         console.log('Inv:Spotify:checkStatus', pid);
         if (!pid && !__DEV__) return 'ethereal'; // allow to interact in dev even if cant equip
         // TODO api request to see if access_token exist on API
-        const cached = (await getStorage<obj>(ID_PROVIDER_IDS_SLOT))?.[ITEM_ID];
-        console.log('sync id res', cached, await getStorage<obj>(ID_PROVIDER_IDS_SLOT));
+        const cached = (await getStorage<{ [provider: string]: string }>(ID_PROVIDER_IDS_SLOT))?.[
+            ITEM_ID
+        ];
+        console.log(
+            'sync id res',
+            cached,
+            await getStorage<{ [provider: string]: string }>(ID_PROVIDER_IDS_SLOT),
+        );
 
         // return 'unequipped';
         return cached ? 'equipped' : 'unequipped';
