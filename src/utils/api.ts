@@ -92,18 +92,15 @@ export const QU_GET_PLAYER_CONFIG = `
             verification: $verification,
             player_id: $player_id
         ) {
-            summoner
+            jinni_id
             jinni_type
+            summoner
             last_divi_ts
             widgets {
                 id
                 priority
                 provider
                 provider_id
-
-                mood
-                stats
-                intentions
             }
         }
     }
