@@ -5,7 +5,6 @@ import {
     CommunityStat,
     IntelligenceStat,
     InventoryItem,
-    HoF,
     ItemStatus,
     Resource,
 } from 'types/GameMechanics';

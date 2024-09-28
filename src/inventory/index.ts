@@ -5,7 +5,6 @@ import { Platform } from 'react-native';
 
 // TODO read directory file names and generate export object with inventory ids for easier consumption
 import iosHealth from './ios-health-kit';
-import iwatchHealth from './iwatch-health-kit';
 import androidHealth from './android-health-connect';
 import maliksMajik from './maliks-majik';
 import spotify from './spotify';
@@ -16,6 +15,9 @@ import github from './github';
 import { getAppConfig, getNetworkState, isMobile } from 'utils/config';
 
 import { InventoryItem, ItemStatus } from 'types/GameMechanics';
+
+// TODO  - refetch all data
+// Object.values(getStorage(LastUpdateTimes)).map((itemIds, lastTime) => items[item].fetchData(lastTime))
 
 // TODO
 // const inventoryDirectory = path.join(__dirname, '/utils/inventory');
@@ -52,7 +54,7 @@ export const getInventoryItems = async (username?: string): Promise<InventoryIte
             return response.data as InventoryItem[];
         })
         .catch((error) => {
-            console.error(error);
+            console.log(error);
             return [];
         });
 };
@@ -66,7 +68,7 @@ export const mobileInventory: InventoryItem[] = [
     // locationForeground.item,
     // locationBackground, // Dont need feature yet and it adds admin overhead for app review
 ];
-export const iosInventory = [...mobileInventory, iosHealth.item, iwatchHealth.item];
+export const iosInventory = [...mobileInventory, iosHealth.item];
 export const androidInventory = [...mobileInventory, androidHealth.item];
 
 // pulled into its own function instead of Platform.select because thats a bitch to stub in tests
@@ -89,7 +91,6 @@ export default {
     getInventoryItems,
     iosHealth,
     androidHealth,
-    iwatchHealth,
     maliksMajik,
     spotify,
 };

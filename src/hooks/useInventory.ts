@@ -39,7 +39,7 @@ export const useInventory = () => {
                     setLoading(false);
                 })
                 .catch((err) => {
-                    console.error('ERR: fetch inventory', err);
+                    console.log('ERR: fetch inventory', err);
                     setLoading(false);
                 });
         }

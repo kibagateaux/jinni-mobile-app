@@ -100,7 +100,8 @@ export const getAppConfig = (): AppConfig => ({
     NODE_ENV: process.env.NODE_ENV || 'development',
     API_URL:
         process.env.EXPO_PUBLIC_API_URL ||
-        `http://${window ? window.location.hostname : 'localhost'}:8888`,
+        // allow local dev e.g. me.local dynamically for phone based ios debugging to dev server
+        `http://${Platform.OS === 'web' ? window.location.hostname : 'localhost'}:8888`,
     REDIRECT_URL:
         process.env.EXPO_PUBLIC_REDIRECT_URL ||
         process.env.EXPO_PUBLIC_API_URL ||

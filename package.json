@@ -129,7 +129,6 @@
   },
   "jest": {
     "preset": "jest-expo",
-
     "setupFiles": [
       "<rootDir>/setupTests.js"
     ],

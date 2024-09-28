@@ -21,7 +21,7 @@ export default {
         assetBundlePatterns: ['**/*'],
         scheme: 'jinni-health',
         plugins: [
-            'react-native-health',
+            // 'react-native-health',
             'react-native-nfc-manager',
             'react-native-health-connect',
             ['expo-health-connect'],
@@ -50,14 +50,14 @@ export default {
                         'Allow your jinni to access your friends list to contact their jinn and communicate with them in the spiritual world.',
                 },
             ],
-            [
-                'expo-location',
-                {
-                    locationAlwaysAndWhenInUsePermission:
-                        'Allow your jinni to follow you and protect you around the world.',
-                    isAndroidBackgroundLocationEnabled: false,
-                },
-            ],
+            // [
+            //     'expo-location',
+            //     {
+            //         locationAlwaysAndWhenInUsePermission:
+            //             'Allow your jinni to follow you and protect you around the world.',
+            //         isAndroidBackgroundLocationEnabled: false,
+            //     },
+            // ],
             'expo-router',
             [
                 '@sentry/react-native/expo',
