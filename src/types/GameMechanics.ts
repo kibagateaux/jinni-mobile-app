@@ -219,6 +219,7 @@ export interface ItemAbility {
     provider: ItemIds;
     symbol: string;
     description: string;
+    displayType: 'home' | 'none';
     status?: ItemStatus; // if undefined, call canDo() to get value and store to local object
     canDo: (status: ItemStatus) => Promise<ItemStatus>; // checks if action can be done right now with current item status
     do: <T>(params?: T) => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup

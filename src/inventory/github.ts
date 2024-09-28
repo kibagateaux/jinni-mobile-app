@@ -12,40 +12,14 @@ import { cleanGql, qu } from 'utils/api';
 import { ID_PLAYER_SLOT, ID_PROVIDER_IDS_SLOT, getStorage } from 'utils/config';
 import { debug, track } from 'utils/logging';
 import { getProviderId } from 'utils/oauth';
+import { equip as _equip, unequip as _unequip } from './_oauth';
 
 export const ITEM_ID = 'Github';
 export const ABILITY_SYNC_REPOS = 'github-sync-repos';
 export const ABILITY_TRACK_COMMITS = 'github-sync-commits';
 
-const equip: HoF = async (promptAsync) => {
-    console.log('equipping github!!!');
-    try {
-        // TODO We use Github App which includes OAuth but must be installed via Github directly
-        // might be good UX to have them send a message install of linking directly
-        // Linking.openURL("https://github.com/apps/jinni-health-dev");
-        // Server gets OAuth callback after install automatically
-
-        promptAsync!();
-
-        // TODO send mu(syncProvideId). If call fails then login unsuccessful
-        return true;
-    } catch (e) {
-        console.log('Inv:github:equip:ERR', e);
-        return false;
-    }
-};
-
-const unequip: HoF = async () => {
-    console.log('unequip github!!!');
-    try {
-        // TODO call api to delete identity
-        return true;
-    } catch (e) {
-        console.log('Inv:github:equip:ERR', e);
-        return false;
-    }
-};
-
+const equip = _equip(ITEM_ID);
+const unequip = _unequip(ITEM_ID);
 const item: InventoryItem = {
     id: ITEM_ID,
     name: 'Octopus Brains',
@@ -85,6 +59,7 @@ const item: InventoryItem = {
             symbol: '💻',
             description: 'Give your jinni access to your code repos to learn from your daily adds',
             provider: ITEM_ID,
+            displayType: 'none',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
             do: async () => {
                 track(ABILITY_SYNC_REPOS, {
@@ -156,6 +131,7 @@ const item: InventoryItem = {
             symbol: '💻',
             description: 'Jinni will learn from what you have been working on',
             provider: ITEM_ID,
+            displayType: 'none',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
             do: async () => {
                 track(ABILITY_TRACK_COMMITS, {

@@ -98,6 +98,7 @@ const item: InventoryItem = {
             provider: ITEM_ID,
             symbol: '🧞‍♂️',
             description: 'Get access to the full game',
+            displayType: 'none',
             canDo: async (status: ItemStatus) => {
                 // @dev implicit check for PROOF_MAJIK
                 if (status !== 'equipped') return 'unequipped';
@@ -167,7 +168,7 @@ const item: InventoryItem = {
                     });
                     return async () => (uuid ? true : false);
                 } catch (e) {
-                    console.error('Mani:Jinni:ActivateJinn:ERROR - ', e);
+                    console.log('Mani:Jinni:ActivateJinn:ERROR - ', e);
                     debug(e, {
                         tags: { api: true },
                         extra: { spell: ABILITY_ACTIVATE_JINNI },
@@ -182,6 +183,7 @@ const item: InventoryItem = {
             provider: ITEM_ID,
             symbol: '㊙',
             description: 'Join a community and contribute to a joint jinni with your friends',
+            displayType: 'none',
             canDo: async () => {
                 const addy = await getStorage(ID_PLAYER_SLOT);
                 if (!addy) return 'ethereal';
@@ -211,7 +213,7 @@ const item: InventoryItem = {
                             spell: ABILITY_JOIN_CIRCLE,
                             summoner: result.etherAddress,
                             circle: null, // TODO jinni-id || null
-                            activityType: 'alreadyJoined',
+                            activityType: 'already-joined',
                         });
                         return async () => false;
                     }
@@ -242,7 +244,7 @@ const item: InventoryItem = {
                     console.log('maliksmajik:join-circle:res', response);
                     return async () => (response ? true : false);
                 } catch (e) {
-                    console.error('Mani:Jinni:MysticCrypt:ERROR --', e);
+                    console.log('Mani:Jinni:MysticCrypt:ERROR --', e);
                     return async () => false;
                 }
             },
@@ -254,6 +256,7 @@ const item: InventoryItem = {
             symbol: '🏦',
             description:
                 "Save game progress to your phone'scloud storage to restore account if you lose your phone",
+            displayType: 'none',
             canDo: async (status: ItemStatus) => {
                 const pk = await getStorage(ID_PKEY_SLOT);
                 if (!pk) return 'ethereal';
@@ -270,7 +273,7 @@ const item: InventoryItem = {
                     track(ABILITY_MYSTIC_CRYPT, { spell: ABILITY_MYSTIC_CRYPT });
                     return async () => success;
                 } catch (e) {
-                    console.error('Mani:Jinni:MysticCrypt:ERROR --', e);
+                    console.log('Mani:Jinni:MysticCrypt:ERROR --', e);
                     return async () => false;
                 }
             },

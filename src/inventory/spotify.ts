@@ -22,38 +22,15 @@ import {
 } from 'utils/config';
 import { debug, track } from 'utils/logging';
 import { obj } from 'types/UserConfig';
+import { equip as _equip, unequip as _unequip } from './_oauth';
 
 const ITEM_ID = 'Spotify';
 const ABILITY_SHARE_PROFILE = 'spotify-share-profile';
 const ABILITY_SHARE_PLAYLIST = 'spotify-share-playlist';
 const WIDGET_PIN_PLAYLIST = 'spotify-pin-playlist';
 
-const equip: HoF = async (promptAsync) => {
-    console.log('equipping spotiyfy!!!');
-    try {
-        // expo-auth-session only exposes API via hooks which we cant embed in this since its a conditional call
-        // should we roll our own OAuth lib or just keep this callback method?
-        // Slightly complicates equip() vs no params but also enables a ton of functionality for any item
-        await promptAsync!();
-
-        // TODO send mu(syncProvideId). If call fails then login unsuccessful
-        return true;
-    } catch (e) {
-        console.log('Inv:spotify:equip:ERR', e);
-        return false;
-    }
-};
-
-const unequip: HoF = async () => {
-    console.log('unequip spotify!!!');
-    try {
-        // TODO call api to delete identity
-        return true;
-    } catch (e) {
-        console.log('Inv:spotify:equip:ERR', e);
-        return false;
-    }
-};
+const equip = _equip(ITEM_ID);
+const unequip = _unequip(ITEM_ID);
 
 const item: InventoryItem = {
     id: ITEM_ID,
@@ -89,6 +66,7 @@ const item: InventoryItem = {
             symbol: '🎶',
             description: 'Share a playlist on Spotify with another player',
             provider: ITEM_ID,
+            displayType: 'none',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
             do: async () => {
                 // const pid = await getStorage(ID_PLAYER_SLOT);
@@ -130,6 +108,7 @@ const item: InventoryItem = {
             symbol: '🦹‍♂️',
             description: 'Share your Spotfiy profile with another player',
             provider: ITEM_ID,
+            displayType: 'none',
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
             do: async () => {
                 console.log('Spotify:Ability:ShareProfile');
@@ -212,8 +191,8 @@ const item: InventoryItem = {
         //     description: 'Create an IRL rave right now!',
         //     canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
         //     do: async () => {
-
         //         // TODO cant just return func, need to return initial data + follow up. follow up neds to take object of data
+        //         // can we programmatically create jams? can we get share url/qr programatically?
         //         return async () => true;
         //     },
         // },
@@ -226,7 +205,8 @@ const item: InventoryItem = {
             description:
                 'Add a playlist to your homepage that will autoplay when people visit your profile',
             provider: ITEM_ID,
-            canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'notdoable'),
+            canDo: async (status: ItemStatus) =>
+                status === 'equipped' ? 'ethereal' : 'unequipped',
             displayType: 'none',
             do: async <WidgetSettingInput>(params: WidgetSettingInput): Promise<HoF> => {
                 console.log('playlist to pin', params);

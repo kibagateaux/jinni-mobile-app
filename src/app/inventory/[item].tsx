@@ -47,7 +47,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const [activeAbilities, setActiveAbilities] = useState<ItemAbility[] | void>(undefined);
 
     const item = inventory.find((i) => i.id === id);
-    console.log('pg:inventory:item:Load', id, item?.status, item?.tags);
+    console.log('pg:inventory:item:Load', id, item, item?.status, item?.tags);
     useMemo(async () => {
         // we cant store item status in config so compute and store in store
         console.log('Item: check status?', item?.id && !item?.status, item?.id, !item?.status);
