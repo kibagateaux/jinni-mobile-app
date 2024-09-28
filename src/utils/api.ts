@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import _, { isEmpty } from 'lodash';
 import { HomeConfigMap } from 'types/UserConfig';
-import { ApiResponse, UpdateWidgetConfigParams } from 'types/api';
+import { ApiResponse, HomeConfigResponse, UpdateWidgetConfigParams } from 'types/api';
 import {
     HOME_CONFIG_STORAGE_SLOT,
     ID_JINNI_SLOT,
@@ -202,17 +202,30 @@ export const getHomeConfig = async (pid?: string): Promise<HomeConfigMap> => {
 
     // no local config and no internet to make request. return nil
     // TODO doesnt work on web
-    console.log('getHomeConfig local config', await getNetworkState());
     if (!(await getNetworkState()).isNoosphere) return {};
 
     console.log('getHomeConfig pid', pid);
     if (!pid) return {};
 
-    return qu<ApiResponse<HomeConfigMap>>({ query: QU_GET_PLAYER_CONFIG })({ player_id: pid })
+    return qu<ApiResponse<{ get_home_config: HomeConfigResponse[] }>>({
+        query: QU_GET_PLAYER_CONFIG,
+    })({ player_id: pid })
         .then((response) => {
-            console.log('Home:config:get: SUCC', pid, response.data);
-            if (response?.data) {
-                return localSaveHomeConfig(response.data).then((config) => config);
+            if (response?.data?.get_home_config) {
+                const jinniConfigs: HomeConfigMap = response.data.get_home_config.reduce(
+                    (agg, j) => ({
+                        ...agg,
+                        [j.jinni_id]: {
+                            summoner: j.summoner,
+                            type: j.jinni_type,
+                            widgets: j.widgets,
+                        },
+                    }),
+                    {},
+                );
+                console.log('Home:config:get: SUCC', pid, response.data, jinniConfigs);
+
+                return localSaveHomeConfig(jinniConfigs).then((config) => config);
             }
 
             return {}; // no player. return nil
