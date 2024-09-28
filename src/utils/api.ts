@@ -12,6 +12,7 @@ import {
     saveStorage,
 } from 'utils/config';
 import { getSpellBook } from 'utils/zkpid';
+import { debug } from './logging';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
 // https://www.apollographql.com/docs/react/caching/advanced-topics#persisting-the-cache
@@ -66,7 +67,7 @@ export const qu =
         console.log('api:qu:vars', variables);
         console.log('api:qu:verification ', `'${cleaned}'`, '---', majikMsg);
 
-        return query
+        const response = query
             ? getGqlClient().query({
                   ...baseRequest,
                   //   fetchPolicy: 'cache-first', // TODO add useCache: boolean to switch between query vs readQuery?
@@ -81,6 +82,24 @@ export const qu =
                       ${cleaned}
                   `,
               });
+
+        if (response.error) {
+            debug(response.error, {
+                user: { id: spellbook.address },
+                tags: {
+                    api: true,
+                },
+                extra: {
+                    query,
+                    mutation,
+                    variables,
+                },
+            });
+
+            throw Error(response.err);
+        } else {
+            return response;
+        }
     };
 
 export const QU_GET_PLAYER_CONFIG = `
@@ -231,7 +250,7 @@ export const getHomeConfig = async (pid?: string): Promise<HomeConfigMap> => {
             return {}; // no player. return nil
         })
         .catch((error) => {
-            console.error('Home:config:get: ERR ', error);
+            console.log('Home:config:get: ERR ', error);
             return {}; // no player. return nil
         });
 };

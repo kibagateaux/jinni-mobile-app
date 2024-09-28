@@ -129,6 +129,7 @@ export const getProviderId = async ({ playerId, provider }: obj): Promise<string
         id &&
             playerId === (await getStorage<string>(ID_PLAYER_SLOT)) &&
             (await saveStorage(ID_PROVIDER_IDS_SLOT, { [provider]: id }, true));
+        // asssume local save always succeeds
         return id;
     } catch (e) {
         console.log('util:oauth:getProviderId:ERROR', e);

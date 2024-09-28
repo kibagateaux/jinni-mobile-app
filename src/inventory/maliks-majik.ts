@@ -36,9 +36,11 @@ const equip: HoF = async () => {
         // if (!isMobile()) just send apply request to server without signWithId NFC interaction
         const address = await getStorage<string>(ID_PLAYER_SLOT);
         console.log('address to get verified: ', address);
-        const result = address
-            ? await signWithId(`summon:${address}`)
-            : await signWithId(`summon:${(await getSpellBook()).address}`);
+        const summonSign = address
+            ? `summon:${address}`
+            : `summon:${(await getSpellBook()).address}`;
+        const result = await signWithId(summonSign);
+        console.log('summon sign', summonSign, result);
 
         console.log('verified address signature: ', result);
         if (!result) throw Error('Majik not found');

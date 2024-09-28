@@ -77,7 +77,7 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
             // console.log("anon id saved to storage!", idType, id)
         }
     } catch (error) {
-        console.error('Store Err: ', error);
+        console.log('Store Err: ', error);
     }
 };
 
