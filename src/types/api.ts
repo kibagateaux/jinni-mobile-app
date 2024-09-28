@@ -1,4 +1,5 @@
-import { WidgetConfig } from './UserConfig';
+import { ItemIds, JinniTypes } from './GameMechanics';
+import { WidgetConfig, WidgetIds } from './UserConfig';
 
 export interface ApiAuthParams {
     verification: {
@@ -10,6 +11,19 @@ export interface ApiAuthParams {
 export interface ApiResponse<format> {
     data: format;
 } // TODO || void
+
+export interface HomeConfigResponse {
+    jinni_id: string;
+    summoner: string;
+    last_divi_ts: string;
+    jinni_type: JinniTypes;
+    widgets: {
+        id: WidgetIds;
+        provider: ItemIds;
+        priority: number;
+        uuid: string;
+    }[];
+}
 export interface UpdateWidgetConfigParams {
     jinniId?: string;
     widgets: WidgetConfig[];

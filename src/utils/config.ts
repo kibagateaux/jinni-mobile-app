@@ -1,7 +1,7 @@
-import { Platform } from 'react-native';
+import { Platform, Dimensions } from 'react-native';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setItemAsync, getItemAsync } from 'expo-secure-store';
-
 import { getNetworkStateAsync, NetworkState, NetworkStateType } from 'expo-network';
 import { merge, concat } from 'lodash/fp';
 import { capitalize, memoize } from 'lodash';
@@ -81,9 +81,26 @@ console.log(
     process.env.EXPO_PUBLIC_REDIRECT_URL,
 );
 
+console.log('window', window);
+export const isMobile = (): boolean => {
+    const screenDimensions = Dimensions.get('screen');
+    switch (Platform.OS) {
+        case 'ios':
+            return true;
+        case 'android':
+            return true;
+        case 'web':
+            return screenDimensions.width < 900 ? true : false;
+        default:
+            return true;
+    }
+};
+
 export const getAppConfig = (): AppConfig => ({
     NODE_ENV: process.env.NODE_ENV || 'development',
-    API_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8888',
+    API_URL:
+        process.env.EXPO_PUBLIC_API_URL ||
+        `http://${window ? window.location.hostname : 'localhost'}:8888`,
     REDIRECT_URL:
         process.env.EXPO_PUBLIC_REDIRECT_URL ||
         process.env.EXPO_PUBLIC_API_URL ||

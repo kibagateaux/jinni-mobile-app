@@ -16,6 +16,7 @@ import {
     TRACK_ONBOARDING_STAGE,
     getAppConfig,
     getStorage,
+    isMobile,
     itemAbilityToWidgetConfig,
     saveStorage,
 } from 'utils/config';
@@ -206,16 +207,20 @@ const HomeScreen = () => {
                         <Button
                             title={player?.id.slice(0, 18)}
                             type="clear"
-                            onPress={async () =>
-                                await Share.share({
-                                    title: 'Share your 🧞‍♂️ name with your friends',
-                                    message:
-                                        'Here is my Jinni id. Add me to your summoning circle 😇' +
-                                        '\n`' +
-                                        player?.id +
-                                        '`',
-                                })
-                            }
+                            onPress={async () => {
+                                if (isMobile()) {
+                                    await Share.share({
+                                        title: 'Share your 🧞‍♂️ name with your friends',
+                                        message:
+                                            'Here is my Jinni id. Add me to your summoning circle 😇' +
+                                            '\n`' +
+                                            player?.id +
+                                            '`',
+                                    });
+                                } else {
+                                    // TODO implement native flow e.g. taost w/ "copied to clipboard", FC frame, or some other desktop based UX
+                                }
+                            }}
                         />
                     )}
                     {/* TODO if not homeConfig.lastDiviTime then animated egg roll (no jinni evolution yet)
