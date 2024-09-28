@@ -4,8 +4,19 @@ export interface Avatar {
     image?: string;
 }
 
+// ex. {"0x46C79830a421038E75853eD0b476Ae17bFeC289A":{"raw":{"r":"5605a907f71ab6dbbc894c7a9d118b8629104b5b20070217a4cba7fb591c102b","s":"49dff57b6b7740896f77187361ca098a2059b8979e7412ad18023f8c85112d9c","v":27},"der":"304502205605a907f71ab6dbbc894c7a9d118b8629104b5b20070217a4cba7fb591c102b022100b6200a849488bf769088e78c9e35f6749a55244f10d48d8ea7d01f004b2513a5","ether":"0x5605a907f71ab6dbbc894c7a9d118b8629104b5b20070217a4cba7fb591c102b49dff57b6b7740896f77187361ca098a2059b8979e7412ad18023f8c85112d9c1b"}}
+export interface JubjubSignature {
+    ether: string; // 0x hex value of signed messaged
+    der: string; // idk
+    raw: {
+        // proof to derive signature and signer?
+        r: string;
+        s: string;
+        v: number;
+    };
+}
 export interface SummoningProofs {
-    [summonerAddress: string]: string; // 0x signature from summoner
+    [summonerAddress: string]: JubjubSignature;
 }
 
 /**

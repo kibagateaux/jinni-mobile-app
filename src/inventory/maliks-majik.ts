@@ -32,11 +32,13 @@ export const ABILITY_JOIN_CIRCLE = 'join-summoning-circle';
 const equip: HoF = async () => {
     console.log("receiving Malik's Majik!!!");
     try {
+        // TODO abstract into `join_circle` function and using in JOIN_CIRCLE ability.
+        // if (!isMobile()) just send apply request to server without signWithId NFC interaction
         const address = await getStorage<string>(ID_PLAYER_SLOT);
         console.log('address to get verified: ', address);
         const result = address
-            ? await signWithId(address)
-            : await signWithId((await getSpellBook()).address);
+            ? await signWithId(`summon:${address}`)
+            : await signWithId(`summon:${(await getSpellBook()).address}`);
 
         console.log('verified address signature: ', result);
         if (!result) throw Error('Majik not found');
@@ -146,9 +148,8 @@ const item: InventoryItem = {
 
                     console.log('Mani:Jinni:ActivateJinn:proof', myProof);
                     console.log('Mani:Jinni:ActivateJinn:ID', myId);
-
                     const response = await qu({ mutation: MU_ACTIVATE_JINNI })({
-                        majik_msg: myProof.ether,
+                        majik_msg: myProof[MALIKS_MAJIK_CARD].ether,
                         player_id: myId,
                     });
 
@@ -195,6 +196,7 @@ const item: InventoryItem = {
                         spell: ABILITY_JOIN_CIRCLE,
                         activityType: 'initiated',
                     });
+
                     const address =
                         (await getStorage<string>(ID_PLAYER_SLOT)) ||
                         (await getSpellBook()).address;
@@ -203,18 +205,37 @@ const item: InventoryItem = {
                     // TODO signWithID(address + jinni-id)
                     const result = await signWithId(`summon:${address}`); // TODO `summon:${jinni-id}.${address}`
 
+                    const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
+                    if (circles[result.etherAddress]) {
+                        track(ABILITY_JOIN_CIRCLE, {
+                            spell: ABILITY_JOIN_CIRCLE,
+                            summoner: result.etherAddress,
+                            circle: null, // TODO jinni-id || null
+                            activityType: 'alreadyJoined',
+                        });
+                        return async () => false;
+                    }
+
                     console.log('result', result);
+
                     // also used to create circle. If no circle for card that signs then generates with current player as the owner
                     const response = await qu({ mutation: MU_JOIN_CIRCLE })({
-                        majik_msg: result.ether,
+                        majik_msg: result.signature.ether,
                         player_id: address,
                         jinni_id: null, // TODO only null if create
                     });
 
+                    // save locally
+                    await saveStorage(
+                        PROOF_MALIKS_MAJIK_SLOT,
+                        { [result.etherAddress]: result.signature },
+                        true,
+                    );
+
                     track(ABILITY_JOIN_CIRCLE, {
                         spell: ABILITY_JOIN_CIRCLE,
-                        summoner: result.address,
-                        circle: result.address, // TODO jinni-id || result.address
+                        summoner: result.etherAddress,
+                        circle: null, // TODO jinni-id || null
                         activityType: 'success',
                     });
 

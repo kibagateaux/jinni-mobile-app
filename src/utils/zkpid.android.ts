@@ -4,12 +4,13 @@ import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
 export * from './zkpid.ts';
 
 import { debug } from './logging';
+import { JubjubSignature } from 'types/GameMechanics.js';
 
 /** TODO figure out return types from HaLo lib
  * + add callback fn to handle succ/err
  *
  */
-export const signWithId = async (id: string | Identity): Promise<object | null> => {
+export const signWithId = async (id: string | Identity): Promise<JubjubSignature | null> => {
     console.log('sign anon id with majik', id, typeof id);
     // https://github.com/cursive-team/jubmoji.quest/blob/2f0ccb203d432c40d2f26410d6a695f2de4feddc/apps/jubmoji-quest/src/components/modals/ForegroundTapModal.tsx#L2
     try {
