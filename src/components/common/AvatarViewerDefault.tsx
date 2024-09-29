@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { AvatarViewer } from 'components/index';
+import AvatarViewer from './AvatarViewer';
 import DefaultAvatar from 'assets/avatars/red-yellow-egg';
 
 const AvatarViewerDefault = () => {

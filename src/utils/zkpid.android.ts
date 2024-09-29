@@ -1,7 +1,7 @@
+export * from './zkpid.ts';
 import { Identity } from '@semaphore-protocol/identity';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { execHaloCmdRN } from '@arx-research/libhalo/api/react-native.js';
-export * from './zkpid.ts';
 
 import { debug } from './logging';
 import { JubjubSignature } from 'types/GameMechanics.js';

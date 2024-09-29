@@ -1,9 +1,9 @@
+export * from './zkpid.ts';
 import { Identity } from '@semaphore-protocol/identity';
 import { execHaloCmdWeb } from '@arx-research/libhalo/api/web.js';
 
 import { debug } from './logging';
 import { JubjubSignature } from 'types/GameMechanics';
-export * from './zkpid.ts';
 
 /** TODO figure out return types from HaLo lib
  * + add callback fn to handle succ/err

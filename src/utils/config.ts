@@ -81,7 +81,6 @@ console.log(
     process.env.EXPO_PUBLIC_REDIRECT_URL,
 );
 
-console.log('window', window);
 export const isMobile = (): boolean => {
     const screenDimensions = Dimensions.get('screen');
     switch (Platform.OS) {
@@ -101,7 +100,7 @@ export const getAppConfig = (): AppConfig => ({
     API_URL:
         process.env.EXPO_PUBLIC_API_URL ||
         // allow local dev e.g. me.local dynamically for phone based ios debugging to dev server
-        `http://${Platform.OS === 'web' ? window.location.hostname : 'localhost'}:8888`,
+        `http://${Platform.OS === 'web' ? window?.location?.hostname : 'localhost'}:8888`,
     REDIRECT_URL:
         process.env.EXPO_PUBLIC_REDIRECT_URL ||
         process.env.EXPO_PUBLIC_API_URL ||
