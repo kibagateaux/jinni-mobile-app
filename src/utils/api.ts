@@ -420,7 +420,9 @@ export const joinCircle =
             if (!result) {
                 track(userFlow, {
                     spell: userFlow,
-                    jubmoji: result?.etherAddress, // explicitly track jubmoji is undefined
+                    jubmoji: result?.etherAddress,
+                    signature: result?.signature?.ether,
+                    messageToSign,
                     circle: jinniId,
                     activityType: 'circle-sig-failed',
                 });
@@ -437,7 +439,9 @@ export const joinCircle =
                 track(userFlow, {
                     spell: userFlow,
                     jubmoji: result.etherAddress,
+                    signature: result.signature.ether,
                     circle: jinniId,
+                    messageToSign,
                     activityType: 'invalid-circle-validity',
                     error: baseCheck.message,
                 });
@@ -451,6 +455,8 @@ export const joinCircle =
                     track(userFlow, {
                         spell: userFlow,
                         jubmoji: result.etherAddress,
+                        signature: result.signature.ether,
+                        messageToSign,
                         circle: jinniId,
                         activityType: 'invalid-flow-validity',
                         error: validityMsg,
@@ -463,7 +469,9 @@ export const joinCircle =
             if (circles?.[result.etherAddress]) {
                 track(userFlow, {
                     spell: userFlow,
+                    signature: result.signature.ether,
                     jubmoji: result.etherAddress,
+                    messageToSign,
                     circle: jinniId,
                     activityType: 'already-joined',
                 });
@@ -482,8 +490,10 @@ export const joinCircle =
             if (!response || response?.error) {
                 track(userFlow, {
                     spell: userFlow,
+                    signature: result.signature.ether,
                     summoner: result.etherAddress,
                     circle: jinniId,
+                    messageToSign,
                     activityType: 'api-error',
                     error: response?.error,
                 });

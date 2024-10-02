@@ -1,6 +1,6 @@
 import { HoF, ItemAbility, ItemStatus } from 'types/GameMechanics';
 
-import { _delete_id } from 'utils/zkpid';
+import { _delete_id, getSpellBook } from 'utils/zkpid';
 import {
     ID_PLAYER_SLOT,
     ID_JINNI_SLOT,
@@ -51,10 +51,9 @@ const joinNpcCircle = joinCircle(ABILITY_JOIN_CIRCLE, async () => {
     };
 });
 
-const equip: HoF = async () =>
-    joinMasterDjinnCircle({ playerId: (await getStorage<string>(ID_PLAYER_SLOT))! });
+const equip: HoF = async () => joinMasterDjinnCircle({ playerId: (await getSpellBook()).address });
 const doJoinCircle = async (params?: JoinParams) =>
-    joinNpcCircle({ playerId: params?.playerId ?? (await getStorage<string>(ID_PLAYER_SLOT))! });
+    joinNpcCircle({ playerId: params?.playerId ?? (await getSpellBook()).address });
 
 /// @notice DELETES ALL SUMMONING CIRCLES
 const unequip: HoF = async () => {

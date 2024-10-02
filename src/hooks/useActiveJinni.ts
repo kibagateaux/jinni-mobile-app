@@ -1,11 +1,11 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { joinWaitlist } from 'utils/api';
 import { getStorage, ID_JINNI_SLOT } from 'utils/config';
 
 export const useActiveJinni = () => {
     const [jid, setJinniId] = useState<string | null>(null);
 
-    useMemo(() => {
+    useEffect(() => {
         if (!jid) {
             // only 1 jinni per player saved in storage
             getStorage<string>(ID_JINNI_SLOT).then((localJid) => {
@@ -15,6 +15,7 @@ export const useActiveJinni = () => {
                     return;
                 } else {
                     // TODO getPlayerJinni fallback before waitlist_npc
+                    console.log('hooks:activeJinni:requesting NPC', jid);
 
                     // player hasnt init yet. create npc and jinn on server for use in game
                     joinWaitlist()
