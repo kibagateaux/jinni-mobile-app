@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
 import _, { isEmpty } from 'lodash';
 import { HomeConfigMap } from 'types/UserConfig';
 import { ApiResponse, HomeConfigResponse, UpdateWidgetConfigParams } from 'types/api';
@@ -6,22 +6,31 @@ import {
     HOME_CONFIG_STORAGE_SLOT,
     ID_JINNI_SLOT,
     ID_PLAYER_SLOT,
+    PROOF_MALIKS_MAJIK_SLOT,
     getAppConfig,
     getNetworkState,
     getStorage,
     saveStorage,
 } from 'utils/config';
 import { getSpellBook } from 'utils/zkpid';
-import { debug } from './logging';
+import { debug, track } from './logging';
+import { JubJubSigResponse, SummoningProofs } from 'types/GameMechanics';
+import { signWithId } from './zkpid';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
 // https://www.apollographql.com/docs/react/caching/advanced-topics#persisting-the-cache
+const httpLink = createHttpLink({
+    uri: `${getAppConfig().API_URL}/graphql`,
+    credentials: 'omit', // Prevent cookies from being sent
+});
+
 let client: ApolloClient;
 export const getGqlClient = () =>
     client
         ? client
         : (client = new ApolloClient({
-              uri: `${getAppConfig().API_URL}/graphql`,
+              link: httpLink,
+              //   uri: `${getAppConfig().API_URL}/graphql`,
               cache: new InMemoryCache(),
 
               // optional metadata
@@ -323,3 +332,181 @@ export const saveHomeConfig = async ({
             return config ?? {};
         });
 };
+
+export type SignatureValidityParams<T> = {
+    signature: JubJubSigResponse;
+    args: T;
+};
+
+export type JoinCircleValidityArgs = {
+    msg: string; // the string sent directly to halo chip
+    playerId: string;
+    jinniId?: string;
+};
+
+export type SignatureValidityResponse = {
+    isValid: boolean;
+    message?: string; // success or error message for UI
+};
+
+export type SignatureValidityCheck<T> = (
+    params: SignatureValidityParams<T>,
+) => Promise<SignatureValidityResponse>;
+export interface JoinParams {
+    playerId: string;
+    jinniId?: string;
+}
+
+export const getSummonMsg = (args: JoinParams) =>
+    `summon:${args.jinniId ? `${args.jinniId}.` : ''}${args.playerId}`;
+
+export const baseCircleValidity: SignatureValidityCheck<JoinCircleValidityArgs> = async (
+    params,
+) => {
+    console.log('check base circle validity: ', params);
+    if (!params.signature)
+        return {
+            isValid: false,
+            message: 'No majik msg to cast spell',
+        };
+
+    if (!params.args.playerId) {
+        return {
+            isValid: false,
+            message: 'No player to join circle',
+        };
+    }
+
+    if (params.args.msg !== getSummonMsg(params.args)) {
+        return {
+            isValid: false,
+            message: 'Invalid signed msg to join circle',
+        };
+    }
+
+    return {
+        isValid: true,
+        message: 'basic check passed',
+    };
+};
+
+// jinniId can be null because we can fetch from backend based on jubmoji ID
+export const joinCircle =
+    (userFlow: string, checkValidity?: SignatureValidityCheck<JoinCircleValidityArgs>) =>
+    async ({ playerId, jinniId }: JoinParams): Promise<boolean> => {
+        // final HoF return value
+        console.log;
+        // TODO should have circle's jinni-id as param
+        // rn hack it by having each summoner only have 1 circle and handle proof -> jinn mapping on backend
+        try {
+            track(userFlow, {
+                spell: userFlow,
+                activityType: 'initiated',
+            });
+
+            // const address = await getStorage<string>(ID_PLAYER_SLOT)
+
+            console.log('address to join circle: ', playerId);
+
+            if (!playerId) {
+                throw new Error('No player ID to join circle');
+            }
+
+            // TODO signWithID(playerId + jinni-id)
+            const messageToSign = getSummonMsg({ playerId, jinniId });
+            const result = await signWithId(messageToSign);
+
+            console.log('maliksmajik:join-circle:sig', result);
+
+            if (!result) {
+                track(userFlow, {
+                    spell: userFlow,
+                    jubmoji: result?.etherAddress, // explicitly track jubmoji is undefined
+                    circle: null, // TODO jinni-id || null
+                    activityType: 'circle-sig-failed',
+                });
+                return false;
+            }
+
+            const validityArgs: SignatureValidityParams<JoinCircleValidityArgs> = {
+                signature: result,
+                args: { msg: messageToSign, playerId, jinniId },
+            };
+
+            const baseCheck = await baseCircleValidity(validityArgs);
+            if (!baseCheck.isValid) {
+                track(userFlow, {
+                    spell: userFlow,
+                    jubmoji: result.etherAddress,
+                    circle: null, // TODO jinni-id || null
+                    activityType: 'invalid-circle-validity',
+                    error: baseCheck.message,
+                });
+                return false;
+            }
+
+            // customized per flow checks e.g. master djinn before saving to API
+            if (checkValidity) {
+                const { isValid, message: validityMsg } = await checkValidity(validityArgs);
+                if (!isValid) {
+                    track(userFlow, {
+                        spell: userFlow,
+                        jubmoji: result.etherAddress,
+                        circle: null, // TODO jinni-id || null
+                        activityType: 'invalid-flow-validity',
+                        error: validityMsg,
+                    });
+                    return false;
+                }
+            }
+
+            const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
+            if (circles?.[result.etherAddress]) {
+                track(userFlow, {
+                    spell: userFlow,
+                    jubmoji: result.etherAddress,
+                    circle: null, // TODO jinni-id || null
+                    activityType: 'already-joined',
+                });
+                return false;
+            }
+
+            // also used to create circle. If no circle for card that signs then generates with current player as the owner
+            const response = await qu({ mutation: MU_JOIN_CIRCLE })({
+                majik_msg: result.signature.ether,
+                player_id: playerId,
+                jinni_id: null, // TODO only null if create
+            });
+
+            console.log('maliksmajik:join-circle:res', response);
+
+            if (!response) {
+                track(userFlow, {
+                    spell: userFlow,
+                    summoner: result.etherAddress,
+                    circle: null, // TODO jinni-id || null
+                    activityType: 'api-error',
+                });
+                return false;
+            }
+
+            // save locally. for ux onboaring purposes, we can try again if api call fails
+            await saveStorage(
+                PROOF_MALIKS_MAJIK_SLOT,
+                { [result.etherAddress]: result.signature },
+                true,
+            );
+
+            track(userFlow, {
+                spell: userFlow,
+                summoner: result.etherAddress,
+                circle: null, // TODO jinni-id || null
+                activityType: 'success',
+            });
+
+            return response ? true : false;
+        } catch (e) {
+            console.log('Mani:Jinni:MysticCrypt:ERROR --', e);
+            throw e;
+        }
+    };

@@ -15,8 +15,13 @@ export interface JubjubSignature {
         v: number;
     };
 }
+export interface JubJubSigResponse {
+    etherAddress: string;
+    signature: JubjubSignature;
+}
+
 export interface SummoningProofs {
-    [summonerAddress: string]: JubjubSignature;
+    [jubmojiAddress: string]: JubjubSignature;
 }
 
 /**

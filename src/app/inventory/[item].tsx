@@ -388,8 +388,8 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             default:
                 return (
                     <View>
+                        {renderActiveItemAbilities()}
                         {renderItemContent()}
-                        {renderAllItemAbilities()}
                         {renderItemWidgets()}
                     </View>
                 );
