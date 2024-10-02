@@ -276,12 +276,21 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     const onAbilityPress = async (ability: ItemAbility) => {
         setActiveModal({ name: 'ability-check' });
+        console.log('App:Inv:Item:onAbilityPress:check', await ability.canDo(item.status!));
         await ability.canDo(item.status!);
         setActiveModal({ name: 'ability-activate' });
+
+        console.log('App:Inv:Item:onAbilityPress:activate');
         try {
-            await ability.do();
-            setActiveModal({ name: 'ability-complete' });
+            const result = await ability.do();
+            console.log('App:Inv:Item:onAbilityPress:isSuccess?', result);
+            if (result) {
+                setActiveModal({ name: 'ability-complete' });
+            } else {
+                setActiveModal({ name: 'ability-fail' });
+            }
         } catch (e) {
+            console.log('App:Inv:Item:onAbilityPress:fail');
             setActiveModal({ name: 'ability-fail' });
         }
     };

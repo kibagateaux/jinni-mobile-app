@@ -72,7 +72,7 @@ const item: InventoryItem = {
                         spell: ABILITY_SYNC_REPOS,
                         activityType: 'unauthenticated',
                     });
-                    return async () => false;
+                    return false;
                 }
 
                 try {
@@ -85,7 +85,7 @@ const item: InventoryItem = {
                             providerId,
                             success: false,
                         });
-                        return async () => false;
+                        return false;
                     }
 
                     const response = await qu<{ data: { sync_repos: Resource[] } }>({
@@ -114,14 +114,14 @@ const item: InventoryItem = {
                     });
                     console.log('inv;Github:sync-repos:res', response);
 
-                    return async () => (response?.data?.sync_repos ? true : false);
+                    return response?.data?.sync_repos ? true : false;
                 } catch (e) {
                     debug(e, {
                         extra: { spell: ABILITY_SYNC_REPOS },
                         tags: { ability: true },
                     });
 
-                    return async () => false;
+                    return false;
                 }
             },
         },
@@ -144,7 +144,7 @@ const item: InventoryItem = {
                         spell: ABILITY_TRACK_COMMITS,
                         activityType: 'unauthenticated',
                     });
-                    return async () => false;
+                    return false;
                 }
 
                 try {
@@ -157,7 +157,7 @@ const item: InventoryItem = {
                             providerId,
                             success: false,
                         });
-                        return async () => false;
+                        return false;
                     }
 
                     const response = await qu<{ data: { sync_repos: Resource[] } }>({
@@ -182,14 +182,14 @@ const item: InventoryItem = {
                     });
                     console.log('inv;Github:sync-repos:res', response);
 
-                    return async () => (response?.data?.sync_repos ? true : false);
+                    return response?.data?.sync_repos ? true : false;
                 } catch (e) {
                     debug(e, {
                         extra: { spell: ABILITY_TRACK_COMMITS },
                         tags: { ability: true },
                     });
 
-                    return async () => false;
+                    return false;
                 }
             },
         },

@@ -1,6 +1,6 @@
 import { HoF, ItemAbility, ItemStatus } from 'types/GameMechanics';
 
-import { _delete_id, getSpellBook } from 'utils/zkpid';
+import { _delete_id } from 'utils/zkpid';
 import {
     ID_PLAYER_SLOT,
     ID_JINNI_SLOT,
@@ -21,7 +21,7 @@ import {
     StatsConfig,
     SummoningProofs,
 } from 'types/GameMechanics';
-import { joinCircle, MU_ACTIVATE_JINNI, qu } from 'utils/api';
+import { joinCircle, MU_ACTIVATE_JINNI, qu, JoinParams } from 'utils/api';
 import { debug, track } from 'utils/logging';
 import { obj } from 'types/UserConfig';
 
@@ -51,44 +51,10 @@ const joinNpcCircle = joinCircle(ABILITY_JOIN_CIRCLE, async () => {
     };
 });
 
-const equip: HoF = async () => joinMasterDjinnCircle({ playerId: (await getSpellBook()).address });
-const doJoinCircle =
-    async (params?: obj): Promise<HoF> =>
-    async () =>
-        joinNpcCircle({ playerId: params?.playerId ?? (await getSpellBook()).address });
-
-// const equip: HoF = async () => {
-//     console.log("receiving Malik's Majik!!!");
-//     try {
-//         // TODO abstract into `join_circle` function and using in JOIN_CIRCLE ability.
-//         // if (!isMobile()) just send apply request to server without signWithId NFC interaction
-//         const address = await getStorage<string>(ID_PLAYER_SLOT);
-//         console.log('address to get verified: ', address);
-//         const summonSign = address
-//             ? `summon:${address}`
-//             : `summon:${(await getSpellBook()).address}`;
-//         const result = await signWithId(summonSign);
-//         console.log('summon sign', summonSign, result);
-
-//         console.log('verified address signature: ', result);
-//         if (!result) throw Error('Majik not found');
-//         if (result.etherAddress) {
-//             console.log('Inv:MaliksMajik:equip:SUCC', result.signature);
-//             // save result to local storage for p2p auth
-//             await saveStorage(
-//                 PROOF_MALIKS_MAJIK_SLOT,
-//                 { [result.etherAddress]: result.signature },
-//                 true,
-//             );
-//             return true;
-//         } else {
-//             throw Error('Enchanter is not a Master Djinn');
-//         }
-//     } catch (e) {
-//         console.log('Inv:MaliksMajik:equip:ERR', e);
-//         throw e;
-//     }
-// };
+const equip: HoF = async () =>
+    joinMasterDjinnCircle({ playerId: (await getStorage<string>(ID_PLAYER_SLOT))! });
+const doJoinCircle = async (params?: JoinParams) =>
+    joinNpcCircle({ playerId: params?.playerId ?? (await getStorage<string>(ID_PLAYER_SLOT))! });
 
 /// @notice DELETES ALL SUMMONING CIRCLES
 const unequip: HoF = async () => {
@@ -112,10 +78,10 @@ const item: InventoryItem = {
         { ...CommunityStat, value: 10 },
     ],
     checkStatus: async () => {
-        const proof = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
-        console.log('maliks majik check status', proof);
+        const proofs = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
+        console.log('maliks majik check status', proofs);
 
-        if (proof?.[MALIKS_MAJIK_CARD]) return 'equipped';
+        if (proofs?.[MALIKS_MAJIK_CARD]) return 'equipped';
         return 'unequipped';
     },
     canEquip: async () => true,
@@ -196,14 +162,14 @@ const item: InventoryItem = {
                         spell: ABILITY_ACTIVATE_JINNI,
                         activityType: 'success',
                     });
-                    return async () => (uuid ? true : false);
+                    return uuid ? true : false;
                 } catch (e) {
                     console.log('Mani:Jinni:ActivateJinn:ERROR - ', e);
                     debug(e, {
                         tags: { api: true },
                         extra: { spell: ABILITY_ACTIVATE_JINNI },
                     });
-                    return async () => false;
+                    return false;
                 }
             },
         },
@@ -244,10 +210,10 @@ const item: InventoryItem = {
 
                     const success = await saveMysticCrypt(ID_PKEY_SLOT, pk);
                     track(ABILITY_MYSTIC_CRYPT, { spell: ABILITY_MYSTIC_CRYPT });
-                    return async () => success;
+                    return success;
                 } catch (e) {
                     console.log('Mani:Jinni:MysticCrypt:ERROR --', e);
-                    return async () => false;
+                    return false;
                 }
             },
         },
@@ -260,7 +226,7 @@ const item: InventoryItem = {
             provider: ITEM_ID,
             description: `Display your stat points for ${stat.name} so other jinn can see`,
             canDo: async () => 'unequipped',
-            do: async () => async () => true,
+            do: async () => true,
         }),
         // TODO add speak intentions as widget. displayType 'avatar'
     ),

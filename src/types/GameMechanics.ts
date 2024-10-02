@@ -227,7 +227,7 @@ export interface ItemAbility {
     displayType: 'home' | 'none';
     status?: ItemStatus; // if undefined, call canDo() to get value and store to local object
     canDo: (status: ItemStatus) => Promise<ItemStatus>; // checks if action can be done right now with current item status
-    do: <T>(params?: T) => Promise<HoF>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
+    do: <T>(params?: T) => Promise<boolean>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
     getOptions?: <T>() => Promise<T[] | void>; // settings for player to select before calling do()
 }
 

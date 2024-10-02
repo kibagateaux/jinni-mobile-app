@@ -54,6 +54,7 @@ export const cleanGql = (q: string) => q.replace(/[\n\t]/g, ' ').replace(/[\s]{2
 
 export const qu =
     <T>({ query, mutation }: GqlReq) =>
+    // TODO refactor typoes for ApiResponse + errors
     async (variables: object): Promise<T> => {
         console.log('api:qu: ', getAppConfig().API_URL, query, mutation);
         if (!query && !mutation) throw Error('No query provided');
@@ -363,7 +364,7 @@ export const getSummonMsg = (args: JoinParams) =>
 export const baseCircleValidity: SignatureValidityCheck<JoinCircleValidityArgs> = async (
     params,
 ) => {
-    console.log('check base circle validity: ', params);
+    console.log('Inv:maliksmajik:join-circle:base validity check: ', params);
     if (!params.signature)
         return {
             isValid: false,
@@ -395,7 +396,7 @@ export const joinCircle =
     (userFlow: string, checkValidity?: SignatureValidityCheck<JoinCircleValidityArgs>) =>
     async ({ playerId, jinniId }: JoinParams): Promise<boolean> => {
         // final HoF return value
-        console.log;
+        console.log('utils:api:joinCircle:pid+jid params', playerId, jinniId);
         // TODO should have circle's jinni-id as param
         // rn hack it by having each summoner only have 1 circle and handle proof -> jinn mapping on backend
         try {
@@ -406,8 +407,6 @@ export const joinCircle =
 
             // const address = await getStorage<string>(ID_PLAYER_SLOT)
 
-            console.log('address to join circle: ', playerId);
-
             if (!playerId) {
                 throw new Error('No player ID to join circle');
             }
@@ -416,13 +415,13 @@ export const joinCircle =
             const messageToSign = getSummonMsg({ playerId, jinniId });
             const result = await signWithId(messageToSign);
 
-            console.log('maliksmajik:join-circle:sig', result);
+            console.log('Inv:maliksmajik:join-circle:sig', messageToSign, result);
 
             if (!result) {
                 track(userFlow, {
                     spell: userFlow,
                     jubmoji: result?.etherAddress, // explicitly track jubmoji is undefined
-                    circle: null, // TODO jinni-id || null
+                    circle: jinniId,
                     activityType: 'circle-sig-failed',
                 });
                 return false;
@@ -438,7 +437,7 @@ export const joinCircle =
                 track(userFlow, {
                     spell: userFlow,
                     jubmoji: result.etherAddress,
-                    circle: null, // TODO jinni-id || null
+                    circle: jinniId,
                     activityType: 'invalid-circle-validity',
                     error: baseCheck.message,
                 });
@@ -452,7 +451,7 @@ export const joinCircle =
                     track(userFlow, {
                         spell: userFlow,
                         jubmoji: result.etherAddress,
-                        circle: null, // TODO jinni-id || null
+                        circle: jinniId,
                         activityType: 'invalid-flow-validity',
                         error: validityMsg,
                     });
@@ -465,27 +464,28 @@ export const joinCircle =
                 track(userFlow, {
                     spell: userFlow,
                     jubmoji: result.etherAddress,
-                    circle: null, // TODO jinni-id || null
+                    circle: jinniId,
                     activityType: 'already-joined',
                 });
                 return false;
             }
 
             // also used to create circle. If no circle for card that signs then generates with current player as the owner
-            const response = await qu({ mutation: MU_JOIN_CIRCLE })({
+            const response = await qu<string>({ mutation: MU_JOIN_CIRCLE })({
                 majik_msg: result.signature.ether,
                 player_id: playerId,
-                jinni_id: null, // TODO only null if create
+                jinni_id: jinniId, // TODO only null on create circle
             });
 
             console.log('maliksmajik:join-circle:res', response);
 
-            if (!response) {
+            if (!response || response?.error) {
                 track(userFlow, {
                     spell: userFlow,
                     summoner: result.etherAddress,
-                    circle: null, // TODO jinni-id || null
+                    circle: jinniId,
                     activityType: 'api-error',
+                    error: response?.error,
                 });
                 return false;
             }
@@ -500,7 +500,7 @@ export const joinCircle =
             track(userFlow, {
                 spell: userFlow,
                 summoner: result.etherAddress,
-                circle: null, // TODO jinni-id || null
+                circle: jinniId,
                 activityType: 'success',
             });
 

@@ -10,7 +10,6 @@ import {
     IntelligenceStat,
     InventoryItem,
     ItemStatus,
-    HoF,
     // eslint-ignore-next-line
     // Resource,
 } from 'types/GameMechanics';
@@ -70,7 +69,7 @@ const item: InventoryItem = {
             canDo: async (status: ItemStatus) => (status === 'equipped' ? 'idle' : 'unequipped'),
             do: async () => {
                 // const pid = await getStorage(ID_PLAYER_SLOT);
-                // if (!pid) return async () => false;
+                // if (!pid) return false;
                 // try {
                 //     const response = qu<Resource[]>({
                 //         query: cleanGql(`
@@ -99,7 +98,7 @@ const item: InventoryItem = {
                 // player selects playlist
                 // open phone native share/contacts module
                 // player selects people to send to
-                return async () => true;
+                return true;
             },
         },
         {
@@ -116,7 +115,7 @@ const item: InventoryItem = {
                     spell: ABILITY_SHARE_PROFILE,
                     activityType: 'initiated',
                 });
-                const pid = await getStorage(ID_PLAYER_SLOT);
+                const pid = await getStorage<string>(ID_PLAYER_SLOT);
                 console.log('Spotify:Ability:ShareProfile:pid', pid);
                 if (!pid) {
                     track(TRACK_SHARE_CONTENT, {
@@ -124,7 +123,7 @@ const item: InventoryItem = {
                         activityType: 'unauthenticated',
                         success: false,
                     });
-                    return async () => false;
+                    return false;
                 }
                 try {
                     console.log('Spotify:Ability:ShareProfile:get-id');
@@ -137,7 +136,7 @@ const item: InventoryItem = {
                             providerId,
                             success: false,
                         });
-                        return async () => false;
+                        return false;
                     }
                     const profileUrl = `https://open.spotify.com/user/${providerId}`;
                     const { action, activityType } = await Share.share({
@@ -157,7 +156,7 @@ const item: InventoryItem = {
                             providerId,
                             success: true,
                         });
-                        return async () => true;
+                        return true;
                     }
 
                     if (action === Share.dismissedAction) {
@@ -166,7 +165,7 @@ const item: InventoryItem = {
                             activityType: 'dismissed',
                             providerId,
                         });
-                        return async () => false;
+                        return false;
                     }
                 } catch (e: unknown) {
                     track(TRACK_SHARE_CONTENT, {
@@ -178,10 +177,10 @@ const item: InventoryItem = {
                         extra: { spell: ABILITY_SHARE_PROFILE },
                         tags: { ability: true },
                     });
-                    return async () => false;
+                    return false;
                 }
 
-                return async () => false;
+                return false;
             },
         },
         // {
@@ -193,7 +192,7 @@ const item: InventoryItem = {
         //     do: async () => {
         //         // TODO cant just return func, need to return initial data + follow up. follow up neds to take object of data
         //         // can we programmatically create jams? can we get share url/qr programatically?
-        //         return async () => true;
+        //         return true;
         //     },
         // },
     ],
@@ -208,12 +207,12 @@ const item: InventoryItem = {
             canDo: async (status: ItemStatus) =>
                 status === 'equipped' ? 'ethereal' : 'unequipped',
             displayType: 'none',
-            do: async <WidgetSettingInput>(params: WidgetSettingInput): Promise<HoF> => {
+            do: async <WidgetSettingInput>(params: WidgetSettingInput) => {
                 console.log('playlist to pin', params);
                 // TODO need a func for when widget pressed on profile which is diff then setting up widget
                 // https://developer.spotify.com/documentation/ios/tutorials/content-linking
                 // Linking.openUrl()
-                return async () => false;
+                return false;
             },
             getOptions: async <Resource>() => {
                 track(TRACK_SHARE_CONTENT, {
