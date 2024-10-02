@@ -14,7 +14,7 @@ import {
 } from 'utils/config';
 import { getSpellBook } from 'utils/zkpid';
 import { debug, track } from './logging';
-import { JubJubSigResponse, SummoningProofs } from 'types/GameMechanics';
+import { JubJubSigResponse } from 'types/GameMechanics';
 import { signWithId } from './zkpid';
 
 // TODO persist cache to local storage for better offline use once internet connection lost?
@@ -160,13 +160,13 @@ export const MU_ACTIVATE_JINNI = `
 `;
 
 export const MU_JOIN_CIRCLE = `
-    mutation join_circle(
+    mutation jinni_join_circle(
         $verification: SignedRequest!,
         $majik_msg: String!,
         $player_id: String!,
         $jinni_id: String
     ) {
-        join_circle(
+        jinni_join_circle(
             verification: $verification, 
             majik_msg: $majik_msg, 
             player_id: $player_id,
@@ -451,6 +451,7 @@ export const joinCircle =
             // customized per flow checks e.g. master djinn before saving to API
             if (checkValidity) {
                 const { isValid, message: validityMsg } = await checkValidity(validityArgs);
+                console.log('is valid custom check ', isValid, validityMsg);
                 if (!isValid) {
                     track(userFlow, {
                         spell: userFlow,
@@ -465,21 +466,23 @@ export const joinCircle =
                 }
             }
 
-            const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
-            if (circles?.[result.etherAddress]) {
-                track(userFlow, {
-                    spell: userFlow,
-                    signature: result.signature.ether,
-                    jubmoji: result.etherAddress,
-                    messageToSign,
-                    circle: jinniId,
-                    activityType: 'already-joined',
-                });
-                return false;
-            }
+            // const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
+            // if (circles?.[result.etherAddress]) {
+            //     track(userFlow, {
+            //         spell: userFlow,
+            //         signature: result.signature.ether,
+            //         jubmoji: result.etherAddress,
+            //         messageToSign,
+            //         circle: jinniId,
+            //         activityType: 'already-joined',
+            //     });
+            //     return false;
+            // }
 
             // also used to create circle. If no circle for card that signs then generates with current player as the owner
-            const response = await qu<string>({ mutation: MU_JOIN_CIRCLE })({
+            const response = await qu<ApiResponse<{ jinni_join_circle: string }>>({
+                mutation: MU_JOIN_CIRCLE,
+            })({
                 majik_msg: result.signature.ether,
                 player_id: playerId,
                 jinni_id: jinniId, // TODO only null on create circle
@@ -507,14 +510,15 @@ export const joinCircle =
                 true,
             );
 
+            const jid = response.data.jinni_join_circle;
             track(userFlow, {
                 spell: userFlow,
                 summoner: result.etherAddress,
-                circle: jinniId,
+                circle: jid,
                 activityType: 'success',
             });
 
-            return response ? true : false;
+            return jid ? true : false;
         } catch (e) {
             console.log('Mani:Jinni:MysticCrypt:ERROR --', e);
             throw e;

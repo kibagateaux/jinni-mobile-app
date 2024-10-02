@@ -11,7 +11,7 @@ import { JubjubSignature } from 'types/GameMechanics.js';
  *
  */
 export const signWithId = async (id: string | Identity): Promise<JubjubSignature | null> => {
-    console.log('sign anon id with majik', id, typeof id);
+    console.log('utils:zkpid:android:sign anon id with majik', id, typeof id);
     // https://github.com/cursive-team/jubmoji.quest/blob/2f0ccb203d432c40d2f26410d6a695f2de4feddc/apps/jubmoji-quest/src/components/modals/ForegroundTapModal.tsx#L2
     try {
         const msg = typeof id === 'string' ? id : id._commitment;

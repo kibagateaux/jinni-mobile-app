@@ -32,10 +32,13 @@ export const ABILITY_MYSTIC_CRYPT = 'create-mystic-crypt';
 export const ABILITY_JOIN_CIRCLE = 'join-summoning-circle';
 
 const joinMasterDjinnCircle = joinCircle(ABILITY_EQUIP_MAJIK, async ({ signature }) => {
-    if (MAJIK_CARDS.find((mjq: string) => mjq === signature.etherAddress))
+    const masterDjinn = MAJIK_CARDS.find((mjq: string) => mjq === signature.etherAddress);
+    console.log('Joining ', masterDjinn, ' master Djinn circle? ', !!masterDjinn);
+
+    if (!masterDjinn)
         return {
             isValid: false,
-            message: 'Jubmoji is not a Master Djinn',
+            message: signature.etherAddress + ' Jubmoji is not a Master Djinn',
         };
 
     return {
