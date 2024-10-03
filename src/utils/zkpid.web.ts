@@ -41,6 +41,8 @@ const fallbackToWalletSignature = async (
         return {
             signature: {
                 ether: result.signature,
+                der: '',
+                raw: { v: 28, s: '', r: '' },
             },
             etherAddress: result.address,
         };
@@ -73,19 +75,17 @@ export const signWithId = async (id: string | Identity): Promise<JubJubSigRespon
                     // callback("Something went wrong, please try to tap the tag again...")
                 } else if (cause === 'scanned') {
                     // callback("Tag scanned successfully, post-processing the result...");
+                } else if (cause === 'finished') {
+                    // callback("Tag scanned successfully, post-processing the result...");
                 } else {
+                    throw cause;
                     // callback(cause)
                 }
             },
         });
 
         console.log('utils:zkpid:web:signWithId:nfcResult: ', result);
-
-        if (!result) {
-            return fallbackToWalletSignature(id);
-        }
-
-        // return !result ? null : result;
+        return result ? result : fallbackToWalletSignature(id);
     } catch (err) {
         console.warn('utils:zkpid:web signing error', err);
 
