@@ -7,11 +7,13 @@ import { useGameContent } from 'contexts/GameContentContext';
 
 import BaseModal from './BaseModal';
 import { Button } from '@rneui/themed';
+import { mapValues } from 'lodash/fp';
 
 type Options = { [id: string]: boolean }; // id = widget.id | resource.provider_id | human readable options
 export interface SelectWidgetSettingsModalProps {
     dialogueData?: object; // params for modal text
     allowMultiple?: boolean; // if can check off multiple boxes
+    backgroundColor?: string;
     options: Options; // can have preselected options
     onFinalize: (options: Options) => void;
     onClose?: (data?: unknown) => Promise<void | boolean>;
@@ -20,6 +22,7 @@ export interface SelectWidgetSettingsModalProps {
 
 const SelectModal = ({
     dialogueData = {},
+    backgroundColor,
     options,
     allowMultiple,
     onClose,
@@ -32,10 +35,14 @@ const SelectModal = ({
     const [checks, setChecks] = useState<Options>(options);
 
     const setCheck = (key: string, val: boolean) => {
-        if (allowMultiple || isEmpty(checks)) setChecks({ ...checks, [key]: val });
+        if (allowMultiple || isEmpty(checks)) return setChecks({ ...checks, [key]: val });
+        // overwrite all past options so only most recent selected
+        return setChecks({ ...mapValues(() => false, checks), [key]: val });
     };
 
     const complete = () => {
+        console.log('finalise select multi modal!');
+
         onFinalize(checks);
         // setChecks({});
     };
@@ -45,27 +52,21 @@ const SelectModal = ({
         onClose && onClose(data);
     };
 
-    console.log('Select options', checks);
-
     const titleTemplate = content.title;
     const dialogueTemplate = content.text;
-    const title = typeof titleTemplate === 'function' ? titleTemplate(dialogueData) : titleTemplate;
+    const title =
+        typeof titleTemplate === 'function'
+            ? titleTemplate(dialogueData)
+            : dialogueData?.title ?? titleTemplate;
     const dialogue =
-        typeof dialogueTemplate === 'function' ? dialogueTemplate(dialogueData) : dialogueTemplate;
-
-    // if (!player?.id)
-    //     return (
-    //         <CreateSpellbookModal dialogueData={{
-    //             title: "A jinni is approaching",
-    //             text: "Wait for it to sniff you and say hi",
-    //         }} />
-
-    //     );
+        typeof dialogueTemplate === 'function'
+            ? dialogueTemplate(dialogueData)
+            : dialogueData?.description ?? dialogueTemplate;
 
     const renderMultiSelect = () => (
         <>
-            <Text style={styles.text}>{title}</Text>
-            <Text style={styles.text}>{dialogue}</Text>
+            <Text style={styles.text}>{title ?? ''}</Text>
+            <Text style={styles.text}>{dialogue ?? ''}</Text>
             <ScrollView>
                 {Object.keys(options).map((id) => {
                     //  TODO make scroll list. pushes button off screen when > 8 options
@@ -92,15 +93,13 @@ const SelectModal = ({
         <BaseModal
             size="md"
             {...props} // overwrite with our close
+            backgroundColor={backgroundColor}
             onClose={close}
-            primaryButton={{
-                button: <Button onPress={complete}>Save</Button>,
-            }}
         >
             {renderMultiSelect()}
         </BaseModal>
     ) : (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: backgroundColor }]}>
             {renderMultiSelect()}
             <Button onPress={onClose} color="black">
                 <Text style={{ color: 'white' }}>

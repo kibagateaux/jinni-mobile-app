@@ -14,6 +14,7 @@ import {
     StorageValue,
     WidgetIds,
     HomeConfigMap,
+    WidgetDisplayTypes,
 } from 'types/UserConfig';
 // import { debug, track } from './logging';
 import { ItemIds } from 'types/GameMechanics';
@@ -124,12 +125,20 @@ export const itemAbilityToWidgetConfig = (provider: ItemIds, widgetId: WidgetIds
         provider,
         routeName: `/inventory/${provider}?widget=${widgetId}`,
         path: `/inventory/${provider}?widget=${widgetId}`,
-        displayType: 'home', // TODO i think assuming widget not ability is right here but might need to refactor. Wdigrets are getting sloppy af
+        displayType: widgetDisplayTypes[widgetId] ?? 'none', // TODO i think assuming widget not ability is right here but might need to refactor. Wdigrets are getting sloppy af
         title:
             widgetId.split('-').length === 1
                 ? widgetId
                 : widgetId.split('-').slice(1).map(capitalize).join(' '), // slice removes provider prefix from widget id
     };
+};
+
+const widgetDisplayTypes: { [widgetId: string]: WidgetDisplayTypes } = {
+    'stat-strength': 'home',
+    'stat-intelligence': 'home',
+    'stat-djinn': 'home',
+    'stat-community': 'home',
+    'stat-health': 'home',
 };
 
 // causes circular dependency with inventory item

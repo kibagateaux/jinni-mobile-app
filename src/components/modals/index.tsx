@@ -5,6 +5,7 @@ import { default as ItemEquipWizardModal, ItemEquipWizardModalProps } from './It
 import { default as CreateSpellbookModal } from './CreateSpellbookModal';
 import { default as GeneralTimeWarpModal } from './GeneralTimeWarpModal';
 import { useGameContent } from 'contexts/GameContentContext';
+import SelectJinniModal from './SelectJinniModal';
 export { BaseModal, ItemEquipWizardModal, CreateSpellbookModal };
 
 interface ModalRendererProps {
@@ -32,6 +33,8 @@ const ModalRenderer = (props: ModalRendererProps) => {
                     {...props}
                 />
             );
+        case 'select-jinni':
+            return <SelectJinniModal onClose={onClose} {...props} />;
         case 'create-spellbook':
             return <CreateSpellbookModal onClose={onClose} {...activeModal} {...props} />;
         default:

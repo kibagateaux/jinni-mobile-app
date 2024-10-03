@@ -5,12 +5,19 @@ import { Text, Modal, View, TouchableOpacity, StyleSheet, Button } from 'react-n
 interface ModalProps {
     children: React.JSX.Element;
     onClose?: (data?: unknown) => void;
+    backgroundColor?: string;
     primaryButton?: { button?: ReactNode; title?: string; onPress?: () => void };
     secondaryButton?: { button?: ReactNode; title?: string; onPress?: () => void };
 }
 
 // TODO would be nice to attach this to a provider.context so any component can call { setModal, renderModal } = useModal
-const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, secondaryButton }) => {
+const BaseModal: React.FC<ModalProps> = ({
+    children,
+    onClose,
+    backgroundColor = 'pink',
+    primaryButton,
+    secondaryButton,
+}) => {
     const [visible, setVisible] = useState(true);
     const theme = useTheme();
 
@@ -43,8 +50,9 @@ const BaseModal: React.FC<ModalProps> = ({ children, onClose, primaryButton, sec
             transparent={true}
             visible={visible}
             onRequestClose={closeModal}
+            style={{ backgroundColor }}
         >
-            <View style={[styles.contentContainer, styles.modalSize]}>
+            <View style={[styles.contentContainer, { backgroundColor }, styles.modalSize]}>
                 {children}
                 <View>
                     <View style={styles.ctaContainer}>

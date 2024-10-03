@@ -74,7 +74,7 @@ const WidgetContainer = ({
                 }),
             );
 
-        console.log('widgets selected for homepage', newSettings);
+        // console.log('widgets selected for homepage', newSettings);
         if (finalizeRenovation) {
             onRenovateEnd({ data: newSettings });
         }
@@ -91,8 +91,7 @@ const WidgetContainer = ({
 
     const onEditModeEnd = () => {
         setEditMode(false);
-        // undefined = use widgetConfig in homepage, false = overwrite storage
-        if (finalizeRenovation) finalizeRenovation({ widgets: [], merge: true });
+        if (finalizeRenovation) finalizeRenovation({ widgets: widgets, merge: false });
     };
 
     const renderRenovationMode = () => {
@@ -122,8 +121,6 @@ const WidgetContainer = ({
 
     const renderBaseMode = () => {
         // console.log('Widgi:base');
-        console.log('WidgiContainer:RenderBase:widgi', widgets, allWidgets);
-
         return (
             // <gesture={longPress}>
             <FlatList

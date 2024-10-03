@@ -9,12 +9,12 @@ import { defaultHomeConfig } from 'utils/config';
 // import { useNetworkState } from './useNetworkState';
 import { UpdateWidgetConfigParams } from 'types/api';
 
-const getActiveConfig = (activeJid: string, configs: HomeConfigMap): HomeConfig | undefined =>
+const getActiveConfig = (activeJid: string, configs: HomeConfigMap): HomeConfig | null =>
     Object.entries(configs).find(([jinniId, jConfig]: [string, HomeConfig]) => {
         console.log('finding config for active jinni', activeJid, jinniId, jConfig);
 
         if (jinniId === activeJid) return true;
-    })?.[1]; // return config but not jid
+    })?.[1] ?? null; // return config but not jid
 
 export const useHomeConfig = () => {
     const { player } = useAuth();
@@ -47,11 +47,11 @@ export const useHomeConfig = () => {
         // if(!isLoadingNetwork && useNetworkState().connection.isNoosphere && activeConfig.lastDiviTime > 5 days);
         if (!jid) return;
         if (allJinniConfig) {
-            getActiveConfig(jid, allJinniConfig ?? defaultHomeConfig['undefined']);
+            setHomeConfig(getActiveConfig(jid, allJinniConfig ?? defaultHomeConfig['undefined']));
             return;
         }
 
-        getHomeConfig(player?.id).then((configs) => {
+        getHomeConfig(player?.id, true).then((configs) => {
             const active = getActiveConfig(jid, configs);
             // set basic home config if none saved by player yet
             console.log('active config post api req: ', active);
@@ -61,5 +61,5 @@ export const useHomeConfig = () => {
     }, [jid, player, allJinniConfig]);
 
     // TODO feel like should return jid here since multi jinni per player now
-    return { config: activeConfig, save };
+    return { config: activeConfig, save, allJinniConfigs: allJinniConfig };
 };

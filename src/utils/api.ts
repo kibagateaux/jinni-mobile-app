@@ -5,11 +5,11 @@ import { ApiResponse, HomeConfigResponse, UpdateWidgetConfigParams } from 'types
 import {
     HOME_CONFIG_STORAGE_SLOT,
     ID_JINNI_SLOT,
-    ID_PLAYER_SLOT,
     PROOF_MALIKS_MAJIK_SLOT,
     getAppConfig,
     getNetworkState,
     getStorage,
+    itemAbilityToWidgetConfig,
     saveStorage,
 } from 'utils/config';
 import { getSpellBook } from 'utils/zkpid';
@@ -218,15 +218,10 @@ export const joinWaitlist = (): Promise<string | null> => {
         });
 };
 
-export const localSaveHomeConfig = async (jinniConfig: HomeConfigMap) =>
-    saveStorage<HomeConfigMap>(HOME_CONFIG_STORAGE_SLOT, jinniConfig, true);
+export const localSaveHomeConfig = async (jinniConfig: HomeConfigMap, merge = true) =>
+    saveStorage<HomeConfigMap>(HOME_CONFIG_STORAGE_SLOT, jinniConfig, merge);
 
-export const getHomeConfig = async (pid?: string): Promise<HomeConfigMap> => {
-    const customConfig = await getStorage<HomeConfigMap>(HOME_CONFIG_STORAGE_SLOT);
-    console.log('getHomeConfig local config', customConfig);
-    // console.log("custom config ", customConfig)
-    // can only login from app so all changes MUST be saved locally if they exist on db
-    if (!isEmpty(customConfig)) return customConfig!;
+export const getHomeConfig = async (pid?: string, forceRefresh = false): Promise<HomeConfigMap> => {
     // if not logged in then no reason to fetch custom config
 
     // no local config and no internet to make request. return nil
@@ -236,32 +231,41 @@ export const getHomeConfig = async (pid?: string): Promise<HomeConfigMap> => {
     console.log('getHomeConfig pid', pid);
     if (!pid) return {};
 
+    const customConfig = await getStorage<HomeConfigMap>(HOME_CONFIG_STORAGE_SLOT);
+    console.log('getHomeConfig local config', customConfig);
+    // console.log("custom config ", customConfig)
+    // can only login from app so all changes MUST be saved locally if they exist on db
+    if (!forceRefresh && !isEmpty(customConfig)) return customConfig!;
+
     return qu<ApiResponse<{ get_home_config: HomeConfigResponse[] }>>({
         query: QU_GET_PLAYER_CONFIG,
     })({ player_id: pid })
         .then((response) => {
-            if (response?.data?.get_home_config) {
+            console.log('Home:config:get: SUCC', response.data);
+            if (response?.data?.get_home_config.length) {
                 const jinniConfigs: HomeConfigMap = response.data.get_home_config.reduce(
                     (agg, j) => ({
                         ...agg,
                         [j.jinni_id]: {
                             summoner: j.summoner,
                             type: j.jinni_type,
-                            widgets: j.widgets,
+                            widgets: j.widgets.map((w) =>
+                                itemAbilityToWidgetConfig(w.provider, w.id),
+                            ),
                         },
                     }),
                     {},
                 );
                 console.log('Home:config:get: SUCC', pid, response.data, jinniConfigs);
 
-                return localSaveHomeConfig(jinniConfigs).then((config) => config);
+                return localSaveHomeConfig(jinniConfigs, false).then((config) => config);
             }
 
             return {}; // no player. return nil
         })
         .catch((error) => {
             console.log('Home:config:get: ERR ', error);
-            return {}; // no player. return nil
+            return customConfig; // couldn't load. fallback to old default
         });
 };
 
@@ -301,13 +305,16 @@ export const saveHomeConfig = async ({
         ...(config ?? {}),
     }));
 
-    const newConfig = (await localSaveHomeConfig({
-        [jinniId]: { ...(config?.[jinniId] ?? {}), widgets: mergedWidgets },
-    }))!;
+    const newConfig = (await localSaveHomeConfig(
+        {
+            [jinniId]: { ...(config?.[jinniId] ?? {}), widgets: mergedWidgets },
+        },
+        merge,
+    ))!;
     // TODO if mergedWidgets === newConfig. Dont send API request
 
     console.log('!!! new home config saved!!!', newConfig);
-    const playerId = await getStorage(ID_PLAYER_SLOT);
+    const playerId = (await getSpellBook()).address;
     console.log('utils:api:saveHomeConifg:playerId', playerId);
     if (!playerId) return newConfig; // should always exist now
 

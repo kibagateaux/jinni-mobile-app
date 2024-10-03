@@ -26,7 +26,7 @@ export interface HomeConfig {
 export interface HomeConfigMap {
     [jid: string]: HomeConfig;
 }
-type WidgetDisplayTypes = 'none' | 'avatar' | 'nav' | 'home';
+export type WidgetDisplayTypes = 'none' | 'avatar' | 'nav' | 'home';
 export interface WidgetConfig {
     id: WidgetIds;
     provider: ItemIds;

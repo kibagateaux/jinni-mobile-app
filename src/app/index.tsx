@@ -21,7 +21,6 @@ import {
     saveStorage,
 } from 'utils/config';
 import { debug } from 'utils/logging';
-import { magicRug } from 'utils/zkpid';
 import { Button } from '@rneui/themed';
 import { useActiveJinni } from 'hooks/useActiveJinni';
 import { UpdateWidgetConfigParams } from 'types/api';
@@ -31,10 +30,10 @@ const HomeScreen = () => {
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
     const [onboardingStage, setOnboardingStage] = useState<string>();
 
-    const { config: homeConfig, save: saveHomeConfig } = useHomeConfig();
-    const { setActiveModal } = useGameContent();
+    const { config: homeConfig, allJinniConfigs, save: saveHomeConfig } = useHomeConfig();
+    const { activeModal, setActiveModal } = useGameContent();
     const { player, isNPC, getSpellBook } = useAuth();
-    const { jid } = useActiveJinni();
+    const { jid, switchJinni } = useActiveJinni();
 
     const [appReady, setAppReady] = useState<boolean>(false);
     console.log('loading app....', player, appReady);
@@ -63,6 +62,15 @@ const HomeScreen = () => {
             setOnboardingStage(STAGE_AVATAR_CONFIG);
         }
     }, [onboardingStage]);
+
+    const switchi = useCallback(
+        (e: unknown) => {
+            const selected = Object.entries(e).find(([, val]) => !!val);
+            if (selected) switchJinni(selected[0]); // use jid of first selected jinni
+            setActiveModal(undefined);
+        },
+        [switchJinni, setActiveModal],
+    );
 
     // console.log('Home:widgi', widgetConfig);
 
@@ -176,7 +184,19 @@ const HomeScreen = () => {
     };
 
     const onIntentionPress = async () => {
-        if (__DEV__) await magicRug();
+        if (isMobile()) {
+            await Share.share({
+                title: 'Share your 🧞‍♂️ name with your friends',
+                message:
+                    'Here is my Jinni id. Add me to your summoning circle 😇' +
+                    '\n`' +
+                    player?.id +
+                    '`',
+            });
+        } else {
+            // TODO implement native flow e.g. taost w/ "copied to clipboard", FC frame, or some other desktop based UX
+        }
+
         // const now = new Date();
         // const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         // const startTime = oneDayAgo.toISOString(); // TODO last activity time
@@ -199,6 +219,21 @@ const HomeScreen = () => {
             </>
         );
 
+    if (activeModal?.name === 'select-jinni') {
+        const options = Object.entries(allJinniConfigs).reduce(
+            (agg, [k]) => ({
+                ...agg,
+                [k]: k === jid, // preselect the active jinni
+            }),
+            {},
+        );
+        return (
+            <>
+                <ModalRenderer options={options} onComplete={switchi} />
+            </>
+        );
+    }
+
     return (
         <View style={{ flex: 1 }}>
             <View style={styles.container}>
@@ -208,18 +243,7 @@ const HomeScreen = () => {
                             title={player?.id.slice(0, 18)}
                             type="clear"
                             onPress={async () => {
-                                if (isMobile()) {
-                                    await Share.share({
-                                        title: 'Share your 🧞‍♂️ name with your friends',
-                                        message:
-                                            'Here is my Jinni id. Add me to your summoning circle 😇' +
-                                            '\n`' +
-                                            player?.id +
-                                            '`',
-                                    });
-                                } else {
-                                    // TODO implement native flow e.g. taost w/ "copied to clipboard", FC frame, or some other desktop based UX
-                                }
+                                setActiveModal({ name: 'select-jinni' });
                             }}
                         />
                     )}
@@ -232,7 +256,9 @@ const HomeScreen = () => {
                         {isNPC ? (
                             <AvatarViewerDefault />
                         ) : (
-                            <AvatarViewer uri={`${getAppConfig().API_URL}/avatars/${jid}`} />
+                            <AvatarViewer
+                                uri={`${getAppConfig().API_URL}/avatars/${jid}?mode=view`}
+                            />
                         )}
                     </View>
 
