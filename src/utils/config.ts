@@ -13,11 +13,11 @@ import {
     StorageKey,
     StorageValue,
     WidgetIds,
-    HomeConfigMap,
     WidgetDisplayTypes,
 } from 'types/UserConfig';
 // import { debug, track } from './logging';
 import { ItemIds } from 'types/GameMechanics';
+import { ItemCollectionLog } from 'types/GameData';
 
 // import { qu } from './api';
 
@@ -141,89 +141,50 @@ const widgetDisplayTypes: { [widgetId: string]: WidgetDisplayTypes } = {
     'stat-health': 'home',
 };
 
-// causes circular dependency with inventory item
-// const defaultWidgetConfig = maliksMajik.item.widgets?.map((w) =>
-//     itemAbilityToWidgetConfig(w.provider, w.id as WidgetIds),
-// );
-const defaultWidgetConfig: WidgetConfig[] = [
-    {
-        id: 'stat-strength',
-        provider: 'MaliksMajik',
-        title: 'Strength',
-        routeName: '/stats/strength',
-        path: '/stats/strength',
-        displayType: 'home',
-    },
-    {
-        id: 'stat-intelligence',
-        provider: 'MaliksMajik',
-        title: 'Intelligence',
-        routeName: '/stats/intelligence',
-        path: '/stats/intelligence',
-        displayType: 'home',
-    },
-    {
-        id: 'stat-stamina',
-        provider: 'MaliksMajik',
-        title: 'Stamina',
-        routeName: '/stats/stamina',
-        path: '/stats/stamina',
-        displayType: 'home',
-    },
-    {
-        id: 'stat-spirit',
-        provider: 'MaliksMajik',
-        title: 'Spirit',
-        routeName: '/stats/spirit',
-        path: '/stats/spirit',
-        displayType: 'home',
-    },
-];
-
-const defaultTabConfig: WidgetConfig[] = [
-    {
-        id: 'home',
-        provider: 'MaliksMajik',
-        routeName: 'index',
-        title: 'Home',
-        path: '/',
-        displayType: 'nav',
-    },
-    {
-        id: 'inventory',
-        provider: 'MaliksMajik',
-        routeName: 'inventory',
-        title: 'inventory',
-        path: '/inventory',
-        displayType: 'nav',
-    },
-    // {
-    //     title: 'tzolkin',
-    //     id: 'tzolkin',
-    //     path: '/tzolkin',
-    // },
-    // {
-    //     title: '/auth',
-    //     id: 'auth-main',
-    //     path: '/auth',
-    //     // path: null, // dont display login
-    // },
-    // {
-    //     title: 'incantations',
-    //     id: 'Incantations',
-    //     path: '/incantations',
-    // },
-    // {
-    //     title: 'quests',
-    //     id: 'Quests',
-    //     path: '/quests',
-    // },
-    // {
-    //     title: 'transmissions',
-    //     id: 'Transmissions',
-    //     path: '/transmissions',
-    // },
-];
+// const defaultTabConfig: WidgetConfig[] = [
+//     {
+//         id: 'home',
+//         provider: 'MaliksMajik',
+//         routeName: 'index',
+//         title: 'Home',
+//         path: '/',
+//         displayType: 'nav',
+//     },
+//     {
+//         id: 'inventory',
+//         provider: 'MaliksMajik',
+//         routeName: 'inventory',
+//         title: 'inventory',
+//         path: '/inventory',
+//         displayType: 'nav',
+//     },
+// {
+//     title: 'tzolkin',
+//     id: 'tzolkin',
+//     path: '/tzolkin',
+// },
+// {
+//     title: '/auth',
+//     id: 'auth-main',
+//     path: '/auth',
+//     // path: null, // dont display login
+// },
+// {
+//     title: 'incantations',
+//     id: 'Incantations',
+//     path: '/incantations',
+// },
+// {
+//     title: 'quests',
+//     id: 'Quests',
+//     path: '/quests',
+// },
+// {
+//     title: 'transmissions',
+//     id: 'Transmissions',
+//     path: '/transmissions',
+// },
+// ];
 
 export const noConnection = {
     type: NetworkStateType.NONE,
@@ -287,15 +248,6 @@ export const getCached = memoize(
 const updateCache = (key: StorageKey, val: StorageValue) =>
     getCached.cache.set(JSON.stringify(key), val);
 
-export const defaultHomeConfig: HomeConfigMap = {
-    undefined: {
-        summoner: '',
-        jType: 'p2p',
-        widgets: defaultWidgetConfig,
-        tabs: defaultTabConfig,
-    },
-};
-
 export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<T | null> = async (
     slot,
     useMysticCrypt,
@@ -340,12 +292,14 @@ const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
 };
 
 export const getCookie = (slot: string) => {
-    const allCookies = document.cookie.split('; ');
+    const allCookies = document.cookie.split(';');
     const cookie = allCookies.find((c) => {
         const [name] = c.split('=');
         return name === slot;
     });
+    console.log('all cookies + ;', allCookies, document.cookie);
     // offset cookie vale by name + = to extract full cookie value include uris including '='
+    // @DEV this just returns value. mistmatch btw test env which returns metadata ;secure;expires 2026;strict
     return cookie ? cookie.slice(cookie?.indexOf('=') + 1, cookie.length) : null;
 };
 
@@ -391,7 +345,7 @@ export const saveStorage: <T>(
     // console.log('save store', key, value, shouldMerge);
     // eslint-ignore-next-line
     const existingVal = await getStorage<StorageValue>(key);
-
+    console.log('existing val in storage', existingVal);
     // do not merge if not requested or primitive types
     if (!shouldMerge || typeof value === 'string' || typeof value === 'number') {
         await _saveStorage(key, JSON.stringify(value));
@@ -449,6 +403,7 @@ const _saveStorage = async (slot: string, val: string): Promise<void> => {
     const expirationDate = new Date(2100, 0, 1).toUTCString();
     switch (Platform.OS) {
         case 'web':
+            console.log('test _saveStorage', Platform.OS, document.cookie);
             // Fully secured to this domain to prevent XSS/etc. attacks.
             document.cookie = `${slot}=${val};expires=${expirationDate};path=/;secure;samesite=strict`;
             return;
@@ -464,26 +419,26 @@ export const logLastDataQuery = ({
     itemId,
     activities,
     time,
-}: LogDataQueryProps): Promise<boolean> => {
+}: LogDataQueryProps): Promise<ItemCollectionLog | null> => {
     const ts = time ? time : new Date().toISOString();
     const acts = activities.reduce((agg, act) => ({ ...agg, [act]: ts }), {});
+    console.log('logging last actions on : ', itemId, ' acts: ', acts);
     // .any bc local storage will always be first, want to ensure it succeeds, but not block thread with await
-    return Promise.any([
-        saveStorage<object>(`${LAST_QUERIED_SLOT}_${itemId}`, acts, true),
-        // track(TRACK_DATA_QUERIED, {
-        //     itemId,
-        //     activities: acts,
-        // }),
-    ])
-        .then((success) => success)
-        .catch((errs) =>
-            errs.map(
-                async (err: unknown) => {
-                    console.log('storage:save:err: ', err);
-                },
-                // debug(err, {
-                //     tags: { analytics: true },
-                // }),
-            ),
-        );
+    // track(TRACK_DATA_QUERIED, {
+    //     itemId,
+    //     activities: acts,
+    //      activityType:  'completed'
+    // }),
+    return saveStorage<ItemCollectionLog>(LAST_QUERIED_SLOT, { [itemId]: ts }, true)
+        .then((success) => {
+            console.log('config:logLastQuery:save', success);
+            return success;
+        })
+        .catch((errs) => {
+            console.log('storage:save:err: ', errs);
+            // debug(err, {
+            //     tags: { analytics: true },
+            // }),
+            return null;
+        });
 };

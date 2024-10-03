@@ -29,7 +29,7 @@ import {
     AndroidHealthRecord,
     GetHealthDataProps,
     QueryAndroidHealthDataProps,
-} from 'types/HealthData';
+} from 'types/GameData';
 import { JsonMap } from '@segment/analytics-react-native';
 import { Platform } from 'react-native';
 

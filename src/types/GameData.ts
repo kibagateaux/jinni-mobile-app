@@ -1,5 +1,8 @@
 import { RecordResult } from 'react-native-health-connect/lib/typescript/types';
 
+export interface ItemCollectionLog {
+    [itemId: string]: string; // ISO UTC timestamp
+}
 // general format of health data query
 export interface GetHealthDataProps {
     activity?: string;

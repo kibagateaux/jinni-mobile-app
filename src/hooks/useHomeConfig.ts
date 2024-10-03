@@ -5,7 +5,6 @@ import { useAuth } from 'contexts';
 import { HomeConfig, HomeConfigMap } from 'types/UserConfig';
 import { saveHomeConfig } from 'utils/api';
 import { useActiveJinni } from './useActiveJinni';
-import { defaultHomeConfig } from 'utils/config';
 // import { useNetworkState } from './useNetworkState';
 import { UpdateWidgetConfigParams } from 'types/api';
 
@@ -47,7 +46,7 @@ export const useHomeConfig = () => {
         // if(!isLoadingNetwork && useNetworkState().connection.isNoosphere && activeConfig.lastDiviTime > 5 days);
         if (!jid) return;
         if (allJinniConfig) {
-            setHomeConfig(getActiveConfig(jid, allJinniConfig ?? defaultHomeConfig['undefined']));
+            setHomeConfig(getActiveConfig(jid, allJinniConfig));
             return;
         }
 

@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import AppleHealthKit, { HealthValue, HealthKitPermissions } from 'react-native-health';
 import { InventoryIntegration, HoF, InventoryItem } from 'types/GameMechanics';
-import { QueryIosHealthDataProps } from 'types/HealthData';
+import { QueryIosHealthDataProps } from 'types/GameData';
 
 import { DjinnStat, HealthStat, IntelligenceStat } from 'types/GameMechanics';
 

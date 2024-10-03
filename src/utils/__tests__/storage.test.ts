@@ -10,9 +10,12 @@ import {
     getNetworkState,
     parseNetworkState,
     noConnection,
+    logLastDataQuery,
+    LAST_QUERIED_SLOT,
 } from 'utils/config';
 
 import { getHomeConfig } from 'utils/api';
+import { ItemCollectionLog } from 'types/GameData';
 
 jest.mock('expo-secure-store');
 
@@ -39,38 +42,38 @@ beforeEach(() => {
 // TODO add .ios and .android to file name. Create storage.test.web.ts, copy tests, and check against cookies not local storage
 describe('Storage caching', () => {
     it('updates cache on local storage save', async () => {
-        expect(await getCached({ slot: 'test' })).toBe(null);
+        expect(await getCached({ slot: 'test' })).toEqual(null);
         await saveStorage('test', 'cacheVal');
-        expect(await getCached({ slot: 'test' })).toBe('cacheVal');
+        expect(await getCached({ slot: 'test' })).toEqual('cacheVal');
     });
 
     it('updates cache on secure storage save', async () => {
-        expect(await getCached({ slot: 'test', secure: true })).toBe(null);
+        expect(await getCached({ slot: 'test', secure: true })).toEqual(null);
         await saveMysticCrypt('test', 'cacheVal');
-        expect(await getCached({ slot: 'test', secure: true })).toBe('cacheVal');
+        expect(await getCached({ slot: 'test', secure: true })).toEqual('cacheVal');
     });
 
     it('cache equals local storage', async () => {
-        expect(await getCached({ slot: 'test' })).toBe(null);
+        expect(await getCached({ slot: 'test' })).toEqual(null);
         await saveStorage('test', 'cacheVal');
         mockAsyncStorage.getItem.mockResolvedValueOnce('cacheVal');
-        expect(await getCached({ slot: 'test' })).toBe(await getStorage('test'));
+        expect(await getCached({ slot: 'test' })).toEqual(await getStorage('test'));
     });
 
     it('cache equals secure storage', async () => {
-        expect(await getCached({ slot: 'test', secure: true })).toBe(null);
+        expect(await getCached({ slot: 'test', secure: true })).toEqual(null);
         await saveMysticCrypt('test', 'cacheVal');
         mockMysticCrypt.getItemAsync.mockResolvedValueOnce('cacheVal');
-        expect(await getCached({ slot: 'test', secure: true })).toBe(
+        expect(await getCached({ slot: 'test', secure: true })).toEqual(
             await getStorage('test', true),
         );
     });
 
     it('false/undefined secure are different cache keys', async () => {
-        expect(await getCached({ slot: 'test' })).toBe(null);
+        expect(await getCached({ slot: 'test' })).toEqual(null);
         await saveStorage('test', 'cacheVal');
-        expect(await getCached({ slot: 'test' })).toBe('cacheVal');
-        expect(await getCached({ slot: 'test', secure: false })).toBe(null);
+        expect(await getCached({ slot: 'test' })).toEqual('cacheVal');
+        expect(await getCached({ slot: 'test', secure: false })).toEqual(null);
     });
 });
 
@@ -82,7 +85,7 @@ describe('Offline first functionality', () => {
 
         it('returns default if not logged in', () => {
             return getHomeConfig().then((config) => {
-                expect(config).toEqual({});
+                expect(config).toStrictEqual({});
             });
         });
 
@@ -94,9 +97,14 @@ describe('Offline first functionality', () => {
             });
         });
 
-        it('returns local custom config if stored', async () => {
+        it('returns default if no player logged in', async () => {
             await saveStorage(HOME_CONFIG_STORAGE_SLOT, weirdHomeConfig);
-            expect(await getHomeConfig()).toEqual(weirdHomeConfig);
+            expect(await getHomeConfig()).toEqual({});
+        });
+
+        it('returns local custom config if stored with player registered', async () => {
+            await saveStorage(HOME_CONFIG_STORAGE_SLOT, weirdHomeConfig);
+            expect(await getHomeConfig('myplayer')).toEqual(weirdHomeConfig);
         });
 
         it('returns remote config if logged in and no local save', async () => {
@@ -206,6 +214,13 @@ describe('Offline first functionality', () => {
                 ]);
             });
 
+            it('uses defaultVal when merging with empty existing value', async () => {
+                expect(await saveStorage('defaultKey', ['new'], true, ['default'])).toEqual([
+                    'default',
+                    'new',
+                ]);
+            });
+
             it('overwrites existing array value if requested', async () => {
                 expect(await saveStorage('test', ['test'])).toEqual(['test']);
                 expect(await saveStorage('test', ['test2'], false, ['badtest'])).toEqual(['test2']);
@@ -237,6 +252,13 @@ describe('Offline first functionality', () => {
                 expect(await saveStorage('test', { test2: 1 }, false, { badtest: 1 })).toEqual({
                     test2: 1,
                 });
+            });
+
+            it('handles errors during save operation', async () => {
+                // mockAsyncStorage.setItem.mockRejectedValueOnce(new Error('Save failed'));
+                console.log = jest.fn();
+                await saveStorage(']*', '{[{[]}]}');
+                expect(await getStorage(']*')).toEqual('{[{[]}]}');
             });
         });
     });
@@ -298,8 +320,119 @@ describe('Saving to secure storage', () => {
         mockMysticCrypt.getItemAsync.mockResolvedValueOnce('test2');
         expect(await getStorage('test', true)).toEqual('test2');
     });
+});
 
-    describe('Web local first functionality', () => {
-        describe('uses cookies instead of local storage', () => {});
+describe('logLastDataQuery', () => {
+    beforeEach(() => {
+        jest.useFakeTimers().setSystemTime(new Date('2023-01-01T12:00:00Z'));
+        mockAsyncStorage.getItem.mockClear();
+        mockAsyncStorage.getItem.mockResolvedValue(null);
+        mockMysticCrypt.getItemAsync.mockClear();
+        mockMysticCrypt.getItemAsync.mockResolvedValue(null);
+        getCached.cache.set(JSON.stringify({ slot: 'test' }), null);
+        getCached.cache.set(JSON.stringify({ slot: 'test', secure: true }), null);
+        getCached.cache.set(JSON.stringify({ slot: 'test', secure: false }), null);
+    });
+
+    it('returned all providers lastQueried storage value', async () => {
+        const result = await logLastDataQuery({
+            itemId: 'testItem',
+            playerId: 'test',
+            activities: ['act1', 'act2'],
+            time: '2023-01-01T00:00:00Z',
+        });
+
+        expect(result).toStrictEqual({
+            testItem: '2023-01-01T00:00:00Z',
+        });
+
+        console.log('result ', result);
+
+        const result2 = await logLastDataQuery({
+            itemId: 'testItem2',
+            playerId: 'test2',
+            activities: ['act1', 'act2'],
+            time: '2023-01-01T00:00:00Z',
+        });
+
+        expect(result2).toStrictEqual({
+            testItem: '2023-01-01T00:00:00Z',
+            testItem2: '2023-01-01T00:00:00Z',
+        });
+
+        expect(await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT)).toStrictEqual({
+            testItem: '2023-01-01T00:00:00Z',
+            testItem2: '2023-01-01T00:00:00Z',
+        });
+        expect((await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT))!['testItem']).toStrictEqual(
+            '2023-01-01T00:00:00Z',
+        );
+        expect(
+            (await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT))!['testItem2'],
+        ).toStrictEqual('2023-01-01T00:00:00Z');
+    });
+
+    it('saves query data and returns true on success', async () => {
+        const result = await logLastDataQuery({
+            itemId: 'testItem',
+            playerId: 'test',
+            activities: ['act1', 'act2'],
+            time: '2023-01-01T00:00:00Z',
+        });
+
+        expect(result).toStrictEqual({
+            testItem: '2023-01-01T00:00:00Z',
+        });
+        expect((await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT))!['testItem']).toStrictEqual(
+            '2023-01-01T00:00:00Z',
+        );
+    });
+
+    it('uses current time if not provided', async () => {
+        const result = await logLastDataQuery({
+            itemId: 'testItem2',
+            playerId: 'test',
+            activities: ['act3'],
+        });
+
+        expect(result).toStrictEqual({
+            testItem2: '2023-01-01T12:00:000Z',
+        });
+        expect(
+            (await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT))!['testItem2'],
+        ).toStrictEqual('2023-01-01T12:00:000Z');
+    });
+
+    it('merges new activities with existing ones', async () => {
+        await saveStorage<ItemCollectionLog>(
+            LAST_QUERIED_SLOT,
+            { existingAct: '2023-01-01T00:00:00Z' },
+            false,
+        );
+        await logLastDataQuery({
+            itemId: 'mergeItem',
+            playerId: 'test',
+            activities: ['newAct'],
+            time: '2023-01-02T00:00:00Z',
+        });
+
+        const updated = await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT);
+
+        expect(updated!['mergeItem']).toStrictEqual('2023-01-02T00:00:00Z');
+        expect(updated).toStrictEqual({
+            existingAct: '2023-01-01T00:00:00Z',
+            mergeItem: '2023-01-02T00:00:00Z',
+        });
+    });
+
+    it('handles errors and logs them', async () => {
+        mockAsyncStorage.setItem.mockRejectedValueOnce(new Error('Save failed'));
+        console.log = jest.fn();
+        await logLastDataQuery({
+            itemId: 'errorItem',
+            playerId: 'test',
+            activities: ['errorAct'],
+        });
+        expect(console.log).toHaveBeenCalledWith('storage:save:err: ', expect.any(Error));
     });
 });

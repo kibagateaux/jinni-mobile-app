@@ -7,7 +7,7 @@ import {
     ID_JINNI_SLOT,
     PROOF_MALIKS_MAJIK_SLOT,
     getAppConfig,
-    getNetworkState,
+    // getNetworkState,
     getStorage,
     itemAbilityToWidgetConfig,
     saveStorage,
@@ -225,8 +225,8 @@ export const getHomeConfig = async (pid?: string, forceRefresh = false): Promise
     // if not logged in then no reason to fetch custom config
 
     // no local config and no internet to make request. return nil
-    // TODO doesnt work on web
-    if (!(await getNetworkState()).isNoosphere) return {};
+    // TODO doesnt work on tests OR web yet
+    // if (!(await getNetworkState()).isNoosphere) return {};
 
     console.log('getHomeConfig pid', pid);
     if (!pid) return {};
