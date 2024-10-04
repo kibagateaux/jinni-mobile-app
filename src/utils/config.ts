@@ -267,7 +267,11 @@ export const getStorage: <T>(slot: string, useMysticCrypt?: boolean) => Promise<
         const val = await _getStorage(slot, useMysticCrypt);
         console.log('get storage 2 - slot + val', slot, val);
         console.log('get storage 2 - slot + val', JSON.stringify(val));
-        return val ? JSON.parse(val) : null;
+        try {
+            return val ? JSON.parse(val) : null;
+        } catch (e) {
+            return val; // failed to parse json. return normal primitive value
+        }
     } catch (e: unknown) {
         console.log('storage:get:err', e);
         // debug(e, {
@@ -372,7 +376,7 @@ export const saveStorage: <T>(
                     : concat(defaultVal ?? [], value);
 
                 await _saveStorage(key, JSON.stringify(newVal));
-                updateCache({ slot: key }, value);
+                updateCache({ slot: key }, newVal);
                 return newVal;
             } else {
                 console.log(
@@ -386,7 +390,7 @@ export const saveStorage: <T>(
                     : merge(defaultVal ?? {}, value);
 
                 await _saveStorage(key, JSON.stringify(newVal));
-                updateCache({ slot: key }, value);
+                updateCache({ slot: key }, newVal);
                 return newVal;
             }
         }
