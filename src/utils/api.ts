@@ -205,6 +205,23 @@ export const MU_SET_WIDGET = `
     }
 `;
 
+export const QU_PROVIDER_ID = cleanGql(`
+    mutation sync_provider_id(
+        $verification: SignedRequest,
+        $provider: String!,
+        $player_id: String!
+    ) {
+        sync_provider_id(
+            verification: $verification, 
+            provider: $provider,
+            player_id: $player_id
+        )
+    }
+`);
+export const quProviderId = qu<ApiResponse<{ sync_provider_id: string }>>({
+    mutation: QU_PROVIDER_ID,
+});
+
 export const joinWaitlist = (): Promise<string | null> => {
     return qu<ApiResponse<{ jinni_waitlist_npc: string }>>({ mutation: MU_WAITLIST_NPC })({})
         .then((newJid) => {

@@ -134,7 +134,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier src/ --config .prettierrc --write --ignore-unknown",
-      "eslint src/ --fix .eslintrc.js"
+      "eslint src/ --fix --no-cache .eslintrc.js"
     ]
   },
   "react-native": {

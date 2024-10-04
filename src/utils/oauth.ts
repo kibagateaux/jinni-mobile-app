@@ -12,11 +12,10 @@ import {
     getStorage,
     saveStorage,
 } from './config';
-import { cleanGql, qu } from './api';
+import { quProviderId } from './api';
 import { getSpellBook } from './zkpid';
 import { obj } from 'types/UserConfig';
 import { randomUUID } from 'expo-crypto';
-import { ApiResponse } from 'types/api';
 
 // allows the web browser to close correctly when using universal login on mobile
 WebBrowser.maybeCompleteAuthSession();
@@ -94,21 +93,6 @@ export const generateRedirectState = async (provider: OAuthProviderIds): Promise
     return state;
 };
 
-export const QU_PROVIDER_ID = cleanGql(`
-    mutation sync_provider_id(
-        $verification: SignedRequest,
-        $provider: String!,
-        $player_id: String!
-    ) {
-        sync_provider_id(
-            verification: $verification, 
-            provider: $provider,
-            player_id: $player_id
-        )
-    }
-`);
-const quProviderId = qu<ApiResponse<{ sync_provider_id: string }>>({ mutation: QU_PROVIDER_ID });
-
 // frequent helper functions + extra caching
 /**
  * @description fetches the players id on integrations platform to use in abilities and widgets
@@ -120,15 +104,22 @@ const quProviderId = qu<ApiResponse<{ sync_provider_id: string }>>({ mutation: Q
 export const getProviderId = async ({ playerId, provider }: obj): Promise<string | null> => {
     const cached = (await getStorage<obj>(ID_PROVIDER_IDS_SLOT))?.[provider];
     console.log('util:oauth:getProviderId:cached', cached);
-    if (cached) return cached;
+    if (cached && cached === playerId) return cached;
     try {
         const response = await quProviderId({ player_id: playerId, provider });
-        console.log('util:oauth:getProviderId:res', response.data);
+        // console.log('util:oauth:getProviderId:res', response.data);
         const id = response?.data ? response.data.sync_provider_id : null;
         console.log('util:oauth:getProviderId', response, id);
-        id &&
-            playerId === (await getStorage<string>(ID_PLAYER_SLOT)) &&
-            (await saveStorage(ID_PROVIDER_IDS_SLOT, { [provider]: id }, true));
+
+        if (id && playerId === (await getStorage<string>(ID_PLAYER_SLOT))) {
+            console.log(
+                'util:oauth:getProviderId:synced players provider id. saving locally',
+                provider,
+                playerId,
+                id,
+            );
+            await saveStorage(ID_PROVIDER_IDS_SLOT, { [provider]: id }, true);
+        }
         // asssume local save always succeeds
         return id;
     } catch (e) {
