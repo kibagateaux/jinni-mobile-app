@@ -41,6 +41,10 @@ beforeEach(() => {
 
 // TODO add .ios and .android to file name. Create storage.test.web.ts, copy tests, and check against cookies not local storage
 describe('Storage caching', () => {
+    it('returns null for non-existent cache entries', async () => {
+        expect(await getCached({ slot: 'nonexistent' })).toBe(null);
+    });
+
     it('updates cache on local storage save', async () => {
         expect(await getCached({ slot: 'test' })).toEqual(null);
         await saveStorage('test', 'cacheVal');
@@ -69,11 +73,18 @@ describe('Storage caching', () => {
         );
     });
 
-    it('false/undefined secure are different cache keys', async () => {
+    it('secure = false vs undefined are different cache keys', async () => {
         expect(await getCached({ slot: 'test' })).toEqual(null);
         await saveStorage('test', 'cacheVal');
         expect(await getCached({ slot: 'test' })).toEqual('cacheVal');
         expect(await getCached({ slot: 'test', secure: false })).toEqual(null);
+    });
+
+    it('differentiates between secure and non-secure cache entries', async () => {
+        getCached.cache.set(JSON.stringify({ slot: 'test', secure: true }), 'secureValue');
+        getCached.cache.set(JSON.stringify({ slot: 'test', secure: false }), 'nonSecureValue');
+        expect(await getCached({ slot: 'test', secure: true })).toBe('secureValue');
+        expect(await getCached({ slot: 'test', secure: false })).toBe('nonSecureValue');
     });
 });
 
@@ -159,7 +170,7 @@ describe('Offline first functionality', () => {
     });
 
     describe('Local storage utility functions', () => {
-        describe('get storage', () => {
+        describe('getStorage', () => {
             it('allows retrieving any key from storage', async () => {
                 expect(await getStorage('test')).toEqual(null);
                 expect(await saveStorage('test2', 'test2')).toEqual('test2');
@@ -169,6 +180,27 @@ describe('Offline first functionality', () => {
             it('parses json from storage automatically', async () => {
                 expect(await saveStorage('test', ['test'])).toEqual(['test']);
                 expect(await getStorage('test')).toEqual(['test']);
+            });
+
+            it('returns null for empty slot', async () => {
+                expect(await getStorage('')).toBe(null);
+            });
+
+            it('returns cached value if available', async () => {
+                getCached.cache.set(JSON.stringify({ slot: 'cachedSlot' }), 'cachedValue');
+                expect(await getStorage('cachedSlot')).toBe('cachedValue');
+            });
+
+            it('retrieves value from AsyncStorage for non-secure storage on mobile', async () => {
+                mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify('mobileValue'));
+                expect(await getStorage('mobileSlot')).toBe('mobileValue');
+            });
+
+            it('retrieves value from expo-secure-store for secure storage on mobile', async () => {
+                mockMysticCrypt.getItemAsync.mockResolvedValueOnce(JSON.stringify('secureValue'));
+                // mockMysticCrypt.getItemAsync.mockResolvedValueOnce('secureValue');
+                await saveMysticCrypt('secureSlot', 'secureValue');
+                expect(await getStorage('secureSlot', true)).toBe('secureValue');
             });
         });
 
@@ -323,15 +355,9 @@ describe('Saving to secure storage', () => {
 });
 
 describe('logLastDataQuery', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.useFakeTimers().setSystemTime(new Date('2023-01-01T12:00:00Z'));
-        mockAsyncStorage.getItem.mockClear();
-        mockAsyncStorage.getItem.mockResolvedValue(null);
-        mockMysticCrypt.getItemAsync.mockClear();
-        mockMysticCrypt.getItemAsync.mockResolvedValue(null);
-        getCached.cache.set(JSON.stringify({ slot: 'test' }), null);
-        getCached.cache.set(JSON.stringify({ slot: 'test', secure: true }), null);
-        getCached.cache.set(JSON.stringify({ slot: 'test', secure: false }), null);
+        await saveStorage<ItemCollectionLog>(LAST_QUERIED_SLOT, {}, false);
     });
 
     it('returned all providers lastQueried storage value', async () => {
@@ -360,16 +386,13 @@ describe('logLastDataQuery', () => {
             testItem2: '2023-01-01T00:00:00Z',
         });
 
-        expect(await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT)).toStrictEqual({
+        const updated = await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT);
+        expect(updated).toStrictEqual({
             testItem: '2023-01-01T00:00:00Z',
             testItem2: '2023-01-01T00:00:00Z',
         });
-        expect((await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT))!['testItem']).toStrictEqual(
-            '2023-01-01T00:00:00Z',
-        );
-        expect(
-            (await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT))!['testItem2'],
-        ).toStrictEqual('2023-01-01T00:00:00Z');
+        expect(updated!['testItem']).toStrictEqual('2023-01-01T00:00:00Z');
+        expect(updated!['testItem2']).toStrictEqual('2023-01-01T00:00:00Z');
     });
 
     it('saves query data and returns true on success', async () => {
@@ -396,11 +419,11 @@ describe('logLastDataQuery', () => {
         });
 
         expect(result).toStrictEqual({
-            testItem2: '2023-01-01T12:00:000Z',
+            testItem2: '2023-01-01T12:00:00.000Z',
         });
         expect(
             (await getStorage<ItemCollectionLog>(LAST_QUERIED_SLOT))!['testItem2'],
-        ).toStrictEqual('2023-01-01T12:00:000Z');
+        ).toStrictEqual('2023-01-01T12:00:00.000Z');
     });
 
     it('merges new activities with existing ones', async () => {

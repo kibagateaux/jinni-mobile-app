@@ -22,6 +22,7 @@ describe('Storage caching', () => {
     const valueMetadata = `;expires=${expirationDate};path=/;secure;samesite=strict`;
 
     beforeEach(() => {
+        delete document.cookie;
         document.cookie = '';
     });
 
@@ -71,10 +72,9 @@ describe('Storage caching', () => {
                 // document.cookie = 'slot2=value2';
                 await saveStorage('slot2', 'value2');
 
-                saveStorage('slot2', 'value2');
                 expect(JSON.parse(getCookie('slot2')!)).toEqual('value2');
 
-                document.cookie = document.cookie + ';slot10=value20;';
+                document.cookie = document.cookie + ';slot10="value20";';
                 // await saveStorage('slot10', 'value20')
                 expect(JSON.parse(getCookie('slot2')!)).toEqual('value2');
                 expect(JSON.parse(getCookie('slot10')!)).toEqual('value20');
@@ -86,7 +86,7 @@ describe('Storage caching', () => {
 
             it('handles slots with special characters', async () => {
                 await saveStorage('complex@Slot', 'complexValue');
-                expect(JSON.parse(getCookie('complex@S)lot')!)).toEqual('complexValue');
+                expect(JSON.parse(getCookie('complex@Slot')!)).toEqual('complexValue');
             });
 
             it('returns null for non-existent cookie', () => {
@@ -102,7 +102,7 @@ describe('Storage caching', () => {
                 it('getStorage returns same value as getCookie for string', async () => {
                     await saveStorage('matchSlot', 'matchValue');
                     const storageValue = await getStorage('matchSlot');
-                    expect(storageValue).toEqual(getCookie('matchSlot'));
+                    expect(storageValue).toEqual(JSON.parse(getCookie('matchSlot')!));
                 });
 
                 it('getStorage returns parsed object matching getCookie', async () => {
