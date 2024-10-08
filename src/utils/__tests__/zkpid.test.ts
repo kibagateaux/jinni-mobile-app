@@ -13,12 +13,7 @@ import {
 import { Wallet, providers } from 'ethers';
 import { Identity } from '@semaphore-protocol/identity';
 
-// const originalEnv = process.env.NODE_ENV;
 Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', writable: true });
-// jest.mock('../config', () => ({
-//     getStorage: jest.fn(),
-//     saveStorage: jest.fn(async (s) => s),
-// }));
 
 describe('zkpid, Anonymous Authentication and Zero-Knowledge Proofs', () => {
     beforeEach(async () => {
