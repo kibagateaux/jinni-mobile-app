@@ -301,7 +301,7 @@ export const getCookie = (slot: string) => {
         const [name] = c.split('=');
         return name === slot;
     });
-    console.log('all cookies + ;', allCookies, document.cookie);
+    // console.log('all cookies + ;', allCookies, document.cookie);
     // offset cookie vale by name + = to extract full cookie value include uris including '='
     // @DEV this just returns value. mistmatch btw test env which returns metadata ;secure;expires 2026;strict
     return cookie ? cookie.slice(cookie?.indexOf('=') + 1, cookie.length) : null;

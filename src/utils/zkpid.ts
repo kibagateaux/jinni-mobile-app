@@ -120,7 +120,7 @@ const groupMaliksMajik = new Group(groupIds['MaliksMajikGroup'], 18);
 // Mastrer Djinn group is all players blessed with Malik's Majik to play the game, traverse portal and bond to jinn
 
 // helper func to format BigInts from Idenity for JSON
-const toObject = (thing: Identity) => {
+export const toObject = (thing: Identity) => {
     groupMaliksMajik;
     return JSON.parse(
         JSON.stringify(

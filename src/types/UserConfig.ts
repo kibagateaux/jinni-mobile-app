@@ -13,7 +13,10 @@ export interface StorageKey {
 
 export type obj = { [key: string]: string };
 export type StorageValue = string | number | object | Identity | undefined | null;
-
+export interface ErrorFormat {
+    error: string;
+}
+export type Errorable<T> = Promise<T | void | ErrorFormat>;
 export interface HomeConfig {
     summoner: string; // 0x address
     lastDiviTime?: string; // iso timestamp of last :Divination action

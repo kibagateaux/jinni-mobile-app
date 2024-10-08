@@ -52,4 +52,18 @@ describe('item inventory', () => {
             expect(hasProof2[MALIKS_MAJIK_CARD]).toEqual('heythingy2');
         });
     });
+
+    describe('equip', () => {
+        // returns error messages on invalid
+        // returns error message if api returns no jid
+        // returns
+    });
+
+    describe('ability joinCircle', () => {
+        // only need two tests
+        // one prove equivalence of equip and joinCircle
+        // one show any signer works for circle jubmoji. doesnt have to be master jinnn
+    });
+
+    describe('ability activateJinni', () => {});
 });

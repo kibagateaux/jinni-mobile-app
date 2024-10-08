@@ -5,13 +5,14 @@ import { execHaloCmdWeb } from '@arx-research/libhalo/api/web.js';
 import { debug } from './logging';
 import { JubJubSigResponse } from 'types/GameMechanics';
 import { ethers } from 'ethers';
+import { Errorable } from 'types/UserConfig.js';
 
 interface BrowserWalletSignResult {
     signature: string;
     address: string;
 }
 
-const signWithBrowserWallet = async (message: string): Promise<BrowserWalletSignResult | null> => {
+const signWithBrowserWallet = async (message: string): Errorable<BrowserWalletSignResult> => {
     try {
         if (typeof window.ethereum !== 'undefined') {
             await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -19,35 +20,32 @@ const signWithBrowserWallet = async (message: string): Promise<BrowserWalletSign
             const signer = provider.getSigner();
             const signature = await signer.signMessage(message);
             const address = await signer.getAddress();
+
             return { signature, address };
         } else {
             console.warn('No Ethereum wallet detected');
-            return null;
+            return { error: 'No Ethereum wallet detected' };
         }
     } catch (error) {
         console.error('Error signing with browser wallet:', error);
-        return null;
+        return { error: 'Browser wallet signature failed' };
     }
 };
 
-const fallbackToWalletSignature = async (
-    id: string | Identity,
-): Promise<JubJubSigResponse | null> => {
+const fallbackToWalletSignature = async (id: string | Identity): Errorable<JubJubSigResponse> => {
     const msg = typeof id === 'string' ? id : id._commitment;
     const result = await signWithBrowserWallet(msg);
     console.log('utils:zkpid:web:wallet fallback', result);
-
-    if (result) {
-        return {
-            signature: {
-                ether: result.signature,
-                der: '',
-                raw: { v: 28, s: '', r: '' },
-            },
-            etherAddress: result.address,
-        };
-    }
-    return null;
+    if (!result) return { error: 'Wallet failed to sign' };
+    if (result.error) return result;
+    return {
+        signature: {
+            ether: result.signature,
+            der: '',
+            raw: { v: 28, s: '', r: '' },
+        },
+        etherAddress: result.address,
+    };
 };
 
 /** TODO figure out return types from HaLo lib
@@ -85,7 +83,11 @@ export const signWithId = async (id: string | Identity): Promise<JubJubSigRespon
         });
 
         console.log('utils:zkpid:web:signWithId:nfcResult: ', result);
-        return result ? result : fallbackToWalletSignature(id);
+        const web = fallbackToWalletSignature(id);
+        if (result) return result;
+        // TODO should return NFC error if exists? and no valid result
+        // if(web.error) return result;
+        return web;
     } catch (err) {
         console.warn('utils:zkpid:web signing error', err);
 

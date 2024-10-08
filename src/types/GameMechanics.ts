@@ -1,3 +1,5 @@
+import { Errorable } from './UserConfig';
+
 export interface Avatar {
     id: string;
     name?: string; // TODO username
@@ -227,7 +229,7 @@ export interface ItemAbility {
     displayType: 'home' | 'none';
     status?: ItemStatus; // if undefined, call canDo() to get value and store to local object
     canDo: (status: ItemStatus) => Promise<ItemStatus>; // checks if action can be done right now with current item status
-    do: <T>(params?: T) => Promise<boolean>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
+    do: <T>(params?: T) => Errorable<boolean>; // do sets up initial action e.g. querying item's api and returns a function for user to act after setup
     getOptions?: <T>() => Promise<T[] | void>; // settings for player to select before calling do()
 }
 
@@ -238,7 +240,7 @@ export interface InventoryIntegration {
     checkEligibility: () => Promise<boolean>;
     getPermissions: () => Promise<boolean>;
     initPermissions: () => Promise<boolean>;
-    equip: (helper?: HoF) => Promise<boolean>;
+    equip: (helper?: HoF) => Errorable<boolean>;
     unequip: (helper?: HoF) => Promise<boolean>;
 }
 

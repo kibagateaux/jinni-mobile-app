@@ -80,14 +80,14 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     // hooks for items that require 3rd party authentication
     // TODO break functionality into actual separate components to shard state and prevent rerenders
     // primarly <ItemActionbutton>, <ItemActiveAbilities>, <ItemWidgets> all have completely separate data reqs
-    const [itemOauthConfig, setItemOauth] = useState<OAuthProvider>(oauthConfigs.undefined);
+    const [itemOauthConfig, setItemOauth] = useState<OAuthProvider | null>(null);
     // console.log('Item: oauth', itemOauthConfig, request, response);
     const [request /* response */, , promptAsync] = useAuthRequest(
         {
-            clientId: itemOauthConfig.clientId,
-            scopes: itemOauthConfig.scopes,
+            clientId: itemOauthConfig?.clientId,
+            scopes: itemOauthConfig?.scopes,
             redirectUri: `${createOauthRedirectURI()}?provider=${item?.id}`,
-            state: itemOauthConfig.state,
+            state: itemOauthConfig?.state,
             usePKCE: false,
         },
         itemOauthConfig,
@@ -113,7 +113,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
     // TODO render loading screen when oauth items are generating redirect.
     // OR ideally delay oauth state generation until equip()
-    // if (itemOauthConfig && !itemOauthConfig.state) setActiveModal({ name: 'create-spellbook' })
+    // if (itemOauthConfig && !itemOauthConfig?.state) setActiveModal({ name: 'create-spellbook' })
 
     if (loading) return <ActivityIndicator animating size="large" />;
 
@@ -127,19 +127,24 @@ const ItemPage: React.FC<ItemPageProps> = () => {
     const onOauthFlowComplete = () =>
         setTimeout(
             () =>
-                getProviderId({ playerId: player!.id, provider: id })
-                    .then((providerId) => {
-                        if (providerId) {
-                            console.log('oauth flow success. player id on provider', providerId);
-                            setItemStatus(id, 'equipped');
-                        } else {
-                            setItemStatus(id, 'unequipped');
-                        }
-                    })
-                    .catch((e) => {
-                        console.log('oauth flow error', e);
-                        setItemStatus(id, 'unequipped');
-                    }),
+                !player
+                    ? null
+                    : getProviderId({ playerId: player.id, provider: id })
+                          .then((providerId) => {
+                              if (providerId) {
+                                  console.log(
+                                      'oauth flow success. player id on provider',
+                                      providerId,
+                                  );
+                                  setItemStatus(id, 'equipped');
+                              } else {
+                                  setItemStatus(id, 'unequipped');
+                              }
+                          })
+                          .catch((e) => {
+                              console.log('oauth flow error', e);
+                              setItemStatus(id, 'unequipped');
+                          }),
             1000,
         );
 
@@ -162,7 +167,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
                 // TODO should we add tags to items for different callback types and UI filtering?
                 // or just a single, optional callback func that handles everything for equip?
-                if (itemOauthConfig.authorizationEndpoint && request) {
+                if (itemOauthConfig?.authorizationEndpoint && request) {
                     const result = await item.equip(promptAsync);
                     // on web oauth handled in response effect separately bc more granular info by expo-auth
                     console.log('oauth equip result', result);
@@ -174,13 +179,26 @@ const ItemPage: React.FC<ItemPageProps> = () => {
 
                     const result = await item.equip();
                     console.log('non-oauth equip result', result);
-                    if (result) {
+                    if (result.error) {
+                        setItemStatus(id, 'unequipped');
+                        setActiveModal({
+                            name: 'equip-wizard',
+                            dialogueData: {
+                                title: result.error,
+                                text: '',
+                                // text: 'Skill issue equipping item!',
+                            },
+                        });
+                        return;
+                    } else if (result) {
                         // TODO api request to add item to their avatar (:DataProvider or :Resource?)
                         setItemStatus(id, 'equipped');
+                        return;
                     } else {
                         // assume failure
                         // if result.error = "transceive fail" try majik ritual again
                         setItemStatus(id, 'unequipped');
+                        return;
                     }
                 }
             } catch (e) {
@@ -211,11 +229,12 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         // TODO is that redundant if we set status to 'equipping' tho?
         console.log('item action button');
 
-        if (item?.status === 'unequipped' && item.equip && (!itemOauthConfig || request))
+        if (item?.status === 'unequipped')
             return (
                 <Button
                     title="Equip"
                     onPress={onItemEquipPress}
+                    disabled={!(item.equip && (!itemOauthConfig || request))}
                     style={[styles.activeItemStatusButton, styles.equipButton]}
                 />
             );
@@ -234,15 +253,6 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             return (
                 <Button
                     title="Equipped"
-                    disabled
-                    style={[styles.activeItemStatusButton, styles.unequipButton]}
-                />
-            );
-
-        if (item?.status === 'unequipped')
-            return (
-                <Button
-                    title="Equip"
                     disabled
                     style={[styles.activeItemStatusButton, styles.unequipButton]}
                 />
@@ -284,10 +294,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
         try {
             const result = await ability.do();
             console.log('App:Inv:Item:onAbilityPress:isSuccess?', result);
-            if (result) {
-                setActiveModal({ name: 'ability-complete' });
-            } else {
+            if (!result || result.error) {
                 setActiveModal({ name: 'ability-fail' });
+            } else {
+                setActiveModal({ name: 'ability-complete' });
             }
         } catch (e) {
             console.log('App:Inv:Item:onAbilityPress:fail');

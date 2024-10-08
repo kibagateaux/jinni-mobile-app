@@ -18,6 +18,10 @@ const IconForStatus = (status: ItemStatus) => {
             return <Text style={styles.text}>🫡 </Text>;
         case 'equipping':
             return <ActivityIndicator size="large" />;
+        case 'unequipping':
+            return <Text>🙅‍♀️</Text>;
+        case 'unequipped':
+            return <Text style={styles.text}> ☠️</Text>;
         default:
             return <Text style={styles.text}>Item Status: {status!}</Text>;
     }
@@ -32,16 +36,21 @@ const ItemEquipWizardModal = ({
     // console.log('get equip item modal content', status, dialogueData, item);
     // console.log('game item content', useGameContent(), useGameContent().inventory);
     const content = useGameContent().inventory[item?.id];
-    console.log('game item content', content);
+    console.log('game item content', status, content);
     if (!content) return null;
     if (!content[status]) return null;
     // console.log('game item content', content[status]);
 
     const titleTemplate = content[status].modal.title;
     const dialogueTemplate = content[status].modal.text;
-    const title = typeof titleTemplate === 'function' ? titleTemplate(dialogueData) : titleTemplate;
+    const title =
+        typeof titleTemplate === 'function'
+            ? titleTemplate(dialogueData)
+            : dialogueData.title ?? titleTemplate;
     const dialogue =
-        typeof dialogueTemplate === 'function' ? dialogueTemplate(dialogueData) : dialogueTemplate;
+        typeof dialogueTemplate === 'function'
+            ? dialogueTemplate(dialogueData)
+            : dialogueData.text ?? dialogueTemplate;
 
     // return null;
     return (

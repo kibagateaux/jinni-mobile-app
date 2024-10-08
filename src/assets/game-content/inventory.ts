@@ -21,6 +21,9 @@ export default {
                 text: `Over a great many battles you have won the honor to claim this item in your ether bag`,
             },
         },
+        unequipped: {
+            modal: {},
+        },
         'post-equip': {
             modal: {
                 title: 'Congrats on acquiring your new item!',
