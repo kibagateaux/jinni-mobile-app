@@ -296,12 +296,13 @@ const _getStorage = async (slot: string, useMysticCrypt?: boolean) => {
 };
 
 export const getCookie = (slot: string) => {
-    const allCookies = document.cookie.split(';');
+    const allCookies = document.cookie.split(';').map((s) => s.trim());
     const cookie = allCookies.find((c) => {
         const [name] = c.split('=');
         return name === slot;
     });
-    // console.log('all cookies + ;', allCookies, document.cookie);
+    // console.log('all cookies + ', allCookies);
+    // console.log('all cookies + ', cookie, cookie?.indexOf('='), cookie?.slice(cookie?.indexOf('=') + 1, cookie?.length));
     // offset cookie vale by name + = to extract full cookie value include uris including '='
     // @DEV this just returns value. mistmatch btw test env which returns metadata ;secure;expires 2026;strict
     return cookie ? cookie.slice(cookie?.indexOf('=') + 1, cookie.length) : null;
@@ -407,7 +408,7 @@ const _saveStorage = async (slot: string, val: string): Promise<void> => {
     const expirationDate = new Date(2100, 0, 1).toUTCString();
     switch (Platform.OS) {
         case 'web':
-            console.log('test _saveStorage', Platform.OS, document.cookie);
+            // console.log('test _saveStorage', Platform.OS, document.cookie);
             // Fully secured to this domain to prevent XSS/etc. attacks.
             document.cookie = `${slot}=${val};expires=${expirationDate};path=/;secure;samesite=strict`;
             return;

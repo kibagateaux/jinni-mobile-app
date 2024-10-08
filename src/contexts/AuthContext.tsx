@@ -64,6 +64,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
     useMemo(() => {
         console.log('AuthContext: set player id', player?.id);
+        getStorage(ID_PLAYER_SLOT).then((s) => console.log('AuthContext: fget player id', s));
         if (!player?.id) {
             getStorage<string>(ID_PLAYER_SLOT).then((id) => id && login(id));
             // magicRug();

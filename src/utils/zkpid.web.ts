@@ -87,11 +87,11 @@ export const signWithId = async (id: string | Identity): Promise<JubJubSigRespon
         if (result) return result;
         // TODO should return NFC error if exists? and no valid result
         // if(web.error) return result;
-        return web;
+        return web as Promise<JubJubSigResponse>;
     } catch (err) {
         console.warn('utils:zkpid:web signing error', err);
 
         debug(err, { tags: { hardware: true } });
-        return fallbackToWalletSignature(id);
+        return fallbackToWalletSignature(id) as Promise<JubJubSigResponse>;
     }
 };
