@@ -418,7 +418,7 @@ export const baseCircleValidity: SignatureValidityCheck<JoinCircleValidityArgs> 
 // jinniId can be null because we can fetch from backend based on jubmoji ID
 export const joinCircle =
     (userFlow: string, checkValidity?: SignatureValidityCheck<JoinCircleValidityArgs>) =>
-    async ({ playerId, jinniId }: JoinParams): Errorable<boolean> => {
+    async ({ playerId, jinniId }: JoinParams): Errorable<string> => {
         // final HoF return value
         console.log('utils:api:joinCircle:pid+jid params', playerId, jinniId);
         // TODO should have circle's jinni-id as param
@@ -497,6 +497,14 @@ export const joinCircle =
                 }
             }
 
+            // save locally. for ux onboaring purposes, we can try again if api call fails
+            // @DEV. needed before api call so that I can jumpstart "MasterDjinn" circle by activating myself
+            await saveStorage(
+                PROOF_MALIKS_MAJIK_SLOT,
+                { [result.etherAddress]: result.signature },
+                true,
+            );
+
             // const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
             // if (circles?.[result.etherAddress]) {
             //     const error = 'Already a member of this circle';
@@ -524,6 +532,24 @@ export const joinCircle =
 
             console.log('maliksmajik:join-circle:res', response);
 
+            const jid = response?.data?.jinni_join_circle;
+            if (!jid) {
+                const error =
+                    response.error ?? 'You have not earned the ability to create or join circle';
+                track(userFlow, {
+                    spell: userFlow,
+                    signature: result.signature.ether,
+                    summoner: result.etherAddress,
+                    response: JSON.stringify(response),
+                    circle: jinniId,
+                    messageToSign,
+                    activityType: 'api-error',
+                    error,
+                });
+                // return false;
+                return { error };
+            }
+
             if (!response || response?.error) {
                 const error = response.error ?? 'Could not save circle to game server';
                 track(userFlow, {
@@ -540,7 +566,6 @@ export const joinCircle =
                 return { error };
             }
 
-            const jid = response.data.jinni_join_circle;
             track(userFlow, {
                 spell: userFlow,
                 summoner: result.etherAddress,
@@ -549,15 +574,7 @@ export const joinCircle =
                 activityType: 'success',
             });
 
-            // save locally. for ux onboaring purposes, we can try again if api call fails
-            await saveStorage(
-                PROOF_MALIKS_MAJIK_SLOT,
-                { [result.etherAddress]: result.signature },
-                true,
-            );
-
-            const error = 'Could not parse the circles Jinni id';
-            return jid ? true : { error };
+            return jid;
         } catch (e) {
             console.log('Mani:Jinni:JoinCircle:ERROR --', e);
             // assume API error if wasnt early error form data valiation
