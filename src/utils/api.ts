@@ -433,7 +433,8 @@ export const joinCircle =
 
             if (!playerId) {
                 // throw new Error('No player ID to join circle');
-                return { error: 'No player ID to join circle' };
+                const error = 'No player ID to join circle';
+                return { error };
             }
 
             // TODO signWithID(playerId + jinni-id)
@@ -443,16 +444,16 @@ export const joinCircle =
             console.log('Inv:maliksmajik:join-circle:sig', messageToSign, result);
 
             if (!result || result.error) {
+                const error = result.error ?? 'Could not read card. Please try again';
                 track(userFlow, {
                     spell: userFlow,
                     messageToSign,
-                    error: result.error ?? '',
+                    error,
                     circle: jinniId,
                     activityType: 'circle-sig-failed',
                 });
-                // return false;
-                // return
-                return result ?? { error: 'Could not read card. Please try again' };
+
+                return result ?? { error };
             }
 
             const validityArgs: SignatureValidityParams<JoinCircleValidityArgs> = {
@@ -462,6 +463,7 @@ export const joinCircle =
 
             const baseCheck = await baseCircleValidity(validityArgs);
             if (!baseCheck.isValid) {
+                const error = baseCheck.message ?? 'Jubmoji card did not provide a valid signature';
                 track(userFlow, {
                     spell: userFlow,
                     jubmoji: result.etherAddress,
@@ -469,10 +471,10 @@ export const joinCircle =
                     circle: jinniId,
                     messageToSign,
                     activityType: 'invalid-circle-validity',
-                    error: baseCheck.message,
+                    error,
                 });
                 // return false;
-                return { error: 'Jubmoji card did not provide a valid signature' };
+                return { error };
             }
 
             // customized per flow checks e.g. master djinn before saving to API
@@ -480,6 +482,7 @@ export const joinCircle =
                 const { isValid, message: validityMsg } = await checkValidity(validityArgs);
                 console.log('is valid custom check ', isValid, validityMsg);
                 if (!isValid) {
+                    const error = validityMsg ?? 'Jubmoji card does not have special access';
                     track(userFlow, {
                         spell: userFlow,
                         jubmoji: result.etherAddress,
@@ -487,26 +490,28 @@ export const joinCircle =
                         messageToSign,
                         circle: jinniId,
                         activityType: 'invalid-flow-validity',
-                        error: validityMsg,
+                        error,
                     });
                     // return false;
-                    return { error: 'Jubmoji card does not have special access' };
+                    return { error };
                 }
             }
 
-            const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
-            if (circles?.[result.etherAddress]) {
-                track(userFlow, {
-                    spell: userFlow,
-                    signature: result.signature.ether,
-                    jubmoji: result.etherAddress,
-                    messageToSign,
-                    circle: jinniId,
-                    activityType: 'already-joined',
-                });
-                // return false;
-                return { error: 'Already a member of this circle' };
-            }
+            // const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
+            // if (circles?.[result.etherAddress]) {
+            //     const error = 'Already a member of this circle';
+            //     track(userFlow, {
+            //         spell: userFlow,
+            //         signature: result.signature.ether,
+            //         jubmoji: result.etherAddress,
+            //         messageToSign,
+            //         circle: jinniId,
+            //         activityType: 'already-joined',
+            //         error,
+            //     });
+            //     // return false;
+            //     return { error };
+            // }
 
             // also used to create circle. If no circle for card that signs then generates with current player as the owner
             const response = await qu<ApiResponse<{ jinni_join_circle: string }>>({
@@ -520,18 +525,29 @@ export const joinCircle =
             console.log('maliksmajik:join-circle:res', response);
 
             if (!response || response?.error) {
+                const error = response.error ?? 'Could not save circle to game server';
                 track(userFlow, {
                     spell: userFlow,
                     signature: result.signature.ether,
                     summoner: result.etherAddress,
+                    response: JSON.stringify(response),
                     circle: jinniId,
                     messageToSign,
                     activityType: 'api-error',
-                    error: response?.error,
+                    error,
                 });
                 // return false;
-                return { error: 'Could not save circle to game server' };
+                return { error };
             }
+
+            const jid = response.data.jinni_join_circle;
+            track(userFlow, {
+                spell: userFlow,
+                summoner: result.etherAddress,
+                response: JSON.stringify(response),
+                circle: jid,
+                activityType: 'success',
+            });
 
             // save locally. for ux onboaring purposes, we can try again if api call fails
             await saveStorage(
@@ -540,18 +556,18 @@ export const joinCircle =
                 true,
             );
 
-            const jid = response.data.jinni_join_circle;
-            track(userFlow, {
-                spell: userFlow,
-                summoner: result.etherAddress,
-                circle: jid,
-                activityType: 'success',
-            });
-
-            return jid ? true : { error: 'Could not parse the circles Jinni id' };
+            const error = 'Could not parse the circles Jinni id';
+            return jid ? true : { error };
         } catch (e) {
             console.log('Mani:Jinni:JoinCircle:ERROR --', e);
             // assume API error if wasnt early error form data valiation
-            return { error: 'Master Djinn could not accept you into circle right now' };
+            const error = 'Master Djinn could not accept you into circle right now';
+            track(userFlow, {
+                spell: userFlow,
+                circle: jinniId,
+                activityType: 'sign-flow-error',
+                error,
+            });
+            return { error };
         }
     };

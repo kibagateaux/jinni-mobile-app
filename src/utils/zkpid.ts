@@ -24,6 +24,10 @@ const defaultProvider = (): providers.Provider =>
 const connectProvider = (wallet: Wallet): Wallet => wallet.connect(defaultProvider());
 
 let spellbook: Wallet | undefined;
+export const deleteSpellbook = () => {
+    spellbook = undefined;
+};
+
 export const getSpellBook = memoize(async (): Promise<Wallet> => {
     if (spellbook) return spellbook;
     // TODO
@@ -33,6 +37,7 @@ export const getSpellBook = memoize(async (): Promise<Wallet> => {
     // }
 
     const pk = await getStorage(ID_PKEY_SLOT);
+    console.log('get existing pk', pk, spellbook);
     if (!pk) {
         // no spellbook yet. generate random seed and save to storage
         const newSpellbook = ethers.Wallet.createRandom();
@@ -89,21 +94,26 @@ export const _delete_id = async (idType: string): Promise<void> => {
     console.log(
         '\n\n\nZK: DELETING ID!!!! ONLY AVAILABKLE IN DEVELOPMENT!!!! ENSURE THIS IS INTENDED BEHAVIOUR!!!!!\n\n\n',
     );
-    if (!__DEV__) throw Error('CANNOT DELETE ZK IDs');
-    await saveStorage(idType, '');
+    // console.log("dev en", __DEV__, !__DEV__, getAppConfig().NODE_ENV )
+    // if (getAppConfig().NODE_ENV === 'production') throw new Error('CANNOT DELETE ZK IDs');
+    // if (process.env.NODE_ENV === 'production') throw new Error('CANNOT DELETE ZK IDs');
+    if (!__DEV__) throw new Error('CANNOT DELETE ZK IDs');
+    await saveStorage(idType, '', false);
 };
 
 export const magicRug = () => {
-    console.log('DELETING USER DATA FOR TESTING', __DEV__);
-    if (!__DEV__) throw Error('CANNOT DELETE ZK IDs');
+    // console.log('DELETING USER DATA FOR TESTING', __DEV__);
+    // if (getAppConfig().NODE_ENV === 'production') throw new Error('CANNOT DELETE ZK IDs');
+    // if (process.env.NODE_ENV === 'production') throw new Error('CANNOT DELETE ZK IDs');
+    if (!__DEV__) throw new Error('CANNOT DELETE ZK IDs');
     Promise.all([
-        saveStorage(ID_PLAYER_SLOT, '', false),
-        saveStorage(ID_PKEY_SLOT, '', false),
-        saveStorage(ID_JINNI_SLOT, '', false),
-        saveStorage(ID_ANON_SLOT, '', false),
+        _delete_id(ID_PLAYER_SLOT),
+        _delete_id(ID_PKEY_SLOT),
+        _delete_id(ID_JINNI_SLOT),
+        _delete_id(ID_ANON_SLOT),
 
-        saveStorage(PROOF_MALIKS_MAJIK_SLOT, '', false),
-        saveStorage(TRACK_ONBOARDING_STAGE, '', false),
+        _delete_id(PROOF_MALIKS_MAJIK_SLOT),
+        _delete_id(TRACK_ONBOARDING_STAGE),
     ]);
 };
 
