@@ -68,7 +68,8 @@ const unequip: HoF = async () => {
         return false;
     }
 };
-const getMaster = (proofs?: SummoningProofs) => {
+
+export const getMaster = (proofs?: SummoningProofs) => {
     const masterAddy = Object.keys(proofs ?? {}).find((addy) => MAJIK_CARDS.indexOf(addy) > -1);
     console.log('inv:maliks:getMaster', masterAddy);
     return masterAddy && proofs![masterAddy];

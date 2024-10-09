@@ -4,8 +4,16 @@
 // storage slot must start with 0x
 // unequip must delete storage slot
 
-import { getStorage, saveStorage, PROOF_MALIKS_MAJIK_SLOT, MALIKS_MAJIK_CARD } from 'utils/config';
-import maliksMajik from '../maliks-majik';
+import {
+    getStorage,
+    saveStorage,
+    PROOF_MALIKS_MAJIK_SLOT,
+    MALIKS_MAJIK_CARD,
+    MAJIK_CARDS,
+} from 'utils/config';
+import maliksMajik, { getMaster } from '../maliks-majik';
+import { JubjubSignature } from 'types/GameMechanics';
+import { includes } from 'lodash';
 
 describe('item inventory', () => {
     describe('Item Status', () => {
@@ -53,17 +61,64 @@ describe('item inventory', () => {
         });
     });
 
-    describe('equip', () => {
+    describe('getMaster', () => {
+        const fakeSig = (addy: string): JubjubSignature => ({
+            ether: addy,
+            der: '',
+            raw: { r: '', s: '', v: 28 },
+        });
+        const randomAdresses = [
+            '0x11359489281031',
+            ...MAJIK_CARDS,
+            '0x113513511',
+            '0x1212351351241',
+        ];
+        const allProofs = randomAdresses.reduce(
+            (agg, addy) => ({
+                ...agg,
+                [addy]: fakeSig(addy),
+            }),
+            {},
+        );
+
+        test('matches any master djin provided', () => {
+            randomAdresses.map((addy) => {
+                const sig = fakeSig(addy);
+                if (includes(MAJIK_CARDS, addy)) {
+                    expect(getMaster({ [addy]: sig })).toEqual(fakeSig(addy));
+                } else {
+                    expect(getMaster({ [addy]: sig })).toEqual(undefined);
+                }
+            });
+        });
+
+        test('matches  master djin when many sigs provided', () => {
+            expect(MAJIK_CARDS).toContain(getMaster(allProofs).ether);
+        });
+
+        test('order in MAJIK_CARDS determines ', () => {
+            const [malek] = MAJIK_CARDS;
+            expect(getMaster(allProofs)).toEqual(fakeSig(malek));
+            expect(getMaster(allProofs)).toEqual(fakeSig(malek));
+        });
+    });
+
+    describe('ability joinCircle()', () => {
         // returns error messages on invalid
         // returns error message if api returns no jid
+        // can basically proxy api test idc
         // returns
     });
 
-    describe('ability joinCircle', () => {
+    describe('equip()', () => {
         // only need two tests
-        // one prove equivalence of equip and joinCircle
+        // one prove equivalence of equip() and joinCircle()
         // one show any signer works for circle jubmoji. doesnt have to be master jinnn
     });
 
-    describe('ability activateJinni', () => {});
+    describe('ability activateJinni', () => {
+        // if no master djin returns X
+        // if no MAJIK_PROOFS by anyone
+        //
+    });
 });
