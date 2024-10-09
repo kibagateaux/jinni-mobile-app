@@ -429,8 +429,6 @@ export const joinCircle =
                 activityType: 'initiated',
             });
 
-            // const address = await getStorage<string>(ID_PLAYER_SLOT)
-
             if (!playerId) {
                 // throw new Error('No player ID to join circle');
                 const error = 'No player ID to join circle';
@@ -505,6 +503,7 @@ export const joinCircle =
                 true,
             );
 
+            // atm dont check if they have circle already before sending api call
             // const circles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
             // if (circles?.[result.etherAddress]) {
             //     const error = 'Already a member of this circle';

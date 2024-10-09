@@ -6,11 +6,10 @@ import {
     ID_JINNI_SLOT,
     PROOF_MALIKS_MAJIK_SLOT,
     ID_PKEY_SLOT,
-    MALIKS_MAJIK_CARD,
+    MAJIK_CARDS,
     saveMysticCrypt,
     saveStorage,
     getStorage,
-    MAJIK_CARDS,
 } from 'utils/config';
 
 import {
@@ -69,6 +68,11 @@ const unequip: HoF = async () => {
         return false;
     }
 };
+const getMaster = (proofs?: SummoningProofs) => {
+    const masterAddy = Object.keys(proofs ?? {}).find((addy) => MAJIK_CARDS.indexOf(addy) > -1);
+    console.log('inv:maliks:getMaster', masterAddy);
+    return masterAddy && proofs![masterAddy];
+};
 
 const item: InventoryItem = {
     id: ITEM_ID,
@@ -81,9 +85,10 @@ const item: InventoryItem = {
     ],
     checkStatus: async () => {
         const proofs = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
-        console.log('maliks majik check status', proofs);
+        console.log('maliks majik check status', proofs, getMaster(proofs));
 
-        if (proofs?.[MALIKS_MAJIK_CARD]) return 'equipped';
+        if (!proofs) return 'unequipped';
+        if (getMaster(proofs)) return 'equipped';
         return 'unequipped';
     },
     canEquip: async () => true,
@@ -107,7 +112,8 @@ const item: InventoryItem = {
 
                 const myCircles = await getStorage<SummoningProofs>(PROOF_MALIKS_MAJIK_SLOT);
                 // This means people can have Identity and contribute to communal jinn but not have personal jinn. Interesting
-                if (!myCircles?.[MALIKS_MAJIK_CARD]) return 'unequipped';
+                if (!myCircles) return 'unequipped';
+                if (!getMaster(myCircles)) return 'unequipped';
 
                 return 'ethereal';
             },
@@ -135,7 +141,8 @@ const item: InventoryItem = {
                         throw Error('You have not been jumped into any Jinni gangs yet');
                     }
 
-                    if (!myProof[MALIKS_MAJIK_CARD]) {
+                    const master = getMaster(myProof);
+                    if (!master) {
                         track(ABILITY_ACTIVATE_JINNI, {
                             spell: ABILITY_ACTIVATE_JINNI,
                             activityType: 'unequipped',
@@ -148,12 +155,12 @@ const item: InventoryItem = {
                     console.log('Mani:Jinni:ActivateJinn:proof', myProof);
                     console.log('Mani:Jinni:ActivateJinn:ID', myId);
                     const response = await qu({ mutation: MU_ACTIVATE_JINNI })({
-                        majik_msg: myProof[MALIKS_MAJIK_CARD].ether,
+                        majik_msg: master.ether,
                         player_id: myId,
                     });
 
                     console.log('Mani:Jinni:ActivateJinn:Response', response);
-                    const uuid = response?.data ? response.data.activate_jinni : null;
+                    const uuid = response?.data?.jinni_activate;
                     // server shouldnt allow multiple jinnis yet. Just in case dont overwrite existing uuid
                     const result = uuid && (await saveStorage<string>(ID_JINNI_SLOT, uuid, false));
                     console.log('Mani:Jinni:ActivateJinn:Result', result);
