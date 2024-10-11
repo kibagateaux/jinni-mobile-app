@@ -533,8 +533,7 @@ export const joinCircle =
 
             const jid = response?.data?.jinni_join_circle;
             if (!jid) {
-                const error =
-                    response.error ?? 'You have not earned the ability to create or join circle';
+                const error = 'You have not earned the ability to create or join circle';
                 track(userFlow, {
                     spell: userFlow,
                     signature: result.signature.ether,

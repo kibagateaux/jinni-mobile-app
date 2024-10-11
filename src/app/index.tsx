@@ -29,14 +29,15 @@ import ModalRenderer from 'components/modals';
 const HomeScreen = () => {
     const [widgetConfig, setWidgetConfig] = useState<WidgetConfig[]>([]);
     const [onboardingStage, setOnboardingStage] = useState<string>();
+    const [appReady, setAppReady] = useState<boolean>(false);
+
+    const { jid } = useActiveJinni();
+    const { player, isNPC, getSpellBook } = useAuth();
+    const { activeModal, setActiveModal } = useGameContent();
+    console.log('loading app....', player, appReady);
+    console.log('page:home:jid', jid);
 
     const { config: homeConfig, allJinniConfigs, save: saveHomeConfig } = useHomeConfig();
-    const { activeModal, setActiveModal } = useGameContent();
-    const { player, isNPC, getSpellBook } = useAuth();
-    const { jid, switchJinni } = useActiveJinni();
-
-    const [appReady, setAppReady] = useState<boolean>(false);
-    console.log('loading app....', player, appReady);
 
     useMemo(async () => {
         if (player) setAppReady(true);
@@ -63,14 +64,16 @@ const HomeScreen = () => {
         }
     }, [onboardingStage]);
 
-    const switchi = useCallback(
-        (e: unknown) => {
-            const selected = Object.entries(e).find(([, val]) => !!val);
-            if (selected) switchJinni(selected[0]); // use jid of first selected jinni
-            setActiveModal(undefined);
-        },
-        [switchJinni, setActiveModal],
-    );
+    // const switchi = useCallback(
+    // // const switchi =
+    //     (e: unknown) => {
+    //         const selected = Object.entries(e).find(([, val]) => !!val);
+    //         console.log("Switchi Jinni 🐉🌈", selected?.[0], selected)
+    //         // if (selected) switchJinni(selected[0]); // use jid of first selected jinni
+    //         setActiveModal(undefined);
+    //     },
+    //     [setActiveModal],
+    // );
 
     // console.log('Home:widgi', widgetConfig);
 
@@ -229,7 +232,7 @@ const HomeScreen = () => {
         );
         return (
             <>
-                <ModalRenderer options={options} onComplete={switchi} />
+                <ModalRenderer options={options} />
             </>
         );
     }

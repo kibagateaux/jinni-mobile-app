@@ -18,9 +18,12 @@ const getActiveConfig = (activeJid: string, configs: HomeConfigMap): HomeConfig 
 export const useHomeConfig = () => {
     const { player } = useAuth();
     const { jid } = useActiveJinni();
+    console.log('hooks:useHomeConfig:jid', jid);
+
     // const { loading: isLoadingNetwork } = useNetworkState();
     const [activeConfig, setHomeConfig] = useState<HomeConfig | null>(null);
     const [allJinniConfig, setAllConfigs] = useState<HomeConfigMap | null>(null);
+    console.log('hooks:useHomeConfig:allJinniConfigs', allJinniConfig);
 
     // TODO useCallback
     const save = async (updates: Partial<UpdateWidgetConfigParams>): Promise<HomeConfigMap> => {
@@ -30,6 +33,11 @@ export const useHomeConfig = () => {
                 'On config save must Merge or Provide existing widget config to ensure profile permannce',
             );
         }
+        console.log('useHomeConfig:save:newConfig', {
+            widgets: updates.widgets!,
+            jinniId: jid,
+            ...updates,
+        });
 
         const newConfig = await saveHomeConfig({
             widgets: updates.widgets!,
@@ -45,8 +53,11 @@ export const useHomeConfig = () => {
         // TODO figure out logic for when to pull config again once we get access to internet again
         // if(!isLoadingNetwork && useNetworkState().connection.isNoosphere && activeConfig.lastDiviTime > 5 days);
         if (!jid) return;
+        console.log('switching jinni id for hoem config', jid);
         if (allJinniConfig) {
-            setHomeConfig(getActiveConfig(jid, allJinniConfig));
+            const active = getActiveConfig(jid, allJinniConfig);
+            console.log('new hoem config', active);
+            setHomeConfig(active);
             return;
         }
 

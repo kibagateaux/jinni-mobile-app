@@ -131,7 +131,7 @@ const item: InventoryItem = {
                             spell: ABILITY_ACTIVATE_JINNI,
                             activityType: 'unauthenticated',
                         });
-                        throw Error('You need to create an magic ID first');
+                        return { error: 'You need to create an magic ID first' };
                     }
 
                     if (!myProof) {
@@ -139,7 +139,7 @@ const item: InventoryItem = {
                             spell: ABILITY_ACTIVATE_JINNI,
                             activityType: 'unequipped',
                         });
-                        throw Error('You have not been jumped into any Jinni gangs yet');
+                        return { error: 'You have not been jumped into any Jinni gangs yet' };
                     }
 
                     const master = getMaster(myProof);
@@ -148,9 +148,9 @@ const item: InventoryItem = {
                             spell: ABILITY_ACTIVATE_JINNI,
                             activityType: 'unequipped',
                         });
-                        throw Error(
-                            'You must to meet the Master Djinn before you can activate your jinni',
-                        );
+                        return {
+                            error: 'You must to meet the Master Djinn before you can activate your jinni',
+                        };
                     }
 
                     console.log('Mani:Jinni:ActivateJinn:proof', myProof);

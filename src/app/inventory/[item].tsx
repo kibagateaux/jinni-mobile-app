@@ -295,7 +295,10 @@ const ItemPage: React.FC<ItemPageProps> = () => {
             const result = await ability.do();
             console.log('App:Inv:Item:onAbilityPress:isSuccess?', result);
             if (!result || result.error) {
-                setActiveModal({ name: 'ability-fail' });
+                const customData = result.error
+                    ? { dialogueData: { title: result.error, text: '' } }
+                    : {};
+                setActiveModal({ name: 'ability-fail', ...customData });
             } else {
                 setActiveModal({ name: 'ability-complete' });
             }
