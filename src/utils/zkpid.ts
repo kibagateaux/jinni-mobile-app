@@ -14,6 +14,8 @@ import {
 } from './config';
 import { ethers, Wallet, providers } from 'ethers';
 import { memoize } from 'lodash';
+import { createProof } from './proving';
+createProof('asjfnaf');
 
 const defaultProvider = (): providers.Provider =>
     new ethers.providers.AlchemyProvider(
@@ -85,6 +87,22 @@ export const saveId = async (idType: string, id: Identity): Promise<void> => {
         console.log('Store Err: ', error);
     }
 };
+
+// example generating proofs with circom + snarkjs
+// const { groth16 } = require("snarkjs");
+// const verifySignature = async (message, signature, pubKey) => {
+//     const input = {
+//         message: message,
+//         signature: signature,
+//         pubKeyX: pubKey.x,
+//         pubKeyY: pubKey.y,
+//     };
+
+//     const { proof, publicSignals } = await groth16.fullProve(input, "circuit.wasm", "circuit_final.zkey");
+
+//     const isValid = publicSignals[0]; // Check validity from public signals
+//     return isValid;
+// }
 
 export const getId = memoize(
     async (idType: string): Promise<Identity | null> => (await getStorage(idType)) as Identity,

@@ -12,6 +12,12 @@
       "assets/*": [
         "assets/*"
       ],
+      "circuits": [
+        "circuits/"
+      ],
+      "circuits/*": [
+        "circuits/*"
+      ],
       "components": [
         "components/"
       ],
