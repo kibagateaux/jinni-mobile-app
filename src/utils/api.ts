@@ -534,7 +534,8 @@ export const joinCircle =
             const jid = response?.data?.jinni_join_circle;
             if (!jid) {
                 const error =
-                    response.error ?? 'You have not earned the ability to create or join circle';
+                    response.error ??
+                    'The Master Djinn could not let you join circle right now. Try again later...';
                 track(userFlow, {
                     spell: userFlow,
                     signature: result.signature.ether,
