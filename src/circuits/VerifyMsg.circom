@@ -1,4 +1,4 @@
-
+// https://github.com/cursive-team/babyjubjub-ecdsa/blob/main/packages/circuits/baby-jubjub-ecdsa/pubkey_membership.circom
 
 include "ecc.circom"; // Include elliptic curve functions
 

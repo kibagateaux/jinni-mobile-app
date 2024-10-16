@@ -388,7 +388,7 @@ export const getSummonMsg = (args: JoinParams) =>
 export const baseCircleValidity: SignatureValidityCheck<JoinCircleValidityArgs> = async (
     params,
 ) => {
-    console.log('Inv:maliksmajik:join-circle:base validity check: ', params);
+    console.log('Inv:util:api:join-circle:base validity check: ', params);
     if (!params.signature)
         return {
             isValid: false,
@@ -416,13 +416,11 @@ export const baseCircleValidity: SignatureValidityCheck<JoinCircleValidityArgs> 
 };
 
 // jinniId can be null because we can fetch from backend based on jubmoji ID
+// TODO circle's jinni-id as param for more player optionality
 export const joinCircle =
     (userFlow: string, checkValidity?: SignatureValidityCheck<JoinCircleValidityArgs>) =>
     async ({ playerId, jinniId }: JoinParams): Errorable<string> => {
-        // final HoF return value
         console.log('utils:api:joinCircle:pid+jid params', playerId, jinniId);
-        // TODO should have circle's jinni-id as param
-        // rn hack it by having each summoner only have 1 circle and handle proof -> jinn mapping on backend
         try {
             track(userFlow, {
                 spell: userFlow,
@@ -435,11 +433,10 @@ export const joinCircle =
                 return { error };
             }
 
-            // TODO signWithID(playerId + jinni-id)
             const messageToSign = getSummonMsg({ playerId, jinniId });
             const result = await signWithId(messageToSign);
 
-            console.log('Inv:maliksmajik:join-circle:sig', messageToSign, result);
+            console.log('util:api:join-circle:sig', messageToSign, result);
 
             if (!result || result.error) {
                 const error = result.error ?? 'Could not read card. Please try again';
@@ -529,7 +526,7 @@ export const joinCircle =
                 jinni_id: jinniId, // TODO only null on create circle
             });
 
-            console.log('maliksmajik:join-circle:res', response);
+            console.log('util:api:join-circle:res', response);
 
             const jid = response?.data?.jinni_join_circle;
             if (!jid) {
@@ -574,7 +571,7 @@ export const joinCircle =
 
             return jid;
         } catch (e) {
-            console.log('Mani:Jinni:JoinCircle:ERROR --', e);
+            console.log('util:api:join-circle:ERROR --', e);
             // assume API error if wasnt early error form data valiation
             const error = 'Master Djinn could not accept you into circle right now';
             track(userFlow, {

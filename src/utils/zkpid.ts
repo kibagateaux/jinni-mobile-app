@@ -14,8 +14,8 @@ import {
 } from './config';
 import { ethers, Wallet, providers } from 'ethers';
 import { memoize } from 'lodash';
-import { createProof } from './proving';
-createProof('asjfnaf');
+import './proving';
+// createProof('asjfnaf');
 
 const defaultProvider = (): providers.Provider =>
     new ethers.providers.AlchemyProvider(

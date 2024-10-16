@@ -1,5 +1,11 @@
-// jubmoji proving with their ecda lib
+// jubmoji proving with their ecda lib?
 // https://github.com/cursive-team/zk12/blob/main/src/lib/client/proving.ts
-//need to build circom circuits for us to prove here
+// https://github.com/cursive-team/babyjubjub-ecdsa
+// need to compile circom circuits in build and import to prove here
 
-// import circuit from 'circuits/target/circuits.json';
+import circuit from 'circuits/target/circuits.json';
+import circ from 'circomlbjs';
+import snark from 'snarkjs';
+
+console.log('zk libs', circ, snark);
+console.log('ZK Circuit', circuit);

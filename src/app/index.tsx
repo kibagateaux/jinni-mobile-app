@@ -265,7 +265,7 @@ const HomeScreen = () => {
                         )}
                     </View>
 
-                    <Button color="purple" title="Speak Intention" onPress={onIntentionPress} />
+                    <Button color="blue" title="Speak Intention" onPress={onIntentionPress} />
                 </View>
                 <WidgetContainer
                     widgets={widgetConfig}

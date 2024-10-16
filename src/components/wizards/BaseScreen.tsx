@@ -38,11 +38,11 @@ const BaseWizardScreen = ({
             <View style={styles.buttonContainer}>
                 <Button
                     title="Back"
-                    color="purple"
+                    color="blue"
                     onPress={onBack}
                     disabled={step > 0 ? false : true}
                 />
-                <Button title="Next" color="purple" onPress={onNext} />
+                <Button title="Next" color="blue" onPress={onNext} />
             </View>
         </View>
     );

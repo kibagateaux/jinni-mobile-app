@@ -60,7 +60,7 @@ const BaseModal: React.FC<ModalProps> = ({
                         {secondaryButton &&
                             renderButton(secondaryButton, theme.secondaryBackgroundColor)}
                     </View>
-                    <Button title="Close" color="purple" onPress={closeModal} />
+                    <Button title="Close" color="blue" onPress={closeModal} />
                 </View>
             </View>
         </Modal>

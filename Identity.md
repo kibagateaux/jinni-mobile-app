@@ -7,3 +7,11 @@ https://github.com/project-vinyl/nfctap.xyz/blob/b63fefa66be593a1d8c19edadad5c56
 https://github.com/project-vinyl/nfctap.xyz/blob/b63fefa66be593a1d8c19edadad5c567654ab3eb/lib/zkProving.ts#L39
 
 ### Proof Verification References
+
+## Libs
+### circom
+Library of circuits/proofs
+
+### circomlbjs
+Has libs for babyjub, ecdsa, posiedon, and other
+ 
