@@ -13,6 +13,8 @@
     "start": "APP_VARIANT=development npx expo start --dev-client --android -d",
     "install:android": "source .env && npx eas build --local --platform android -e $APP_VARIANT --output app.apk; adb install ./app.apk",
     "ios": "expo run:ios",
+    "zkcompile": "circom ./src/circuits/thing.circom --verbose --r1cs --wasm --sym --json -l node_modules",
+    "post:zkcompile": "cd ./src/circuits/; node generate_witness.js circles.wasm circles.json witness.wtns",
     "lint:dry": "eslint ./src/ .eslintrc.js --ext .ts,.tsx && prettier ./src/ --config .prettierrc --check",
     "lint:fix": "eslint ./src/ --fix .eslintrc.js --ext .ts,.tsx && prettier ./src/ --config .prettierrc --write --ignore-unknown"
   },
@@ -31,6 +33,9 @@
     "@semaphore-protocol/proof": "^3.11.1",
     "@sentry/react-native": "~5.22.0",
     "@types/lodash": "^4.14.202",
+    "@zk-email/circuits": "^6.1.6",
+    "@zk-email/contracts": "^6.1.6",
+    "@zk-email/helpers": "^6.1.11",
     "axios": "^1.5.1",
     "base-64": "^1.0.0",
     "circomlib": "^2.0.5",

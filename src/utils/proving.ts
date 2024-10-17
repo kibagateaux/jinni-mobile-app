@@ -9,3 +9,7 @@ import snark from 'snarkjs';
 
 console.log('zk libs', circ, snark);
 console.log('ZK Circuit', circuit);
+
+// ZK email
+// feature - proving food orders e.g. groceries or delivery or irl
+//

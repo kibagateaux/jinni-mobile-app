@@ -19,6 +19,10 @@ ios/
 *.p12
 *.key
 *.mobileprovision
+
+# typescript
+circuits/
+!circuits/*.circom
  
 # Metro
 .metro-health-check*
