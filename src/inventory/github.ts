@@ -22,7 +22,7 @@ const equip = _equip(ITEM_ID);
 const unequip = _unequip(ITEM_ID);
 const item: InventoryItem = {
     id: ITEM_ID,
-    name: 'Octopus Brains',
+    name: ITEM_ID,
     dataProvider: ITEM_ID,
     image: 'https://pngimg.com/uploads/github/github_PNG90.png',
     tags: ['digital', 'productivity'],

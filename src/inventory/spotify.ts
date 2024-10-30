@@ -33,7 +33,7 @@ const unequip = _unequip(ITEM_ID);
 
 const item: InventoryItem = {
     id: ITEM_ID,
-    name: "Horn o' Vibranium",
+    name: ITEM_ID,
     dataProvider: ITEM_ID,
     image: 'https://w7.pngwing.com/pngs/420/432/png-transparent-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-logo-thumbnail.png',
     tags: ['digital', 'music', 'social'],

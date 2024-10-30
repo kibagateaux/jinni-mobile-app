@@ -107,7 +107,7 @@ const ItemPage: React.FC<ItemPageProps> = () => {
                 });
             }
         }
-    }, [item]);
+    }, [item?.id]);
 
     // console.log('Item: status & modal', status, activeModal);
 

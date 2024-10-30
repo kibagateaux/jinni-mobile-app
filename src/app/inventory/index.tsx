@@ -7,12 +7,14 @@ import { useInventory } from 'hooks';
 
 import { Card } from 'components';
 import { InventoryItem } from 'types/GameMechanics';
+import { useGameContent } from 'contexts';
 
 const InventoryScreen: React.FC = () => {
     const { inventory, loading } = useInventory();
     const [categorizedInventory, setCategories] = useState<
         { title: string; data: InventoryItem[] }[]
     >([]);
+    const { inventory: content } = useGameContent();
 
     useMemo(async () => {
         if (inventory.length) {
@@ -55,16 +57,21 @@ const InventoryScreen: React.FC = () => {
             <Text style={styles.inventoryHeader}>{title.toUpperCase()}</Text>
         );
 
-    return loading ? (
-        <ActivityIndicator animating size="large" />
-    ) : (
-        <SectionList
-            style={styles.container}
-            sections={categorizedInventory}
-            ItemSeparatorComponent={() => <View style={styles.itemSeperator} />}
-            renderSectionHeader={renderCategoryHeader}
-            renderItem={({ item }) => renderItem({ item })}
-        />
+    return (
+        <>
+            <Text style={styles.pageDescription}>{content?.index?.meta?.description}</Text>
+            {loading ? (
+                <ActivityIndicator animating size="large" />
+            ) : (
+                <SectionList
+                    style={styles.container}
+                    sections={categorizedInventory}
+                    ItemSeparatorComponent={() => <View style={styles.itemSeperator} />}
+                    renderSectionHeader={renderCategoryHeader}
+                    renderItem={({ item }) => renderItem({ item })}
+                />
+            )}
+        </>
     );
 };
 
@@ -73,6 +80,15 @@ const styles = StyleSheet.create({
         backgroundColor: 'pink',
         flex: 1,
         width: '100%',
+    },
+    pageDescription: {
+        backgroundColor: 'pink',
+        fontSize: 18,
+        padding: 10,
+        // fontWeight: 'bold',
+        // marginTop: 18,
+        // marginBottom: 18,
+        // marginLeft: 10, // same as list
     },
     inventoryHeader: {
         fontSize: 24,

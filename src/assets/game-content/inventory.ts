@@ -1,4 +1,11 @@
 export default {
+    index: {
+        // when displaying all items
+        meta: {
+            description:
+                'Equip items to feed data to your jinni, help it evolve in different ways faster, and get personalized mini-games',
+        },
+    },
     MaliksMajik: {
         meta: {
             description:

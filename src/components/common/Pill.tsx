@@ -20,12 +20,12 @@ const styles = StyleSheet.create({
     sm: {
         padding: 7,
         height: 35,
-        width: 70,
+        maxWidth: 126,
     },
     md: {
         padding: 25,
         height: 70,
-        width: 140,
+        maxWidth: 252,
     },
     pill: {
         textAlign: 'center',
