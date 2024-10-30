@@ -11,6 +11,7 @@ https://github.com/project-vinyl/nfctap.xyz/blob/b63fefa66be593a1d8c19edadad5c56
 ## Libs
 ### circom
 Library of circuits/proofs
+Generates .wtns and .wasm files for us to compute new proofs 
 
 ### circomlbjs
 Has libs for babyjub, ecdsa, posiedon, and other
